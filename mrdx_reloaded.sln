@@ -15,7 +15,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Base.ExtractDataBin", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Base.ExtractDataBin.Interface", "MRDX.Base.ExtractDataBin.Interface\MRDX.Base.ExtractDataBin.Interface.csproj", "{AA2C9329-8684-47DB-9624-78782E9A52A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Base.HardMode", "MRDX.Base.HardMode\MRDX.Base.HardMode.csproj", "{491289BE-3716-4E8D-BFF9-8D69950FCE30}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Game.HardMode", "MRDX.Game.HardMode\MRDX.Game.HardMode.csproj", "{491289BE-3716-4E8D-BFF9-8D69950FCE30}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Base.Mod.Interfaces", "MRDX.Base.Mod.Interfaces\MRDX.Base.Mod.Interfaces.csproj", "{498B7846-A086-43F7-B32D-21F88269A395}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Base.Mod", "MRDX.Base.Mod\MRDX.Base.Mod.csproj", "{75E075CE-93BF-4CBB-8A11-ED3007C4E202}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +55,14 @@ Global
 		{491289BE-3716-4E8D-BFF9-8D69950FCE30}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{491289BE-3716-4E8D-BFF9-8D69950FCE30}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{491289BE-3716-4E8D-BFF9-8D69950FCE30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{498B7846-A086-43F7-B32D-21F88269A395}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{498B7846-A086-43F7-B32D-21F88269A395}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{498B7846-A086-43F7-B32D-21F88269A395}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{498B7846-A086-43F7-B32D-21F88269A395}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75E075CE-93BF-4CBB-8A11-ED3007C4E202}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75E075CE-93BF-4CBB-8A11-ED3007C4E202}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75E075CE-93BF-4CBB-8A11-ED3007C4E202}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75E075CE-93BF-4CBB-8A11-ED3007C4E202}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

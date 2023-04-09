@@ -14,7 +14,9 @@
   "ReleaseMetadataFileName": "MRDX.Base.ExtractDataBin.ReleaseMetadata.json",
   "PluginData": {},
   "IsUniversalMod": false,
-  "ModDependencies": [ "reloaded.sharedlib.hooks" ],
+  "ModDependencies": [
+    "reloaded.sharedlib.hooks"
+  ],
   "OptionalDependencies": [],
   "SupportedAppId": [],
   "ProjectUrl": "https://github.com/jroweboy/mrdx_reloaded"

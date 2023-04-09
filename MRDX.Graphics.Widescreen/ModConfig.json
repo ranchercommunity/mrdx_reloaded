@@ -2,7 +2,7 @@
   "ModId": "MRDX.Graphics.Widescreen",
   "ModName": "Widescreen",
   "ModAuthor": "fadillzzz",
-  "ModVersion": "1.0.1",
+  "ModVersion": "1.1.0",
   "ModDescription": "Changes the render window to draw in widescreen",
   "ModDll": "MRDX.Graphics.Widescreen.dll",
   "ModIcon": "Preview.png",
@@ -29,7 +29,7 @@
   "IsUniversalMod": false,
   "ModDependencies": [
     "reloaded.sharedlib.hooks",
-    "Reloaded.Memory.SigScan.ReloadedII"
+    "MRDX.Base.Mod"
   ],
   "OptionalDependencies": [],
   "SupportedAppId": [

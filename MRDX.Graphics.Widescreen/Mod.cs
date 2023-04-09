@@ -1,65 +1,55 @@
 ﻿using System.Diagnostics;
-using System.Drawing;
 using System.Runtime.InteropServices;
+using MRDX.Base.Mod.Interfaces;
 using MRDX.Graphics.Widescreen.Template;
 using Reloaded.Hooks.Definitions;
-using Reloaded.Hooks.Definitions.X86;
-using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
-using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 
 namespace MRDX.Graphics.Widescreen;
 
 /// <summary>
-/// Your mod logic goes here.
+///     Your mod logic goes here.
 /// </summary>
 public class Mod : ModBase // <= Do not Remove.
 {
     /// <summary>
-    /// Provides access to the mod loader API.
+    ///     Provides access to the Reloaded logger.
     /// </summary>
-    private readonly IModLoader _modLoader;
+    private static ILogger _logger = null!;
 
     /// <summary>
-    /// Provides access to the Reloaded.Hooks API.
+    ///     Provides access to the Reloaded.Hooks API.
     /// </summary>
     /// <remarks>This is null if you remove dependency on Reloaded.SharedLib.Hooks in your mod.</remarks>
     private readonly IReloadedHooks? _hooks;
 
     /// <summary>
-    /// Provides access to the Reloaded logger.
+    ///     The configuration of the currently executing mod.
     /// </summary>
-    private static ILogger _logger = null!;
+    private readonly IModConfig _modConfig;
 
     /// <summary>
-    /// Entry point into the mod, instance that created this class.
+    ///     Provides access to the mod loader API.
+    /// </summary>
+    private readonly IModLoader _modLoader;
+
+    /// <summary>
+    ///     Entry point into the mod, instance that created this class.
     /// </summary>
     private readonly IMod _owner;
 
     /// <summary>
-    /// Provides access to this mod's configuration.
+    ///     Provides access to this mod's configuration.
     /// </summary>
     private Config _configuration;
 
-    /// <summary>
-    /// The configuration of the currently executing mod.
-    /// </summary>
-    private readonly IModConfig _modConfig;
+    private IHook<CreateOverlay>? _createOverlayHook;
 
-    private const uint Mr2RenderHeightOffset = 0x165C93;
-    private const uint Mr2RenderWidthOffset = 0x165C9A;
-    
-    // private const uint Mr2ViewportHeightOffset = 0x1684F5;
-    // private const uint Mr2ViewportInverseWidthOffset = 0x1684FC;
 
-    private const uint Mr2ViewportOffset = 0x1684E5; // (Off[23] = 2/w, Off[16] = -2/h, Off[8] = -w/2, Off[0] = -h/2)
-
-    private readonly long _mr2RenderWidthAddr;
-    private readonly long _mr2ViewportAddr;
-    private Memory _memory = Memory.Instance;
-
-    private static IHook<CreateOverlay>? _createOverlayHook;
+    private readonly WeakReference<IGameClient> _gameClient;
+    // private IHook<SetUniform>? _setUniformHook;
+    // private IHook<RenderFrameCall>? _renderFrameCallHook;
 
     public Mod(ModContext context)
     {
@@ -70,18 +60,23 @@ public class Mod : ModBase // <= Do not Remove.
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
+        _gameClient = _modLoader.GetController<IGameClient>();
 
-        var thisProcess = Process.GetCurrentProcess();
-        var baseAddress = thisProcess.MainModule!.BaseAddress;
-        _mr2RenderWidthAddr = baseAddress + Mr2RenderWidthOffset;
-        _mr2ViewportAddr = baseAddress + Mr2ViewportOffset;
-
+        _modLoader.GetController<IHooks>().TryGetTarget(out var hooks);
+        hooks!.AddHook<CreateOverlay>(CreateOverlayHook)
+            .ContinueWith(result => _createOverlayHook = result.Result?.Activate());
         UpdateWindowBounds(_configuration.AspectRatio);
-        
-        _modLoader.GetController<IStartupScanner>().TryGetTarget(out var startupScanner);
-        startupScanner?.AddMainModuleScan(CreateOverlaySignature, 
-            result => _createOverlayHook = _hooks!.CreateHook<CreateOverlay>(CreateOverlayHook, (long)baseAddress + result.Offset).Activate());
     }
+
+    #region For Exports, Serialization etc.
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    public Mod()
+    {
+    }
+#pragma warning restore CS8618
+
+    #endregion
 
     private float CalculateNewWidth(float width, Config.AspectRatioEnum ratio)
     {
@@ -89,18 +84,17 @@ public class Mod : ModBase // <= Do not Remove.
         var newAspectRatio = ConvertAspectRatio(ratio);
         return width * newAspectRatio / originalAspectRatio;
     }
-    
+
     private void UpdateWindowBounds(Config.AspectRatioEnum ratio)
     {
         const float originalWidth = 320.0f;
         var newWidth = CalculateNewWidth(originalWidth, ratio);
-        _memory.SafeWrite(_mr2RenderWidthAddr, newWidth);
-        // setting this widens the screen to the window size
-        _memory.SafeWrite(_mr2ViewportAddr + 23, 2.0f / newWidth);
-        // Other width offset - setting this shifts the screen all the way to the left
-        // _memory.SafeWrite(_mr2ViewportAddr + 8, newWidth / -2.0f);
+        _gameClient.TryGetTarget(out var gameClient);
+
+        gameClient!.RenderBounds.Width = newWidth;
+        gameClient.RenderScaleUniform.WidthScale = newWidth;
     }
-    
+
     private static float ConvertAspectRatio(Config.AspectRatioEnum val)
     {
         switch (val)
@@ -124,41 +118,39 @@ public class Mod : ModBase // <= Do not Remove.
         return (float)(rect.Right - rect.Left) / (rect.Bottom - rect.Top);
     }
 
-    private enum OverlayDrawMode
-    {
-        Unknown0 = 0,
-        MainMode = 1,
-        Unknown2 = 2,
-        Unknown3 = 3,
-        Unknown4 = 4,
-        NoOverlay = 5,
-    }
-    private static nint CreateOverlayHook(nint self, OverlayDrawMode drawMode)
+    private nint CreateOverlayHook(nint self, OverlayDrawMode drawMode)
     {
         _logger!.WriteLine($"[] original drawmode value: {(uint)drawMode}");
         return _createOverlayHook!.OriginalFunction(self, OverlayDrawMode.NoOverlay);
     }
 
-    private const string CreateOverlaySignature = "55 8B EC 8B 45 ?? 53 8B D9 89 83 ?? ?? ?? ??";
+    // TODO figure out how the game generates the HUD and background to move/rescale those independently
+    // private static OpenTK.Graphics.ProgramHandle? _glProgram;
+    // private static int _glUniformLocation = -1;
 
-    [Function(CallingConventions.MicrosoftThiscall)]
-    private delegate nint CreateOverlay([In] nint self, [In] OverlayDrawMode unkEnum);
-    
-    
+    // private void SetUniformHook(nint self)
+    // {
+    //     // First call the original uniform writing function
+    //     _setUniformHook!.OriginalFunction(self);
+    //     // Then use some GL commands to get the program and uniform location if we don't have them already
+    //     if (_glProgram != null && _glUniformLocation != -1) return;
+    //     
+    //     var glProgramId = -1;
+    //     OpenTK.Graphics.OpenGL.GL.GetInteger(OpenTK.Graphics.OpenGL.GetPName.CurrentProgram, ref glProgramId);
+    //     _glProgram = new OpenTK.Graphics.ProgramHandle(glProgramId);
+    //     _glUniformLocation = OpenTK.Graphics.OpenGL.GL.GetUniformLocation(_glProgram.Value, "u_screen");
+    // }
+    //
+    // private void RenderFrameCallHook(nint self)
+    // {
+    //     _renderFrameCallHook!.OriginalFunction(self);
+    // }
+
     // TODO: Use this stuff to autodetect the player window size?
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    static extern bool GetWindowRect([In] nint hWnd, [Out] out RECT lpRect);
-    
-    [StructLayout(LayoutKind.Sequential)]
-    public struct RECT
-    {
-        public int Left;        // x position of upper-left corner
-        public int Top;         // y position of upper-left corner
-        public int Right;       // x position of lower-right corner
-        public int Bottom;      // y position of lower-right corner
-    }
-    
+    private static extern bool GetWindowRect([In] nint hWnd, [Out] out RECT lpRect);
+
     #region Standard Overrides
 
     public override void ConfigurationUpdated(Config configuration)
@@ -170,13 +162,12 @@ public class Mod : ModBase // <= Do not Remove.
 
     #endregion
 
-    #region For Exports, Serialization etc.
-
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    public Mod()
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT
     {
+        public int Left; // x position of upper-left corner
+        public int Top; // y position of upper-left corner
+        public int Right; // x position of lower-right corner
+        public int Bottom; // y position of lower-right corner
     }
-#pragma warning restore CS8618
-
-    #endregion
 }

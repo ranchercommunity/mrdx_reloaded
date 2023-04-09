@@ -2,7 +2,7 @@
   "ModId": "MRDX.Qol.FastForward",
   "ModName": "Fast Forward",
   "ModAuthor": "fadillzzz",
-  "ModVersion": "1.0.0",
+  "ModVersion": "1.1.0",
   "ModDescription": "Enables easy fast forwarding with the press of a button",
   "ModDll": "MRDX.Qol.FastForward.dll",
   "ModIcon": "Preview.png",
@@ -16,7 +16,8 @@
   "IsUniversalMod": false,
   "ModDependencies": [
     "Reloaded.Memory.SigScan.ReloadedII",
-    "reloaded.sharedlib.hooks"
+    "reloaded.sharedlib.hooks",
+    "MRDX.Base.Mod"
   ],
   "OptionalDependencies": [],
   "SupportedAppId": [

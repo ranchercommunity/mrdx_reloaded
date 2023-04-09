@@ -1,25 +1,28 @@
-﻿
-
-namespace MRDX.Base.ExtractDataBin.Template
+﻿namespace MRDX.Base.ExtractDataBin.Template
 {
-    
     /// <summary>
-    /// Base class for implementing mod functionality.
+    ///     Base class for implementing mod functionality.
     /// </summary>
     public class ModBase
     {
         /// <summary>
-        /// Returns true if the suspend functionality is supported, else false.
+        ///     Returns true if the suspend functionality is supported, else false.
         /// </summary>
-        public virtual bool CanSuspend() => false;
+        public virtual bool CanSuspend()
+        {
+            return false;
+        }
 
         /// <summary>
-        /// Returns true if the unload functionality is supported, else false.
+        ///     Returns true if the unload functionality is supported, else false.
         /// </summary>
-        public virtual bool CanUnload() => false;
+        public virtual bool CanUnload()
+        {
+            return false;
+        }
 
         /// <summary>
-        /// Suspends your mod, i.e. mod stops performing its functionality but is not unloaded.
+        ///     Suspends your mod, i.e. mod stops performing its functionality but is not unloaded.
         /// </summary>
         public virtual void Suspend()
         {
@@ -31,7 +34,7 @@ namespace MRDX.Base.ExtractDataBin.Template
         }
 
         /// <summary>
-        /// Unloads your mod, i.e. mod stops performing its functionality but is not unloaded.
+        ///     Unloads your mod, i.e. mod stops performing its functionality but is not unloaded.
         /// </summary>
         /// <remarks>In most cases, calling suspend here is sufficient.</remarks>
         public virtual void Unload()
@@ -44,14 +47,14 @@ namespace MRDX.Base.ExtractDataBin.Template
         }
 
         /// <summary>
-        /// Automatically called by the mod loader when the mod is about to be unloaded.
+        ///     Automatically called by the mod loader when the mod is about to be unloaded.
         /// </summary>
         public virtual void Disposing()
         {
         }
 
         /// <summary>
-        /// Automatically called by the mod loader when the mod is about to be unloaded.
+        ///     Automatically called by the mod loader when the mod is about to be unloaded.
         /// </summary>
         public virtual void Resume()
         {

@@ -1,56 +1,67 @@
-﻿using Reloaded.Mod.Interfaces;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Graphics.Widescreen.Template.Configuration;
 
 public class Configurable<TParentType> : IUpdatableConfigurable where TParentType : Configurable<TParentType>, new()
 {
+    /// <summary>
+    ///     Safety lock for when changed event gets raised twice on file save.
+    /// </summary>
+    [Browsable(false)] private static readonly object _readLock = new();
+
+    /* Construction */
+
     // Default Serialization Options
-    public static JsonSerializerOptions SerializerOptions { get; } = new JsonSerializerOptions()
+    public static JsonSerializerOptions SerializerOptions { get; } = new()
     {
         Converters = { new JsonStringEnumConverter() },
         WriteIndented = true
     };
 
-    /* Events */
-
-    /// <summary>
-    /// Automatically executed when the external configuration file is updated.
-    /// Passes a new instance of the configuration as parameter.
-    /// Inside your event handler, replace the variable storing the configuration with the new one.
-    /// </summary>
-    [Browsable(false)]
-    public event Action<IUpdatableConfigurable>? ConfigurationUpdated;
-
     /* Class Properties */
 
     /// <summary>
-    /// Full path to the configuration file.
+    ///     Full path to the configuration file.
     /// </summary>
     [JsonIgnore]
     [Browsable(false)]
     public string? FilePath { get; private set; }
 
     /// <summary>
-    /// The name of the configuration file.
-    /// </summary>
-    [JsonIgnore]
-    [Browsable(false)]
-    public string? ConfigName { get; private set; }
-
-    /// <summary>
-    /// Receives events on whenever the file is actively changed or updated.
+    ///     Receives events on whenever the file is actively changed or updated.
     /// </summary>
     [JsonIgnore]
     [Browsable(false)]
     private FileSystemWatcher? ConfigWatcher { get; set; }
 
-    /* Construction */
-    public Configurable()
-    {
-    }
+    /* Events */
+
+    /// <summary>
+    ///     Automatically executed when the external configuration file is updated.
+    ///     Passes a new instance of the configuration as parameter.
+    ///     Inside your event handler, replace the variable storing the configuration with the new one.
+    /// </summary>
+    [Browsable(false)]
+    public event Action<IUpdatableConfigurable>? ConfigurationUpdated;
+
+    /// <summary>
+    ///     The name of the configuration file.
+    /// </summary>
+    [JsonIgnore]
+    [Browsable(false)]
+    public string? ConfigName { get; private set; }
+
+    /* Load/Save support. */
+
+    /// <summary>
+    ///     Saves the configuration to the hard disk.
+    /// </summary>
+    [JsonIgnore]
+    [Browsable(false)]
+    public Action? Save { get; private set; }
 
     private void Initialize(string filePath, string configName)
     {
@@ -70,32 +81,21 @@ public class Configurable<TParentType> : IUpdatableConfigurable where TParentTyp
         ConfigurationUpdated = null;
     }
 
-    /* Load/Save support. */
-
     /// <summary>
-    /// Saves the configuration to the hard disk.
-    /// </summary>
-    [JsonIgnore]
-    [Browsable(false)]
-    public Action? Save { get; private set; }
-
-    /// <summary>
-    /// Safety lock for when changed event gets raised twice on file save.
-    /// </summary>
-    [Browsable(false)] private static object _readLock = new object();
-
-    /// <summary>
-    /// Loads a specified configuration from the hard disk, or creates a default if it does not exist.
+    ///     Loads a specified configuration from the hard disk, or creates a default if it does not exist.
     /// </summary>
     /// <param name="filePath">The full file path of the config.</param>
     /// <param name="configName">The name of the configuration.</param>
-    public static TParentType FromFile(string filePath, string configName) => ReadFrom(filePath, configName);
+    public static TParentType FromFile(string filePath, string configName)
+    {
+        return ReadFrom(filePath, configName);
+    }
 
     /* Event */
 
     /// <summary>
-    /// Creates a <see cref="FileSystemWatcher"/> that will automatically raise an
-    /// <see cref="OnConfigurationUpdated"/> event when the config file is changed.
+    ///     Creates a <see cref="FileSystemWatcher" /> that will automatically raise an
+    ///     <see cref="OnConfigurationUpdated" /> event when the config file is changed.
     /// </summary>
     /// <returns></returns>
     private void MakeConfigWatcher()
@@ -106,7 +106,7 @@ public class Configurable<TParentType> : IUpdatableConfigurable where TParentTyp
     }
 
     /// <summary>
-    /// Reloads the configuration from the hard disk and raises the updated event.
+    ///     Reloads the configuration from the hard disk and raises the updated event.
     /// </summary>
     private void OnConfigurationUpdated()
     {

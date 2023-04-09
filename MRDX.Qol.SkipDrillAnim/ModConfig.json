@@ -2,7 +2,7 @@
   "ModId": "MRDX.Qol.SkipDrillAnim",
   "ModName": "Skip Drill Animation",
   "ModAuthor": "fadillzzz",
-  "ModVersion": "1.0.1",
+  "ModVersion": "1.1.0",
   "ModDescription": "Skip drill animation in MR2DX",
   "ModDll": "MRDX.Qol.SkipDrillAnim.dll",
   "ModIcon": "Preview.png",
@@ -25,8 +25,8 @@
   },
   "IsUniversalMod": false,
   "ModDependencies": [
-    "Reloaded.Memory.SigScan.ReloadedII",
-    "reloaded.sharedlib.hooks"
+    "reloaded.sharedlib.hooks",
+    "MRDX.Base.Mod"
   ],
   "OptionalDependencies": [],
   "SupportedAppId": [

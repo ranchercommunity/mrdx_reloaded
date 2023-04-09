@@ -3,13 +3,13 @@
 namespace MRDX.Graphics.Widescreen.Template.Configuration;
 
 /// <summary>
-/// Creates the various different configurations used by the mod.
-/// These configurations are available in the dropdown in Reloaded launcher. 
+///     Creates the various different configurations used by the mod.
+///     These configurations are available in the dropdown in Reloaded launcher.
 /// </summary>
 public class ConfiguratorMixinBase
 {
     /// <summary>
-    /// Defines the configuration items to create.
+    ///     Defines the configuration items to create.
     /// </summary>
     /// <param name="configFolder">Folder storing the configuration.</param>
     public virtual IUpdatableConfigurable[] MakeConfigurations(string configFolder)
@@ -22,8 +22,8 @@ public class ConfiguratorMixinBase
     }
 
     /// <summary>
-    /// Allows for custom launcher/configurator implementation.
-    /// If you have your own configuration program/code, run that code here and return true, else return false.
+    ///     Allows for custom launcher/configurator implementation.
+    ///     If you have your own configuration program/code, run that code here and return true, else return false.
     /// </summary>
     public virtual bool TryRunCustomConfiguration(Configurator configurator)
     {
@@ -33,7 +33,7 @@ public class ConfiguratorMixinBase
     #region Config Migration (Must implement if coming from old mod template with config in mod folder)
 
     /// <summary>
-    /// Migrates from the old config location (usually mod folder) to the newer config location (separate folder).
+    ///     Migrates from the old config location (usually mod folder) to the newer config location (separate folder).
     /// </summary>
     /// <param name="oldDirectory">Old directory containing the mod configs.</param>
     /// <param name="newDirectory">New directory pointing to user config folder.</param>

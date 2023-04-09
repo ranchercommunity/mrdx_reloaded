@@ -12,10 +12,10 @@ public class Utilities
     public static T TryGetValue<T>(Func<T> getValue, int timeout, int sleepTime, CancellationToken token = default)
         where T : new()
     {
-        Stopwatch watch = new Stopwatch();
+        var watch = new Stopwatch();
         watch.Start();
-        bool valueSet = false;
-        T value = new T();
+        var valueSet = false;
+        var value = new T();
 
         while (watch.ElapsedMilliseconds < timeout)
         {

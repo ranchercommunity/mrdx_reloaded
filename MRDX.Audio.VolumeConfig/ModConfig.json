@@ -2,7 +2,7 @@
   "ModId": "MRDX.Audio.VolumeConfig",
   "ModName": "Volume Control",
   "ModAuthor": "fadillzzz",
-  "ModVersion": "1.0.1",
+  "ModVersion": "1.1.0",
   "ModDescription": "Adds volume control sliders for MR1DX and MR2DX",
   "ModDll": "MRDX.Audio.VolumeConfig.dll",
   "ModIcon": "Preview.png",
@@ -29,7 +29,7 @@
   "IsUniversalMod": false,
   "ModDependencies": [
     "reloaded.sharedlib.hooks",
-    "Reloaded.Memory.SigScan.ReloadedII"
+    "MRDX.Base.Mod"
   ],
   "OptionalDependencies": [],
   "SupportedAppId": [

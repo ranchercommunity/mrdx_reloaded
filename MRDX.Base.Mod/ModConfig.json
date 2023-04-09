@@ -1,0 +1,24 @@
+{
+  "ModId": "MRDX.Base.Mod",
+  "ModName": "MRDX Base Mod",
+  "ModAuthor": "jroweboy",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Basic mod that handles reading/writing/hooking the game code",
+  "ModDll": "MRDX.Base.Mod.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/MRDX.Base.Mod.dll",
+  "ModR2RManagedDll64": "x64/MRDX.Base.Mod.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": true,
+  "ReleaseMetadataFileName": "MRDX.Base.Mod.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": false,
+  "ModDependencies": [
+    "reloaded.sharedlib.hooks",
+    "Reloaded.Memory.SigScan.ReloadedII"
+  ],
+  "OptionalDependencies": [],
+  "SupportedAppId": [],
+  "ProjectUrl": ""
+}
