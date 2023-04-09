@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MRDX.Graphics.Widescreen", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MRDX.Qol.SkipDrillAnim", "MRDX.Qol.SkipDrillAnim\MRDX.Qol.SkipDrillAnim.csproj", "{574C8E2D-3121-4CF1-88FF-C10E3233FE29}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Qol.FastForward", "MRDX.Qol.FastForward\MRDX.Qol.FastForward.csproj", "{104E6A8B-C145-4A19-8783-55816ABFB480}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,8 +29,15 @@ Global
 		{574C8E2D-3121-4CF1-88FF-C10E3233FE29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{574C8E2D-3121-4CF1-88FF-C10E3233FE29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{574C8E2D-3121-4CF1-88FF-C10E3233FE29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{104E6A8B-C145-4A19-8783-55816ABFB480}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{104E6A8B-C145-4A19-8783-55816ABFB480}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{104E6A8B-C145-4A19-8783-55816ABFB480}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{104E6A8B-C145-4A19-8783-55816ABFB480}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D7FEF3C0-5DF3-4E7B-B0A3-5AE04B786E15}
 	EndGlobalSection
 EndGlobal

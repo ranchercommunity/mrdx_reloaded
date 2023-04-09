@@ -1,0 +1,26 @@
+{
+  "ModId": "MRDX.Qol.FastForward",
+  "ModName": "Fast Forward",
+  "ModAuthor": "fadillzzz",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Enables easy fast forwarding with the press of a button",
+  "ModDll": "MRDX.Qol.FastForward.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/MRDX.Qol.FastForward.dll",
+  "ModR2RManagedDll64": "x64/MRDX.Qol.FastForward.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": false,
+  "ReleaseMetadataFileName": "MRDX.Qol.FastForward.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": false,
+  "ModDependencies": [
+    "Reloaded.Memory.SigScan.ReloadedII",
+    "reloaded.sharedlib.hooks"
+  ],
+  "OptionalDependencies": [],
+  "SupportedAppId": [
+    "mf2.exe"
+  ],
+  "ProjectUrl": "https://github.com/jroweboy/mrdx_reloaded"
+}
