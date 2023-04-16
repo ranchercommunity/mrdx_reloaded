@@ -1,0 +1,23 @@
+{
+  "ModId": "MRDX.Input.TurboInput",
+  "ModName": "Turbo Input",
+  "ModAuthor": "fadillzzz",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Emulates rapid pressing by holding down buttons",
+  "ModDll": "MRDX.Input.TurboInput.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/MRDX.Input.TurboInput.dll",
+  "ModR2RManagedDll64": "x64/MRDX.Input.TurboInput.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": false,
+  "ReleaseMetadataFileName": "MRDX.Input.TurboInput.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": false,
+  "ModDependencies": [ "reloaded.sharedlib.hooks", "MRDX.Base.Mod" ],
+  "OptionalDependencies": [],
+  "SupportedAppId": [
+    "mf2.exe"
+  ],
+  "ProjectUrl": ""
+}
