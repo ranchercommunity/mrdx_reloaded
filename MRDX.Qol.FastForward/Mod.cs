@@ -1,7 +1,11 @@
 ﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Qol.FastForward.Template;
+using Reloaded.Hooks;
 using Reloaded.Hooks.Definitions;
+using Reloaded.Hooks.Definitions.Enums;
+using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
+using System.Runtime.InteropServices;
 
 namespace MRDX.Qol.FastForward;
 
@@ -46,6 +50,24 @@ public class Mod : ModBase // <= Do not Remove.
 
     private bool _wasPressed;
 
+    [DllImport("libcocos2d.dll",
+        EntryPoint = "?getInstance@Director@cocos2d@@SAPAV12@XZ",
+        ExactSpelling = true,
+        CallingConvention = CallingConvention.Cdecl)]
+    static extern IntPtr GetDirectorInstance();
+
+    [DllImport("libcocos2d.dll",
+        EntryPoint = "?setAnimationInterval@Director@cocos2d@@QAEXM@Z",
+        ExactSpelling = true,
+        CallingConvention = CallingConvention.ThisCall)]
+    static extern IntPtr SetAnimationInterval(IntPtr director, float interval);
+
+    private IAsmHook _tickDelayHook;
+
+    private nuint _fastForwardTickDelayAddr;
+
+    private nint _tickDelayPtr;
+
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -59,6 +81,19 @@ public class Mod : ModBase // <= Do not Remove.
         _controller = _modLoader.GetController<IController>();
         _controller.TryGetTarget(out var controller);
         controller!.OnInputChanged += HandleInputChanged;
+
+        _tickDelayPtr = Marshal.AllocHGlobal(4);
+        Marshal.WriteInt32(_tickDelayPtr, _configuration.TickDelay);
+
+        var _startupScanner = _modLoader.GetController<IStartupScanner>();
+        if (_startupScanner != null && _startupScanner.TryGetTarget(out var scanner))
+        {
+            scanner.AddMainModuleScan("BF 00 7D 00 00 BA 80 3E 00 00", result =>
+            {
+                _fastForwardTickDelayAddr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+                HookTickDelay();
+            });
+        }
     }
 
     #region For Exports, Serialization etc.
@@ -88,7 +123,24 @@ public class Mod : ModBase // <= Do not Remove.
                 game.FastForwardOption = isPressed;
         }
 
+        var director = GetDirectorInstance();
+        if (game.FastForwardOption)
+            SetAnimationInterval(director, 1.0f / 999);
+        else
+            SetAnimationInterval(director, 1.0f / 60);
+
         _wasPressed = isPressed;
+    }
+
+    private void HookTickDelay()
+    {
+        string[] modifyTickDelay =
+        {
+            $"use32",
+            $"mov edx, [{_tickDelayPtr}]",
+        };
+
+        _tickDelayHook = new AsmHook(modifyTickDelay, _fastForwardTickDelayAddr, AsmHookBehaviour.ExecuteAfter).Activate();
     }
 
     public override void ConfigurationUpdated(Config configuration)
@@ -96,6 +148,9 @@ public class Mod : ModBase // <= Do not Remove.
         _configuration = configuration;
         if (_controller?.TryGetTarget(out var controller) ?? false)
             HandleInputChanged(controller.Current);
+
+        Marshal.WriteInt32(_tickDelayPtr, _configuration.TickDelay);
+
         _logger.WriteLine($"[{_modConfig.ModId}] Config Updated: Applying");
     }
 }

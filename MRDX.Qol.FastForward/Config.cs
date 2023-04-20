@@ -9,6 +9,11 @@ public class Config : Configurable<Config>
     [Description("If ON pressing L will toggle fast forward. If OFF you need to hold L to fast forward.")]
     [DefaultValue(true)]
     public bool UseToggle { get; set; } = true;
+
+    [DisplayName("Tick Delay")]
+    [Description("The lower the value, the faster the game runs. Limitation: your monitor refresh rate will be the hard cap for how fast it can run.")]
+    [DefaultValue(16000)]
+    public int TickDelay { get; set; } = 16000;
 }
 
 /// <summary>
