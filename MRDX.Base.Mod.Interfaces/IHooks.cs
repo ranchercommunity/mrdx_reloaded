@@ -73,7 +73,7 @@ public delegate int DrawMonsterCardWitheringValue(nint self);
 [HookDef(BaseGame.Mr2, Region.Us,
     "55 8B EC 83 E4 F8 81 EC ?? ?? ?? ?? A1 ?? ?? ?? ?? 33 C4 89 84 24 ?? ?? ?? ?? 56 57 8B F2 8B F9 8B 4D 08 8D 94 24 ?? ?? ?? ??")]
 [Function(CallingConventions.Fastcall)]
-public delegate int DrawIntWithHorizontalSpacing(Int16 x, Int16 y, int number, Int16 horizontalSpacing);
+public delegate int DrawIntWithHorizontalSpacing(short x, short y, int number, short horizontalSpacing);
 
 public interface IHooks
 {

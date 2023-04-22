@@ -2,7 +2,7 @@
   "ModId": "MRDX.Ui.RawTechValues",
   "ModName": "Raw Tech Values",
   "ModAuthor": "fadillzzz",
-  "ModVersion": "1.0.0",
+  "ModVersion": "{{ MOD_VERSION }}",
   "ModDescription": "Shows raw tech values instead of letters",
   "ModDll": "MRDX.Ui.RawTechValues.dll",
   "ModIcon": "Preview.png",
@@ -14,7 +14,10 @@
   "ReleaseMetadataFileName": "MRDX.Ui.RawTechValues.ReleaseMetadata.json",
   "PluginData": {},
   "IsUniversalMod": false,
-  "ModDependencies": [ "reloaded.sharedlib.hooks", "MRDX.Base.Mod" ],
+  "ModDependencies": [
+    "reloaded.sharedlib.hooks",
+    "MRDX.Base.Mod"
+  ],
   "OptionalDependencies": [],
   "SupportedAppId": [
     "mf2.exe"
