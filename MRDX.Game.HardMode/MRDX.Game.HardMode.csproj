@@ -125,7 +125,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Redirector\" />
+      <Folder Include="Redirector\Resources\data\mf2\data\" />
     </ItemGroup>
 
     <Target Name="Replace" BeforeTargets="BeforeBuild;BeforeRebuild">
