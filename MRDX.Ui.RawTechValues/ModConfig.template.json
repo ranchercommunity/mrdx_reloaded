@@ -23,6 +23,8 @@
   "IsUniversalMod": false,
   "ModDependencies": [
     "reloaded.sharedlib.hooks",
+    "reloaded.universal.redirector",
+    "MRDX.Base.ExtractDataBin",
     "MRDX.Base.Mod"
   ],
   "OptionalDependencies": [],

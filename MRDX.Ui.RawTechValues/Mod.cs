@@ -1,8 +1,12 @@
-﻿using MRDX.Base.Mod.Interfaces;
+﻿using MRDX.Base.ExtractDataBin.Interface;
+using MRDX.Base.Mod.Interfaces;
 using MRDX.Ui.RawTechValues.Template;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
+using Reloaded.Universal.Redirector.Interfaces;
+using System.Diagnostics;
+using System.Reflection;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 
 namespace MRDX.Ui.RawTechValues;
@@ -20,7 +24,7 @@ public class Mod : ModBase // <= Do not Remove.
     private const int WitheringOffset = 0x2B;
     private const short WitheringYCoord = 30;
 
-    private const short TechValueXCoord = 101;
+    private const short TechValueXCoord = 105;
 
     /// <summary>
     ///     Provides access to the Reloaded.Hooks API.
@@ -55,6 +59,8 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<DrawMonsterCardSharpnessValue>? _sharpnessHook;
     private IHook<DrawMonsterCardWitheringValue>? _witheringHook;
 
+    private Task? _extract;
+
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -73,6 +79,38 @@ public class Mod : ModBase // <= Do not Remove.
         hooks!.AddHook<DrawMonsterCardWitheringValue>(MonsterWitheringRawNum)
             .ContinueWith(result => _witheringHook = result.Result.Activate());
         hooks.CreateWrapper<DrawIntWithHorizontalSpacing>().ContinueWith(result => _drawInt = result.Result);
+
+        var assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        var extractDataBin = _modLoader.GetController<IExtractDataBin>();
+        var redirector = _modLoader.GetController<IRedirectorController>();
+
+        if (extractDataBin != null && extractDataBin.TryGetTarget(out var ex))
+            _extract = Task.Run(() =>
+            {
+                var dataPath = ex.ExtractMr2();
+                if (dataPath == null)
+                {
+                    _logger.WriteLine("[Raw Tech Values] Unable to extract MR2 data bin");
+                    return;
+                }
+
+                if (redirector != null && redirector.TryGetTarget(out var re))
+                {
+                    var process = Process.GetCurrentProcess();
+                    var sourcePath = $"{Path.GetDirectoryName(process.MainModule.FileName)}\\Resources\\data\\mf2\\data";
+                    var replacementPath = $"{assemblyFolder}\\Redirector";
+
+                    _logger.WriteLine($"[Raw tech values] Redirecting {sourcePath}\\farm\\fix\\farmdata_en.dat to {replacementPath}\\farmdata_en.dat");
+                    re.AddRedirect($"{sourcePath}\\farm\\fix\\farmdata_en.dat", $"{replacementPath}\\farmdata_en.dat");
+
+                    _logger.WriteLine($"[Raw tech values] Redirecting {sourcePath}\\park\\parkdata_en.dat to {replacementPath}\\parkdata_en.dat");
+                    re.AddRedirect($"{sourcePath}\\park\\parkdata_en.dat", $"{replacementPath}\\parkdata_en.dat");
+                }
+                else
+                {
+                    _logger.WriteLine("[Raw Tech Values] Unable to setup file redirector?");
+                }
+            });
     }
 
     #region For Exports, Serialization etc.
