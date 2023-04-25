@@ -1,5 +1,4 @@
-﻿using MRDX.Base.ExtractDataBin.Interface;
-using MRDX.Game.HardMode.Configuration;
+﻿using MRDX.Game.HardMode.Configuration;
 using MRDX.Game.HardMode.Template;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
@@ -43,8 +42,6 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private Config _configuration;
 
-    private Task? _extract;
-
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -53,13 +50,6 @@ public class Mod : ModBase // <= Do not Remove.
         _owner = context.Owner;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
-        var extractDataBin = _modLoader.GetController<IExtractDataBin>();
-        if (extractDataBin != null && extractDataBin.TryGetTarget(out var ex))
-            _extract = Task.Run(() =>
-            {
-                if (ex.ExtractMr2() == null)
-                    _logger.WriteLine("[Hard Mode] Unable to extract MR2 data bin");
-            });
     }
 
     #region For Exports, Serialization etc.

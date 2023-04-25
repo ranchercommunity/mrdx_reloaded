@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.ExtractDataBin.Template;
 using Reloaded.Hooks.ReloadedII.Interfaces;
@@ -44,8 +45,22 @@ namespace MRDX.Base.ExtractDataBin
             _logger = context.Logger;
             _owner = context.Owner;
             _modConfig = context.ModConfig;
+            var ex = new ExtractDataBin(_logger);
+            var isExtracted = _modLoader.GetAppConfig().AppId == "mf2.exe"
+                ? ex.CheckIfDataBinExtractedMr2()
+                : ex.CheckIfDataBinExtractedMr1();
+            if (!isExtracted)
+                new Task(() =>
+                {
+                    _logger.WriteLine($"[ExtractDataBin] Starting extraction for {_modLoader.GetAppConfig().AppId}");
+                    if (_modLoader.GetAppConfig().AppId == "mf2.exe")
+                        _logger.WriteLine(ex.ExtractMr2() != null
+                            ? "[ExtractDataBin] Extracting data.bin complete"
+                            : "[ExtractDataBin] Extracting data.bin failed...");
+                }).Start();
 
-            _modLoader.AddOrReplaceController<IExtractDataBin>(_owner, new ExtractDataBin(_logger));
+            _modLoader.AddOrReplaceController<IExtractDataBin>(_owner, ex);
+            _logger.WriteLine("[ExtractDataBin] Launch complete.");
         }
 
         #region For Exports, Serialization etc.

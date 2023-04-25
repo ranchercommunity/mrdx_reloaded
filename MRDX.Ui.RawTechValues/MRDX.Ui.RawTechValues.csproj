@@ -36,10 +36,10 @@
         <None Remove="Reloaded.Trimming.targets" />
         <None Remove="Reloaded.Checks.targets" />
         <None Update="Redirector\Resources\data\mf2\data\farm\fix\farmdata_en.dat">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <None Update="Redirector\Resources\data\mf2\data\park\parkdata_en.dat">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 
@@ -51,7 +51,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\MRDX.Base.ExtractDataBin.Interface\MRDX.Base.ExtractDataBin.Interface.csproj" />
         <ProjectReference Include="..\MRDX.Base.Mod.Interfaces\MRDX.Base.Mod.Interfaces.csproj" />
     </ItemGroup>
 

@@ -1,5 +1,4 @@
-﻿using MRDX.Base.ExtractDataBin.Interface;
-using MRDX.Base.Mod.Interfaces;
+﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Ui.RawTechValues.Template;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Memory.Sources;
@@ -51,8 +50,6 @@ public class Mod : ModBase // <= Do not Remove.
 
     private DrawIntWithHorizontalSpacing? _drawInt;
 
-    private Task? _extract;
-
     private IHook<DrawMonsterCardForceValue>? _forceHook;
     private IHook<DrawMonsterCardHitChanceValue>? _hitChanceHook;
     private IHook<DrawMonsterCardSharpnessValue>? _sharpnessHook;
@@ -76,15 +73,6 @@ public class Mod : ModBase // <= Do not Remove.
         hooks!.AddHook<DrawMonsterCardWitheringValue>(MonsterWitheringRawNum)
             .ContinueWith(result => _witheringHook = result.Result.Activate());
         hooks.CreateWrapper<DrawIntWithHorizontalSpacing>().ContinueWith(result => _drawInt = result.Result);
-
-        var extractDataBin = _modLoader.GetController<IExtractDataBin>();
-
-        if (extractDataBin != null && extractDataBin.TryGetTarget(out var ex))
-            _extract = Task.Run(() =>
-            {
-                var dataPath = ex.ExtractMr2();
-                if (dataPath == null) _logger.WriteLine("[Raw Tech Values] Unable to extract MR2 data bin");
-            });
     }
 
     #region For Exports, Serialization etc.

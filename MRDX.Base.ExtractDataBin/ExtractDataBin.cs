@@ -12,20 +12,35 @@ namespace MRDX.Base.ExtractDataBin
     {
         private static readonly object LockMr1 = new object();
         private static readonly object LockMr2 = new object();
+        private readonly string? _exepath;
 
         private readonly ILogger _logger;
+
+        private readonly string _mr1RelExtractPath = Path.Join("data");
+        private readonly string _mr1RelZipPath = Path.Join("data", "data.bin");
+        private readonly string _mr1TestPath = Path.Join("MF", "DATA");
+        private readonly string _mr2RelExtractPath = Path.Join("Resources", "data");
+        private readonly string _mr2RelZipPath = Path.Join("Resources", "data", "data.bin");
+        private readonly string _mr2TestPath = Path.Join("mf2", "data", "mon");
+        private string? _extractedPath;
 
         public ExtractDataBin(ILogger logger)
         {
             _logger = logger;
+            var mainModule = Process.GetCurrentProcess().MainModule;
+            _exepath = Path.GetDirectoryName(mainModule.FileName);
         }
+
+        string? IExtractDataBin.ExtractedPath => _extractedPath;
 
         public string? ExtractMr1()
         {
             lock (LockMr1)
             {
-                _logger.WriteLine("Extracting MR1 data.bin");
-                return Extract("data", "data\\data.bin", "MF\\DATA");
+                _logger.WriteLine("[ExtractDataBin] Lock acquired. Extracting MR1 data.bin");
+                if (!CheckIfDataBinExtractedMr1())
+                    Extract(_mr1RelExtractPath, _mr1RelZipPath);
+                return _extractedPath;
             }
         }
 
@@ -33,34 +48,57 @@ namespace MRDX.Base.ExtractDataBin
         {
             lock (LockMr2)
             {
-                _logger.WriteLine("Extracting MR2 data.bin");
-                return Extract("Resources\\data", "Resources\\data\\data.bin", "mf2\\data\\mon");
+                _logger.WriteLine("[ExtractDataBin] Lock acquired. Extracting MR2 data.bin");
+                if (!CheckIfDataBinExtractedMr2())
+                    Extract(_mr2RelExtractPath, _mr2RelZipPath);
+                return _extractedPath;
             }
         }
 
-        private string? Extract(string relExtractPath, string relZipPath, string testPath)
+        public event OnExtractComplete? ExtractComplete;
+
+        public bool CheckIfDataBinExtractedMr1()
+        {
+            return CheckIfExtracted(_mr1RelExtractPath, _mr1TestPath);
+        }
+
+        public bool CheckIfDataBinExtractedMr2()
+        {
+            return CheckIfExtracted(_mr2RelExtractPath, _mr2TestPath);
+        }
+
+        private bool CheckIfExtracted(string relExtractPath, string testPath)
         {
             // Check first if the file is already extracted
             var mainModule = Process.GetCurrentProcess().MainModule;
             if (mainModule == null)
             {
-                _logger.WriteLine("Unable to get EXE path GetEntryAssembly returned null!");
-                return null;
+                _logger.WriteLine("[ExtractDataBin] Unable to get EXE path GetEntryAssembly returned null!");
+                return false;
             }
 
             var exepath = Path.GetDirectoryName(mainModule.FileName);
-            var extPath = $"{exepath}\\{relExtractPath}";
-            _logger.WriteLine($"testing {extPath}\\{testPath} already exists");
-            if (Directory.Exists($"{extPath}\\{testPath}"))
+            var extPath = Path.Join(exepath, relExtractPath);
+            var test = Path.Join(extPath, testPath);
+            _logger.WriteLine($"[ExtractDataBin] Testing if path {test} already exists");
+            if (Directory.Exists(test))
             {
-                _logger.WriteLine($"Skipping extraction because {extPath}\\{testPath} already exists");
-                return extPath;
+                _logger.WriteLine($"[ExtractDataBin] Skipping extraction because {test} already exists");
+                _extractedPath = extPath;
+                ExtractComplete?.Invoke(_extractedPath);
+                return true;
             }
 
+            return false;
+        }
+
+        private void Extract(string relExtractPath, string relZipPath)
+        {
+            var extPath = Path.Join(_exepath, relExtractPath);
             try
             {
-                var zipPath = $"{exepath}\\{relZipPath}";
-                _logger.WriteLine($"Starting to extract from {zipPath} to {extPath}");
+                var zipPath = Path.Join(_exepath, relZipPath);
+                _logger.WriteLine($"[ExtractDataBin] Starting to extract from {zipPath} to {extPath}");
                 // this is absolutely stupid. The library path loader is broken on old versions of .netcore which this library runs on
                 // and we can't just "set" it since its an internal class, so forcably set it with reflection.
                 var assembly = typeof(SevenZipExtractor).Assembly;
@@ -78,11 +116,12 @@ namespace MRDX.Base.ExtractDataBin
             {
                 _logger.WriteLine(
                     $"[ExtractDataBin] Exception when extracting to {extPath}: {e} inner: {e.InnerException}");
-                return null;
+                return;
             }
 
-            _logger.WriteLine($"Extraction to {extPath} complete");
-            return extPath;
+            _logger.WriteLine($"[ExtractDataBin] Extraction to {extPath} complete");
+            _extractedPath = extPath;
+            ExtractComplete?.Invoke(_extractedPath);
         }
     }
 }
