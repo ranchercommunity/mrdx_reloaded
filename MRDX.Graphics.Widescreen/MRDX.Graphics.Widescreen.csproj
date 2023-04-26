@@ -41,12 +41,15 @@
 
     <ItemGroup>
         <PackageReference Include="OpenTK.Graphics" Version="5.0.0-pre.8" />
+        <PackageReference Include="Reloaded.Hooks" Version="4.3.0" />
+        <PackageReference Include="Reloaded.Memory.SigScan.ReloadedII.Interfaces" Version="1.2.0" />
         <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime" />
         <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\MRDX.Base.Mod.Interfaces\MRDX.Base.Mod.Interfaces.csproj" />
+        <ProjectReference Include="..\MRDX.Base.Mod\MRDX.Base.Mod.csproj" />
     </ItemGroup>
 
     <Target Name="Replace" BeforeTargets="BeforeBuild;BeforeRebuild">

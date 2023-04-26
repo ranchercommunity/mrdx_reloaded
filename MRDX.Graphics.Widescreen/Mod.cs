@@ -2,7 +2,10 @@
 using System.Runtime.InteropServices;
 using MRDX.Base.Mod.Interfaces;
 using MRDX.Graphics.Widescreen.Template;
+using Reloaded.Hooks;
 using Reloaded.Hooks.Definitions;
+using Reloaded.Hooks.Definitions.Enums;
+using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 
@@ -46,10 +49,15 @@ public class Mod : ModBase // <= Do not Remove.
 
     private IHook<CreateOverlay>? _createOverlayHook;
 
+    private const float OriginalWidth = 320.0f;
 
     private readonly WeakReference<IGameClient> _gameClient;
     // private IHook<SetUniform>? _setUniformHook;
     // private IHook<RenderFrameCall>? _renderFrameCallHook;
+
+    private nint _skyboxEndYPtr;
+    private nint _skyboxStartXPtr;
+    private nint _skyboxEndXPtr;
 
     public Mod(ModContext context)
     {
@@ -66,6 +74,12 @@ public class Mod : ModBase // <= Do not Remove.
         hooks!.AddHook<CreateOverlay>(CreateOverlayHook)
             .ContinueWith(result => _createOverlayHook = result.Result?.Activate());
         UpdateWindowBounds(_configuration.AspectRatio);
+        CalculateSkyboxCoords(_configuration.AspectRatio);
+        var _startupScanner = _modLoader.GetController<IStartupScanner>();
+        if (_startupScanner != null && _startupScanner.TryGetTarget(out var scanner))
+        {
+            InitSkyboxHooks(scanner);
+        }
     }
 
     #region For Exports, Serialization etc.
@@ -87,8 +101,7 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void UpdateWindowBounds(Config.AspectRatioEnum ratio)
     {
-        const float originalWidth = 320.0f;
-        var newWidth = CalculateNewWidth(originalWidth, ratio);
+        var newWidth = CalculateNewWidth(OriginalWidth, ratio);
         _gameClient.TryGetTarget(out var gameClient);
 
         gameClient!.RenderBounds.Width = newWidth;
@@ -124,6 +137,134 @@ public class Mod : ModBase // <= Do not Remove.
         return _createOverlayHook!.OriginalFunction(self, OverlayDrawMode.NoOverlay);
     }
 
+    private void CalculateSkyboxCoords(Config.AspectRatioEnum ratio)
+    {
+        var newWidth = CalculateNewWidth(OriginalWidth, ratio);
+
+        _skyboxEndYPtr = Marshal.AllocHGlobal(2);
+        short newYVal = 0x78;
+        Marshal.WriteInt16(_skyboxEndYPtr, newYVal);
+
+        _skyboxStartXPtr = Marshal.AllocHGlobal(2);
+        short newXVal = (short)(newWidth / 2 * -1);
+        Marshal.WriteInt16(_skyboxStartXPtr, newXVal);
+
+        _skyboxEndXPtr = Marshal.AllocHGlobal(2);
+        short newXVal1 = (short)(newWidth / 2);
+        Marshal.WriteInt16(_skyboxEndXPtr, newXVal1);
+    }
+
+    private void InitSkyboxHooks(IStartupScanner scanner)
+    {
+        // CFarBack skybox (farm & town)
+        scanner.AddMainModuleScan("BB ?? ?? ?? ?? 57 8B F9 C6 46 03 08 C6 46 07 38", result =>
+        {
+            string[] modifyCoords =
+            {
+                $"use32",
+                $"mov bx, [{_skyboxStartXPtr}]",
+            };
+
+            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
+        });
+
+        scanner.AddMainModuleScan("C7 46 08 60 FF 88 FF C7 46 10 A0 00 88 FF", result =>
+        {
+            string[] modifyCoords =
+            {
+                $"use32",
+                $"mov ax, [{_skyboxStartXPtr}]",
+                $"mov [esi+0x8], ax",
+                $"mov ax, [{_skyboxEndXPtr}]",
+                $"mov [esi+0x10], ax"
+            };
+
+            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter, 14).Activate();
+        });
+
+        scanner.AddMainModuleScan("66 89 5E 18 B9 A0 00 00 00 0F B7 47 0A", result =>
+        {
+            string[] modifyCoords =
+            {
+                $"use32",
+                $"mov cx, [{_skyboxEndXPtr}]"
+            };
+
+            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
+        });
+
+        scanner.AddMainModuleScan("0F B7 47 0A 66 89 46 1A 66 89 4E 20 0F B7 47 0A", result =>
+        {
+            string[] modifyCoords =
+            {
+                $"use32",
+                $"mov ax, [{_skyboxEndYPtr}]",
+                $"mov [edi+0xA], eax"
+            };
+
+            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteFirst).Activate();
+        });
+
+        // CBackSky skybox (battles)
+        scanner.AddMainModuleScan("B9 A0 00 00 00 25 FF FF FF 00 66 89 4C 24 28", result =>
+        {
+            string[] modifyCoords =
+            {
+                $"use32",
+                $"mov cx, [{_skyboxEndXPtr}]",
+            };
+
+            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
+        });
+
+        scanner.AddMainModuleScan("BA 60 FF FF FF B8 01 00 00 00 66 89 54 24 30", result =>
+        {
+            string[] modifyCoords =
+            {
+                $"use32",
+                $"mov dx, [{_skyboxStartXPtr}]"
+            };
+
+            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
+        });
+
+        scanner.AddMainModuleScan("C7 44 24 1E AA 38 60 FF 0F B7 C0", result =>
+        {
+            string[] modifyCoords =
+            {
+                $"use32",
+                $"push dx",
+                $"mov dx, [{_skyboxStartXPtr}]",
+                $"mov [esp+0x22], dx",
+                $"pop dx"
+            };
+
+            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
+        });
+
+        scanner.AddMainModuleScan("C7 44 24 3C A0 00 78 00 E8 ?? ?? ?? ??", result =>
+        {
+            string[] modifyCoords =
+            {
+                $"use32",
+                $"push dx",
+                $"mov dx, [{_skyboxEndXPtr}]",
+                $"mov [esp+0x3E], dx",
+                $"pop dx"
+            };
+
+            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
+        });
+    }
+
     // TODO figure out how the game generates the HUD and background to move/rescale those independently
     // private static OpenTK.Graphics.ProgramHandle? _glProgram;
     // private static int _glUniformLocation = -1;
@@ -157,6 +298,7 @@ public class Mod : ModBase // <= Do not Remove.
     {
         _configuration = configuration;
         UpdateWindowBounds(configuration.AspectRatio);
+        CalculateSkyboxCoords(configuration.AspectRatio);
         _logger.WriteLine($"[{_modConfig.ModId}] Config Updated: Applying");
     }
 
