@@ -156,7 +156,7 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void InitSkyboxHooks(IStartupScanner scanner)
     {
-        // CFarBack skybox (farm & town)
+        // CFarBack skybox (farm, town, errantry)
         scanner.AddMainModuleScan("BB ?? ?? ?? ?? 57 8B F9 C6 46 03 08 C6 46 07 38", result =>
         {
             string[] modifyCoords =
@@ -209,6 +209,20 @@ public class Mod : ModBase // <= Do not Remove.
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteFirst).Activate();
         });
 
+        scanner.AddMainModuleScan("C7 46 18 60 FF 78 00 C7 46 20 A0 00 78 00", result =>
+        {
+            string[] modifyCoords =
+            {
+                $"use32",
+                $"mov ax, [{_skyboxStartXPtr}]",
+                $"mov [esi+0x18], ax",
+                $"mov ax, [{_skyboxEndXPtr}]",
+                $"mov [esi+0x20], ax"
+            };
+
+            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter, 14).Activate();
+        });
         // CBackSky skybox (battles)
         scanner.AddMainModuleScan("B9 A0 00 00 00 25 FF FF FF 00 66 89 4C 24 28", result =>
         {
