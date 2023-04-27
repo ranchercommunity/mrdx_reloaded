@@ -223,6 +223,21 @@ public class Mod : ModBase // <= Do not Remove.
             nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter, 14).Activate();
         });
+
+        // Disables background texture from being rendered
+        scanner.AddMainModuleScan("83 BF 20 05 00 00 01", result =>
+        {
+            string[] modifyCoords =
+            {
+                $"use32",
+                $"mov ecx, 0",
+                $"mov [edi+0x520], ecx"
+            };
+
+            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteFirst).Activate();
+        });
+
         // CBackSky skybox (battles)
         scanner.AddMainModuleScan("B9 A0 00 00 00 25 FF FF FF 00 66 89 4C 24 28", result =>
         {
