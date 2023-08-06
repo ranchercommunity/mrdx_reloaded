@@ -49,7 +49,6 @@
         <PackageReference Include="Reloaded.Universal.Redirector.Interfaces" Version="1.1.0" />
         <PackageReference Include="System.Formats.Cbor" Version="7.0.0" />
     </ItemGroup>
-
     <Target Name="Replace" BeforeTargets="BeforeBuild;BeforeRebuild">
         <PropertyGroup>
             <InputFile>ModConfig.template.json</InputFile>

@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Game.Randomizer", "MRD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Qol.BattleTimer", "MRDX.Qol.BattleTimer\MRDX.Qol.BattleTimer.csproj", "{9F9B2A4D-0C39-473B-9CCA-09EF5854F697}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Game.Randomizer", "MRDX.Game.Randomizer\MRDX.Game.Randomizer.csproj", "{20B34E21-E31B-425E-A142-5E62231237DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,10 @@ Global
 		{9F9B2A4D-0C39-473B-9CCA-09EF5854F697}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F9B2A4D-0C39-473B-9CCA-09EF5854F697}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F9B2A4D-0C39-473B-9CCA-09EF5854F697}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20B34E21-E31B-425E-A142-5E62231237DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20B34E21-E31B-425E-A142-5E62231237DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20B34E21-E31B-425E-A142-5E62231237DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20B34E21-E31B-425E-A142-5E62231237DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
