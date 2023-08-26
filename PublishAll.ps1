@@ -16,7 +16,7 @@ $AllProjects = @(
     @("MRDX.Audio.VolumeConfig", "1.1.3", $false),
     @("MRDX.Base.ExtractDataBin", "1.1.0", $false),
     @("MRDX.Base.Mod", "1.0.4", $false),
-    @("MRDX.Game.HardMode", "1.1.1", $false),
+    @("MRDX.Game.HardMode", "1.2.0", $false),
 #    Not ready for release yet, so leave it commented out for now
 #    @("MRDX.Game.MonsterEditor", "1.0.0", $false),
     @("MRDX.Graphics.Widescreen", "1.2.0", $false),

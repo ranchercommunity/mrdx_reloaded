@@ -1,7 +1,16 @@
 ﻿## Hard Mode for MR2DX
 
-This updates the techs to use the stats from Hard Mode.
+W.I.P Port of Alchius's MR2 Hard Mode to MR2DX (port mostly by teawch)
 
-*NEW* v1.1.0 adds Hard Mode enemy data.
+### Changelog
 
-Full Hard Mode for base stat gains changes is not yet complete.
+* v1.2.0 *NEW* adds Shrine monster data and Monster Base stat gains
+
+* v1.1.0 adds Hard Mode enemy data for battles
+
+* v1.0.0 hard mode tech data added
+
+### Features Missing
+
+* Errantry monsters
+* Errantry Tech requirements

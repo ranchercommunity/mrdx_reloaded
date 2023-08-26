@@ -1,9 +1,9 @@
 {
   "ModId": "MRDX.Game.HardMode",
   "ModName": "Hard Mode",
-  "ModAuthor": "Alchius",
+  "ModAuthor": "Alchius & teawch",
   "ModVersion": "{{ MOD_VERSION }}",
-  "ModDescription": "A (techs only) port of MR2 Hard Mode to MR2DX",
+  "ModDescription": "Port of MR2 Hard Mode to MR2DX",
   "ModDll": "MRDX.Game.HardMode.dll",
   "ModIcon": "Preview.png",
   "ModR2RManagedDll32": "x86/MRDX.Game.HardMode.dll",
