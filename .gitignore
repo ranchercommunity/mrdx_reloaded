@@ -8,3 +8,5 @@ riderModule.iml
 Publish/
 **/ModConfig.json
 mrdx_reloaded/
+.vscode/
+.vs/
