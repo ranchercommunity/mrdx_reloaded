@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Ui.RawTechValues", "MR
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Qol.TurboInput", "MRDX.Qol.TurboInput\MRDX.Qol.TurboInput.csproj", "{E23A6883-BCDF-4386-87F7-49DCE0085E9B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Qol.BattleTimer", "MRDX.Qol.BattleTimer\MRDX.Qol.BattleTimer.csproj", "{9F9B2A4D-0C39-473B-9CCA-09EF5854F697}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{F318C5F6-4AF7-467D-B877-927AED7F02AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F318C5F6-4AF7-467D-B877-927AED7F02AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F318C5F6-4AF7-467D-B877-927AED7F02AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F9B2A4D-0C39-473B-9CCA-09EF5854F697}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F9B2A4D-0C39-473B-9CCA-09EF5854F697}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F9B2A4D-0C39-473B-9CCA-09EF5854F697}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F9B2A4D-0C39-473B-9CCA-09EF5854F697}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

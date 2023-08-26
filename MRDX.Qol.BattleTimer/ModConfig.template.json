@@ -1,0 +1,36 @@
+{
+  "ModId": "MRDX.Qol.BattleTimer",
+  "ModName": "Control Battle Timer",
+  "ModAuthor": "jroweboy",
+  "ModVersion": "{{ MOD_VERSION }}",
+  "ModDescription": "Freeze and edit the value of the battle timer",
+  "ModDll": "MRDX.Qol.BattleTimer.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/MRDX.Qol.BattleTimer.dll",
+  "ModR2RManagedDll64": "x64/MRDX.Qol.BattleTimer.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "Tags": [],
+  "CanUnload": false,
+  "HasExports": false,
+  "IsLibrary": false,
+  "ReleaseMetadataFileName": "MRDX.Qol.BattleTimer.ReleaseMetadata.json",
+  "PluginData": {
+    "GitHubRelease": {
+      "UserName": "jroweboy",
+      "RepositoryName": "mrdx_reloaded",
+      "UseReleaseTag": false,
+      "AssetFileName": "Mod.zip"
+    }
+  },
+  "IsUniversalMod": false,
+  "ModDependencies": [
+    "reloaded.sharedlib.hooks",
+    "MRDX.Base.Mod"
+  ],
+  "OptionalDependencies": [],
+  "SupportedAppId": [
+    "mf2.exe"
+  ],
+  "ProjectUrl": "https://github.com/jroweboy/mrdx_reloaded"
+}

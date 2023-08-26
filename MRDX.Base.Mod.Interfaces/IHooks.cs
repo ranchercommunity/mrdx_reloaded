@@ -46,10 +46,16 @@ public delegate int PlayFmv(nint self, nint unk);
 [Function(CallingConventions.MicrosoftThiscall)]
 public delegate nint StopFmv(nint self, byte shouldDestroy);
 
+/**
+ * Called once a frame. TODO add an event in the base mod for OnFrameStart and OnFrameEnd
+ */
 [HookDef(BaseGame.Mr2, Region.Us, "51 83 3D ?? ?? ?? ?? 00 75 ??")]
 [Function(CallingConventions.Stdcall)]
 public delegate int FrameStart();
 
+/**
+ * The following functions are called when certain boxes are drawn to the screen
+ */
 [HookDef(BaseGame.Mr2, Region.Us,
     "55 8B EC 83 E4 F8 81 EC ?? ?? ?? ?? A1 ?? ?? ?? ?? 33 C4 89 84 24 ?? ?? ?? ?? 8B 89 ?? ?? ?? ?? 56 57 C7 84 24 ?? ?? ?? ?? ?? ?? ?? ?? 8A 41 2A")]
 [Function(CallingConventions.MicrosoftThiscall)]
@@ -74,6 +80,22 @@ public delegate int DrawMonsterCardWitheringValue(nint self);
     "55 8B EC 83 E4 F8 81 EC C0 08 00 00 A1 ?? ?? ?? ?? 33 C4 89 84 24 ?? ?? ?? ?? 56 57 8B F2 8B F9 8B 4D ?? 8D 94 24 ?? ?? ?? ?? E8 ?? ?? ?? ?? 33 C0")]
 [Function(CallingConventions.Fastcall)]
 public delegate int DrawIntWithHorizontalSpacing(short x, short y, int number);
+
+/**
+ * Called when setting up the battle controls. CCtrlBattle seems to store things like the battle timer among other things.
+ * Its heap allocated so we can't just use a fixed memory address.
+ */
+[HookDef(BaseGame.Mr2, Region.Us,
+    "55 8B EC 83 EC 14 53 56 8B F1 57 6A 01")]
+[Function(CallingConventions.Fastcall)]
+public delegate void SetupCCtrlBattle(nuint battle);
+
+/**
+ * Method call on CCtrlBattle that decrements the battle timer.
+ */
+[HookDef(BaseGame.Mr2, Region.Us, "8B 41 ?? 85 C0 7E ??")]
+[Function(CallingConventions.Fastcall)]
+public delegate void DecrementBattleTimer(nint self);
 
 public interface IHooks
 {
