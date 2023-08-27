@@ -36,6 +36,11 @@ public class Mod : ModBase, IExports // <= Do not Remove.
     /// </summary>
     private readonly IMod _owner;
 
+    /// <summary>
+    ///     Provides access to this mod's configuration.
+    /// </summary>
+    private Config _configuration;
+
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -43,6 +48,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _logger = context.Logger;
         _owner = context.Owner;
         _modConfig = context.ModConfig;
+        _configuration = context.Configuration;
 
         _modLoader.AddOrReplaceController<IHooks>(_owner, new Hooks(context));
         _modLoader.AddOrReplaceController<IController>(_owner, new Controller(context));

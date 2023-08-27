@@ -10,7 +10,7 @@
   "ModR2RManagedDll64": "x64/MRDX.Base.Mod.dll",
   "ModNativeDll32": "",
   "ModNativeDll64": "",
-  "IsLibrary": true,
+  "IsLibrary": false,
   "ReleaseMetadataFileName": "MRDX.Base.Mod.ReleaseMetadata.json",
   "PluginData": {
     "GitHubRelease": {
@@ -26,6 +26,9 @@
     "Reloaded.Memory.SigScan.ReloadedII"
   ],
   "OptionalDependencies": [],
-  "SupportedAppId": [],
+  "SupportedAppId": [
+    "mf.exe",
+    "mf2.exe"
+  ],
   "ProjectUrl": ""
 }

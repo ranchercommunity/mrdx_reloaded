@@ -1,8 +1,9 @@
 ﻿/*
  * This file and other files in the `Template` folder are intended to be left unedited (if possible),
  * to make it easier to upgrade to newer versions of the template.
-*/
+ */
 
+using MRDX.Base.Mod.Template.Configuration;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
@@ -11,6 +12,11 @@ namespace MRDX.Base.Mod.Template;
 
 public class Startup : IMod
 {
+    /// <summary>
+    ///     Stores the contents of your mod's configuration. Automatically updated by template.
+    /// </summary>
+    private Config _configuration = null!;
+
     /// <summary>
     ///     An interface to Reloaded's the function hooks/detours library.
     ///     See: https://github.com/Reloaded-Project/Reloaded.Hooks
@@ -47,6 +53,13 @@ public class Startup : IMod
         _modConfig = (IModConfig)modConfig;
         _logger = (ILogger)_modLoader.GetLogger();
         _modLoader.GetController<IReloadedHooks>()?.TryGetTarget(out _hooks!);
+
+        // Your config file is in Config.json.
+        // Need a different name, format or more configurations? Modify the `Configurator`.
+        // If you do not want a config, remove Configuration folder and Config class.
+        var configurator = new Configurator(_modLoader.GetModConfigDirectory(_modConfig.ModId));
+        _configuration = configurator.GetConfiguration<Config>(0);
+        _configuration.ConfigurationUpdated += OnConfigurationUpdated;
 
         // Please put your mod code in the class below,
         // use this class for only interfacing with mod loader.
@@ -91,4 +104,16 @@ public class Startup : IMod
 
     /* Automatically called by the mod loader when the mod is about to be unloaded. */
     public Action Disposing => () => _mod.Disposing();
+
+    private void OnConfigurationUpdated(IConfigurable obj)
+    {
+        /*
+            This is executed when the configuration file gets
+            updated by the user at runtime.
+        */
+
+        // Replace configuration with new.
+        _configuration = (Config)obj;
+        _mod.ConfigurationUpdated(_configuration);
+    }
 }
