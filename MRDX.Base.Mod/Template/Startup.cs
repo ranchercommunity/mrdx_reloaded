@@ -69,6 +69,7 @@ public class Startup : IMod
             Hooks = _hooks,
             ModLoader = _modLoader,
             ModConfig = _modConfig,
+            Configuration = _configuration,
             Owner = this
         });
     }

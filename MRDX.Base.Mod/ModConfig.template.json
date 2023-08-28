@@ -3,7 +3,7 @@
   "ModName": "MRDX Base Mod",
   "ModAuthor": "jroweboy",
   "ModVersion": "{{ MOD_VERSION }}",
-  "ModDescription": "Basic mod that handles reading/writing/hooking the game code",
+  "ModDescription": "Shared code for mods. Configure this mod to select bug fixes.",
   "ModDll": "MRDX.Base.Mod.dll",
   "ModIcon": "Preview.png",
   "ModR2RManagedDll32": "x86/MRDX.Base.Mod.dll",
