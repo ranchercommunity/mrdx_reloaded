@@ -1,9 +1,15 @@
-﻿using MRDX.Game.HardMode.Template.Configuration;
+﻿using System.ComponentModel;
+using MRDX.Game.HardMode.Template.Configuration;
 
 namespace MRDX.Game.HardMode.Configuration;
 
 public class Config : Configurable<Config>
 {
+    [DisplayName("Use Original PS1 Lifespan")]
+    [Description(
+        "Sets the monster lifespan to the original values from the PS1 version (+100 weeks) instead of using the adjusted DX lifespan")]
+    [DefaultValue(true)]
+    public bool UseOriginalLifespan { get; set; } = false;
 }
 
 /// <summary>

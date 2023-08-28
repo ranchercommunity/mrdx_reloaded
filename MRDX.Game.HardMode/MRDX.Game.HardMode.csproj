@@ -37,6 +37,7 @@
         <None Remove="Reloaded.Trimming.targets" />
         <None Remove="Reloaded.Checks.targets" />
         <None Update="Redirector\**\*" CopyToOutputDirectory="PreserveNewest" />
+        <None Update="ManualRedirected\**\*" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <ItemGroup>
@@ -46,7 +47,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Redirector\Resources\data\mf2\data\" />
+        <Folder Include="ManualRedirected\" />
+        <Folder Include="Redirector\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\MRDX.Base.ExtractDataBin.Interface\MRDX.Base.ExtractDataBin.Interface.csproj" />
     </ItemGroup>
 
     <Target Name="Replace" BeforeTargets="BeforeBuild;BeforeRebuild">

@@ -1,4 +1,5 @@
-﻿using MRDX.Game.HardMode.Configuration;
+﻿using MRDX.Base.ExtractDataBin.Interface;
+using MRDX.Game.HardMode.Configuration;
 using MRDX.Game.HardMode.Template;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
@@ -32,15 +33,21 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private readonly IModLoader _modLoader;
 
+    private readonly string _modPath;
+
     /// <summary>
     ///     Entry point into the mod, instance that created this class.
     /// </summary>
     private readonly IMod _owner;
 
+    private readonly IRedirectorController _redirector;
+
     /// <summary>
     ///     Provides access to this mod's configuration.
     /// </summary>
     private Config _configuration;
+
+    private string? _dataBinPath;
 
     public Mod(ModContext context)
     {
@@ -50,6 +57,30 @@ public class Mod : ModBase // <= Do not Remove.
         _owner = context.Owner;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
+
+        _modLoader.GetController<IExtractDataBin>().TryGetTarget(out var extract);
+        _modLoader.GetController<IRedirectorController>().TryGetTarget(out var redirect);
+        _redirector = redirect!;
+        _modPath = _modLoader.GetDirectoryForModId(_modConfig.ModId);
+
+        if (extract!.ExtractedPath == null)
+        {
+            extract.ExtractComplete += path =>
+            {
+                // TODO: not sure if this works right. The goal is if the extraction hasn't finished before
+                // loading the mod then we want to setup the redirection later.
+                _dataBinPath = path;
+                _redirector.AddRedirectFolder(path,
+                    _modPath + @"\Redirector\data");
+                SetupRedirectToLifespan();
+            };
+        }
+        else
+        {
+            _dataBinPath = extract.ExtractedPath;
+            _logger.WriteLine(@$"[MRDX.HardMode] path to csv {_dataBinPath}\SDATA_MONSTER.csv");
+            SetupRedirectToLifespan();
+        }
     }
 
     #region For Exports, Serialization etc.
@@ -61,6 +92,18 @@ public class Mod : ModBase // <= Do not Remove.
 #pragma warning restore CS8618
 
     #endregion
+
+    private void SetupRedirectToLifespan()
+    {
+        var path = _configuration.UseOriginalLifespan ? "PS1Lifespan" : "DXLifespan";
+
+        _redirector.RemoveRedirect(_dataBinPath + @"\SDATA_MONSTER.csv");
+        _redirector.RemoveRedirect(_dataBinPath + @"\mf2\data\monbase\base.obj");
+        _redirector.AddRedirect(_dataBinPath + @"\SDATA_MONSTER.csv",
+            _modPath + @$"\ManualRedirected\{path}\SDATA_MONSTER.csv");
+        _redirector.AddRedirect(_dataBinPath + @"\mf2\data\monbase\base.obj",
+            _modPath + @$"\ManualRedirected\{path}\base.obj");
+    }
 
     #region Standard Overrides
 
@@ -111,6 +154,7 @@ public class Mod : ModBase // <= Do not Remove.
     {
         _configuration = configuration;
         _logger.WriteLine($"[{_modConfig.ModId}] Config Updated: Applying");
+        SetupRedirectToLifespan();
     }
 
     #endregion
