@@ -12,3 +12,11 @@ public interface IMonsterAttack
     int Sharp { get; set; }
     SpecialTech Special { get; set; }
 }
+
+public interface IBattleAttack
+{
+    byte SelectedTechSlot1 { get; set; }
+    byte SelectedTechSlot2 { get; set; }
+    byte SelectedTechSlot3 { get; set; }
+    byte SelectedTechSlot4 { get; set; }
+}

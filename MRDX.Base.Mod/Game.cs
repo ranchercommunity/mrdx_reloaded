@@ -19,7 +19,7 @@ public class Game : BaseObject<Game>, IGame
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us, 0x97A0C)]
-    public IMonster Monster { get; set; } = new Monster(Get("Monster"));
+    public IMonster Monster { get; set; } = new Monster(Get());
 
     public event IGame.MonsterChange? OnMonsterChanged;
 

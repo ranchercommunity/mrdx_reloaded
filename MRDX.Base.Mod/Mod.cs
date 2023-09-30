@@ -1,9 +1,10 @@
 ﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Base.Mod.Template;
 using Reloaded.Hooks.Definitions;
+using Reloaded.Memory;
+using Reloaded.Memory.Interfaces;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
-using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Base.Mod;
@@ -71,8 +72,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
     /// </summary>
     private readonly ILogger _logger;
 
-    private readonly Memory _memory;
-
     /// <summary>
     ///     The configuration of the currently executing mod.
     /// </summary>
@@ -89,6 +88,8 @@ public class Mod : ModBase, IExports // <= Do not Remove.
     private readonly IMod _owner;
 
     private readonly IStartupScanner? _startupScanner;
+
+    private Memory _memory;
 
     public Mod(ModContext context)
     {
@@ -147,11 +148,11 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         {
             const int len = 13 * 2;
             var straddr = nuint.Add(addr, i * (len + 1));
-            _memory.ReadRaw(straddr, out var bytes, len);
+            var bytes = _memory.ReadRaw(straddr, len);
             var str = bytes.AsShorts().AsString();
             var unpluralized = _pluralNames[str].AsBytes();
 
-            _memory.SafeWriteRaw(straddr, unpluralized);
+            _memory.SafeWrite(straddr, unpluralized);
         }
 
         _logger.WriteLine($"[MRDX.Base] Patching Pluralization at {addr:x} Complete");

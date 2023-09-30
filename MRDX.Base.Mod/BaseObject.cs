@@ -1,8 +1,12 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using MRDX.Base.Mod.Interfaces;
-using Reloaded.Memory.Sources;
+using Reloaded.Memory;
+using Reloaded.Memory.Enums;
+using Reloaded.Memory.Interfaces;
 
 namespace MRDX.Base.Mod;
 
@@ -24,10 +28,9 @@ public static class Base
 
 public class BaseObject<TParent> where TParent : class
 {
-    private readonly Memory _memory;
-
     private readonly IDictionary<string, IList<int>> _offsetMapping = new Dictionary<string, IList<int>>();
     public readonly long BaseAddress;
+    private Memory _memory;
 
     protected BaseObject(int baseOffset = 0)
     {
@@ -63,7 +66,7 @@ public class BaseObject<TParent> where TParent : class
         }
     }
 
-    protected T Read<T>(string fieldName) where T : unmanaged
+    protected T Read<T>([CallerMemberName] string fieldName = "") where T : unmanaged
     {
         if (!_offsetMapping.TryGetValue(fieldName, out var list))
             throw new NotImplementedException(
@@ -71,7 +74,15 @@ public class BaseObject<TParent> where TParent : class
         return ReadOffset<T>(list.FirstOrDefault());
     }
 
-    protected string ReadStr(string fieldName, int length)
+    protected Span<T> ReadArray<T>(int len, [CallerMemberName] string fieldName = "") where T : unmanaged
+    {
+        if (!_offsetMapping.TryGetValue(fieldName, out var list))
+            throw new NotImplementedException(
+                $"Read: Missing offset for field {fieldName} with game {Base.Game} and region {Base.Region}");
+        return ReadArrayOffset<T>(list.FirstOrDefault(), len);
+    }
+
+    protected string ReadStr(int length, [CallerMemberName] string fieldName = "")
     {
         if (!_offsetMapping.TryGetValue(fieldName, out var list))
             throw new NotImplementedException(
@@ -79,7 +90,7 @@ public class BaseObject<TParent> where TParent : class
         return ReadStrOffset(list.FirstOrDefault(), length);
     }
 
-    protected void Write<T>(string fieldName, T value) where T : unmanaged
+    protected void Write<T>(T value, [CallerMemberName] string fieldName = "") where T : unmanaged
     {
         if (!_offsetMapping.TryGetValue(fieldName, out var list))
             throw new NotImplementedException(
@@ -87,7 +98,15 @@ public class BaseObject<TParent> where TParent : class
         WriteOffset(value, list.FirstOrDefault());
     }
 
-    protected void SafeWrite<T>(string fieldName, T value) where T : unmanaged
+    protected void WriteArray<T>(T[] value, [CallerMemberName] string fieldName = "") where T : unmanaged
+    {
+        if (!_offsetMapping.TryGetValue(fieldName, out var list))
+            throw new NotImplementedException(
+                $"Write: Missing offset for field {fieldName} with game {Base.Game} and region {Base.Region}");
+        WriteArrayOffset(value, list.FirstOrDefault());
+    }
+
+    protected void SafeWrite<T>(T value, [CallerMemberName] string fieldName = "") where T : unmanaged
     {
         if (!_offsetMapping.TryGetValue(fieldName, out var list))
             throw new NotImplementedException(
@@ -95,7 +114,7 @@ public class BaseObject<TParent> where TParent : class
         SafeWriteOffset(value, list.FirstOrDefault());
     }
 
-    protected void WriteStr(string fieldName, string value)
+    protected void WriteStr(string value, [CallerMemberName] string fieldName = "")
     {
         if (!_offsetMapping.TryGetValue(fieldName, out var list))
             throw new NotImplementedException(
@@ -103,7 +122,7 @@ public class BaseObject<TParent> where TParent : class
         WriteStrOffset(value, list.FirstOrDefault());
     }
 
-    protected void WriteAll<T>(string fieldName, T value) where T : unmanaged
+    protected void WriteAll<T>(T value, [CallerMemberName] string fieldName = "") where T : unmanaged
     {
         if (!_offsetMapping.TryGetValue(fieldName, out var list))
             throw new NotImplementedException(
@@ -112,7 +131,7 @@ public class BaseObject<TParent> where TParent : class
         foreach (var offset in list) WriteOffset(value, offset);
     }
 
-    protected void SafeWriteAll<T>(string fieldName, T value) where T : unmanaged
+    protected void SafeWriteAll<T>(T value, [CallerMemberName] string fieldName = "") where T : unmanaged
     {
         if (!_offsetMapping.TryGetValue(fieldName, out var list))
             throw new NotImplementedException(
@@ -127,19 +146,37 @@ public class BaseObject<TParent> where TParent : class
         return value;
     }
 
+    protected Span<T> ReadArrayOffset<T>(int offset, int len) where T : unmanaged
+    {
+        var size = Marshal.SizeOf(typeof(T));
+        var value = _memory.ReadRaw((nuint)(BaseAddress + offset), size * len);
+        return MemoryMarshal.Cast<byte, T>(value);
+    }
+
     protected void WriteOffset<T>(T val, int offset) where T : unmanaged
     {
-        _memory.Write((nuint)(BaseAddress + offset), ref val);
+        _memory.Write((nuint)(BaseAddress + offset), val);
+    }
+
+    protected void WriteArrayOffset<T>(T[] val, int offset) where T : unmanaged
+    {
+        var value = MemoryMarshal.Cast<T, byte>(val);
+        _memory.WriteRaw((nuint)(BaseAddress + offset), value);
     }
 
     protected void SafeWriteOffset<T>(T val, int offset) where T : unmanaged
     {
-        _memory.SafeWrite((nuint)(BaseAddress + offset), ref val);
+        var size = Marshal.SizeOf(typeof(T));
+        var addr = (nuint)(BaseAddress + offset);
+        using (_memory.ChangeProtectionDisposable(addr, size, MemoryProtection.ReadWriteExecute))
+        {
+            _memory.WriteWithMarshalling(addr, val);
+        }
     }
 
     protected string ReadStrOffset(int offset, int length)
     {
-        _memory.ReadRaw((nuint)(BaseAddress + offset), out var rawBytes, length * 2);
+        var rawBytes = _memory.ReadRaw((nuint)(BaseAddress + offset), length * 2);
         // Strings are a variable length byte/ushort combination. If the first byte is 0xb0 <= x <= 0xb6 then
         // its a multi byte string and we read an extra number.
         // 0xff is a terminator byte for the string.
@@ -149,7 +186,7 @@ public class BaseObject<TParent> where TParent : class
         {
             var b = rawBytes[i];
             if (b == 0xff) break;
-            var o = b is >= 0xb0 and <= 0xb6 ? (ushort)((b << 8) | rawBytes[i++]) : b;
+            var o = b is >= 0xb0 and <= 0xcf ? (ushort)((b << 8) | rawBytes[i++]) : b;
             sb.Append(CharMap.Forward.TryGetValue(o, out var s) ? s : '?');
         }
 
@@ -158,15 +195,25 @@ public class BaseObject<TParent> where TParent : class
 
     protected void WriteStrOffset(string val, int offset)
     {
-        // TODO implement this
-        var arr = new ushort[val.Length];
+        var len = val.Length;
+        var arr = new ushort[len];
+        var bytes = new byte[len * 2 + 1];
         var q = CharMap.Reverse['?'];
-        for (var i = 0; i < val.Length; i++) arr[i] = CharMap.Reverse.TryGetValue(val[i], out var s) ? s : q;
-        _memory.Write((nuint)(BaseAddress + offset), arr, true);
+        for (var i = 0; i < len; i++) arr[i] = CharMap.Reverse.TryGetValue(val[i], out var s) ? s : q;
+
+        // Copy the data from the short array into the bytes
+        for (var i = 0; i < len; i++)
+        {
+            bytes[i * 2] = (byte)(arr[i] >> 8);
+            bytes[i * 2 + 1] = (byte)(arr[i] & 0xff);
+        }
+
+        bytes[len * 2] = 0xff;
+        _memory.WriteRaw((nuint)(BaseAddress + offset), bytes);
     }
 
 
-    public static int Get(string propName)
+    public static int Get([CallerMemberName] string propName = "")
     {
         return GetOffset<TParent>(propName);
     }

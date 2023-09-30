@@ -69,6 +69,32 @@ public enum StatFlags : ulong
     PrizeMoney = 1L << 53
 }
 
+public static class MonsterHelper
+{
+    public static TEnum ToRangeEnum<TEnum, T>(T val) where T : IBinaryInteger<T> where TEnum : struct, Enum
+    {
+        foreach (var e in (T[])Enum.GetValuesAsUnderlyingType<TEnum>())
+            if (val <= e)
+                return (TEnum)Enum.ToObject(typeof(TEnum), e);
+        return (TEnum)Enum.ToObject(typeof(TEnum), sbyte.MaxValue); // Error
+    }
+
+    public static T FromRangeEnum<TEnum, T>(TEnum val) where T : IBinaryInteger<T> where TEnum : struct, Enum
+    {
+        return (T)Convert.ChangeType(val, val.GetTypeCode());
+    }
+
+    public static short NatureRawToMod(short natureRaw)
+    {
+        return (short)Math.Truncate(Math.Sin(Math.PI * natureRaw / 2048) * 100);
+    }
+
+    public static short NatureModToRaw(short natureMod)
+    {
+        return (short)Math.Truncate(Math.Asin(natureMod / 100.0f) * 2048 / Math.PI);
+    }
+}
+
 public interface IMonster
 {
     ushort Age { get; set; }
@@ -92,9 +118,11 @@ public interface IMonster
     EffectiveNature Nature
     {
         get =>
-            ToRangeEnum<EffectiveNature, sbyte>((sbyte)(NatureBase + NatureRawToMod(NatureRaw)));
+            MonsterHelper.ToRangeEnum<EffectiveNature, sbyte>(
+                (sbyte)(NatureBase + MonsterHelper.NatureRawToMod(NatureRaw)));
         set =>
-            NatureRaw = NatureModToRaw((short)(FromRangeEnum<EffectiveNature, sbyte>(value) - NatureBase));
+            NatureRaw = MonsterHelper.NatureModToRaw(
+                (short)(MonsterHelper.FromRangeEnum<EffectiveNature, sbyte>(value) - NatureBase));
     }
 
     byte Fatigue { get; set; }
@@ -107,8 +135,8 @@ public interface IMonster
 
     Form Form
     {
-        get => ToRangeEnum<Form, sbyte>(FormRaw);
-        set => FormRaw = FromRangeEnum<Form, sbyte>(value);
+        get => MonsterHelper.ToRangeEnum<Form, sbyte>(FormRaw);
+        set => FormRaw = MonsterHelper.FromRangeEnum<Form, sbyte>(value);
     }
 
     byte GrowthRateLife { get; set; }
@@ -151,29 +179,33 @@ public interface IMonster
     string Name { get; set; }
 
     uint PrizeMoney { get; set; }
+}
 
-    protected static TEnum ToRangeEnum<TEnum, T>(T val) where T : IBinaryInteger<T> where TEnum : struct, Enum
-    {
-        foreach (var e in (T[])Enum.GetValuesAsUnderlyingType<TEnum>())
-            if (val <= e)
-                return (TEnum)Enum.ToObject(typeof(TEnum), e);
-        return (TEnum)Enum.ToObject(typeof(TEnum), sbyte.MaxValue); // Error
-    }
+public interface IBattleMonster
+{
+    string Name { get; set; }
 
-    protected static T FromRangeEnum<TEnum, T>(TEnum val) where T : IBinaryInteger<T> where TEnum : struct, Enum
-    {
-        return (T)Convert.ChangeType(val, val.GetTypeCode());
-    }
+    MonsterGenus GenusMain { get; set; }
+    MonsterGenus GenusSub { get; set; }
 
-    protected static short NatureRawToMod(short natureRaw)
-    {
-        return (short)Math.Truncate(Math.Sin(Math.PI * natureRaw / 2048) * 100);
-    }
+    ushort Life { get; set; }
+    ushort Power { get; set; }
+    ushort Defense { get; set; }
+    ushort Skill { get; set; }
+    ushort Speed { get; set; }
+    ushort Intelligence { get; set; }
 
-    protected static short NatureModToRaw(short natureMod)
-    {
-        return (short)Math.Truncate(Math.Asin(natureMod / 100.0f) * 2048 / Math.PI);
-    }
+    sbyte Nature { get; set; }
+
+    byte Spoil { get; set; }
+    byte Fear { get; set; }
+
+    byte[] Attacks { get; set; }
+
+    byte ArenaSpeed { get; set; }
+    byte GutsRate { get; set; }
+
+    BattleSpecials BattleSpecial { get; set; }
 }
 
 public static class StatFlagUtil

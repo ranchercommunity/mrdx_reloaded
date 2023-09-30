@@ -54,8 +54,8 @@ internal class Input : BaseObject<Input>, IInput
     [BaseOffset(BaseGame.Mr2, Region.Us, 0x3723B0)] // offset for current buttons
     public ButtonFlags Buttons
     {
-        get => (ButtonFlags)Read<ushort>("Buttons");
-        set => Write("Buttons", (ushort)value);
+        get => (ButtonFlags)Read<ushort>();
+        set => Write((ushort)value);
     }
 }
 

@@ -1,7 +1,7 @@
 ﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Qol.SkipDrillAnim.Template;
 using Reloaded.Hooks.Definitions;
-using Reloaded.Memory.Sources;
+using Reloaded.Memory;
 using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Qol.SkipDrillAnim;
@@ -80,7 +80,7 @@ public class Mod : ModBase // <= Do not Remove.
         if (_isAutoSkipEnabled || (controller?.Current.Buttons & (ButtonFlags.Circle | ButtonFlags.Triangle)) != 0)
             // The number at offset 8 is checked by the original function to see if we are done, and so we should update it before
             // returning from this function if we ended. In my testing the game usually sets it to 2 after the training animation ends.
-            Memory.Instance.Write(nint.Add(self, 8), 2);
+            Memory.Instance.Write(nuint.Add((nuint)self, 8), 2);
         return _hook!.OriginalFunction(self);
     }
 }

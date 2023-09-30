@@ -1,7 +1,7 @@
 ﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Ui.RawTechValues.Template;
 using Reloaded.Hooks.Definitions;
-using Reloaded.Memory.Sources;
+using Reloaded.Memory;
 using Reloaded.Mod.Interfaces;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 

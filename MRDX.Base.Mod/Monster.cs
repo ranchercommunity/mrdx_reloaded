@@ -1,4 +1,5 @@
-﻿using MRDX.Base.Mod.Interfaces;
+﻿using System.Runtime.CompilerServices;
+using MRDX.Base.Mod.Interfaces;
 
 namespace MRDX.Base.Mod;
 
@@ -16,278 +17,282 @@ public class Monster : BaseObject<Monster>, IMonster
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x00)]
     public ushort Age
     {
-        get => Read<ushort>("Age");
-        set => WatchWrite("Age", value);
+        get => Read<ushort>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x04)]
     public MonsterGenus GenusMain
     {
-        get => Read<MonsterGenus>("GenusMain");
-        set => WatchWrite("GenusMain", value);
+        get => Read<MonsterGenus>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x08)]
     public MonsterGenus GenusSub
     {
-        get => Read<MonsterGenus>("GenusSub");
-        set => WatchWrite("GenusSub", value);
+        get => Read<MonsterGenus>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x0C)]
     public ushort Life
     {
-        get => Read<ushort>("Life");
-        set => WatchWrite("Life", value);
+        get => Read<ushort>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x0E)]
     public ushort Power
     {
-        get => Read<ushort>("Power");
-        set => WatchWrite("Power", value);
+        get => Read<ushort>();
+        set => WatchWrite(value);
     }
 
-    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x14)]
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x16)]
     public ushort Intelligence
     {
-        get => Read<ushort>("Intelligence");
-        set => WatchWrite("Intelligence", value);
+        get => Read<ushort>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x12)]
     public ushort Skill
     {
-        get => Read<ushort>("Skill");
-        set => WatchWrite("Skill", value);
+        get => Read<ushort>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x14)]
     public ushort Speed
     {
-        get => Read<ushort>("Speed");
-        set => WatchWrite("Speed", value);
+        get => Read<ushort>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x10)]
     public ushort Defense
     {
-        get => Read<ushort>("Defense");
-        set => WatchWrite("Defense", value);
+        get => Read<ushort>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1C)]
     public ushort Lifespan
     {
-        get => Read<ushort>("Lifespan");
-        set => WatchWrite("Lifespan", value);
+        get => Read<ushort>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1E)]
     public ushort InitalLifespan
     {
-        get => Read<ushort>("InitalLifespan");
-        set => WatchWrite("InitalLifespan", value);
+        get => Read<ushort>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x20)]
 
     public short NatureRaw
     {
-        get => Read<short>("NatureRaw");
-        set => WatchWrite("NatureRaw", value);
+        get => Read<short>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x45)]
     public sbyte NatureBase
     {
-        get => Read<sbyte>("NatureBase");
-        set => WatchWrite("NatureBase", value);
+        get => Read<sbyte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x23)]
     public byte Fatigue
     {
-        get => Read<byte>("Fatigue");
-        set => WatchWrite("Fatigue", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x24)]
     public byte Fame
     {
-        get => Read<byte>("Fame");
-        set => WatchWrite("Fame", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x27)]
-    public sbyte Stress { get; set; }
+    public sbyte Stress
+    {
+        get => Read<sbyte>();
+        set => WatchWrite(value);
+    }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x28)]
     public byte LoyalSpoil
     {
-        get => Read<byte>("LoyalSpoil");
-        set => WatchWrite("LoyalSpoil", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x29)]
     public byte LoyalFear
     {
-        get => Read<byte>("LoyalFear");
-        set => WatchWrite("LoyalFear", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2A)]
     public sbyte FormRaw
     {
-        get => Read<sbyte>("FormRaw");
-        set => WatchWrite("FormRaw", value);
+        get => Read<sbyte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2C)]
     public byte GrowthRatePower
     {
-        get => Read<byte>("GrowthRatePower");
-        set => WatchWrite("GrowthRatePower", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2D)]
     public byte GrowthRateIntelligence
     {
-        get => Read<byte>("GrowthRateIntelligence");
-        set => WatchWrite("GrowthRateIntelligence", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2E)]
     public byte GrowthRateLife
     {
-        get => Read<byte>("GrowthRateLife");
-        set => WatchWrite("GrowthRateLife", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2F)]
     public byte GrowthRateSkill
     {
-        get => Read<byte>("GrowthRateSkill");
-        set => WatchWrite("GrowthRateSkill", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x30)]
     public byte GrowthRateSpeed
     {
-        get => Read<byte>("GrowthRateSpeed");
-        set => WatchWrite("GrowthRateSpeed", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x31)]
     public byte GrowthRateDefense
     {
-        get => Read<byte>("GrowthRateDefense");
-        set => WatchWrite("GrowthRateDefense", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x64)]
     public ushort TrainBoost
     {
-        get => Read<ushort>("TrainBoost");
-        set => WatchWrite("TrainBoost", value);
+        get => Read<ushort>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xB1)]
     public byte CupJellyCount
     {
-        get => Read<byte>("CupJellyCount");
-        set => WatchWrite("CupJellyCount", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xB2)]
     public bool UsedPeachGold
     {
-        get => Read<bool>("UsedPeachGold");
-        set => WatchWrite("UsedPeachGold", value);
+        get => Read<bool>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xB3)]
     public bool UsedPeachSilver
     {
-        get => Read<bool>("UsedPeachSilver");
-        set => WatchWrite("UsedPeachSilver", value);
+        get => Read<bool>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xE9)]
     public PlaytimeType Playtime
     {
-        get => Read<PlaytimeType>("Playtime");
-        set => WatchWrite("Playtime", value);
+        get => Read<PlaytimeType>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xF6)]
     public byte Drug
     {
-        get => Read<byte>("Drug");
-        set => WatchWrite("Drug", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xF8)]
     public byte DrugDuration
     {
-        get => Read<byte>("DrugDuration");
-        set => WatchWrite("DrugDuration", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xFA)]
     public bool ItemUsed
     {
-        get => Read<bool>("ItemUsed");
-        set => WatchWrite("ItemUsed", value);
+        get => Read<bool>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x106)]
     public Item ItemLike
     {
-        get => Read<Item>("ItemLike");
-        set => WatchWrite("ItemLike", value);
+        get => Read<Item>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x108)]
     public Item ItemDislike
     {
-        get => Read<Item>("ItemDislike");
-        set => WatchWrite("ItemDislike", value);
+        get => Read<Item>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x18E)]
     public byte Rank
     {
-        get => Read<byte>("Rank");
-        set => WatchWrite("Rank", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x18F)]
     public LifeStage LifeStage
     {
-        get => Read<LifeStage>("LifeStage");
-        set => WatchWrite("LifeStage", value);
+        get => Read<LifeStage>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x190)]
     public LifeType LifeType
     {
-        get => Read<LifeType>("LifeType");
-        set => WatchWrite("LifeType", value);
+        get => Read<LifeType>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1D2)]
     public byte ArenaSpeed
     {
-        get => Read<byte>("ArenaSpeed");
-        set => WatchWrite("ArenaSpeed", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1D3)]
     public byte GutsRate
     {
-        get => Read<byte>("GutsRate");
-        set => WatchWrite("GutsRate", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1E)]
@@ -299,85 +304,85 @@ public class Monster : BaseObject<Monster>, IMonster
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xDC)]
     public byte MotivationDomino
     {
-        get => Read<byte>("MotivationDomino");
-        set => WatchWrite("MotivationDomino", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xDD)]
     public byte MotivationStudy
     {
-        get => Read<byte>("MotivationStudy");
-        set => WatchWrite("MotivationStudy", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xDE)]
     public byte MotivationRun
     {
-        get => Read<byte>("MotivationRun");
-        set => WatchWrite("MotivationRun", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xDF)]
     public byte MotivationShoot
     {
-        get => Read<byte>("MotivationShoot");
-        set => WatchWrite("MotivationShoot", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xE0)]
     public byte MotivationDodge
     {
-        get => Read<byte>("MotivationDodge");
-        set => WatchWrite("MotivationDodge", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xE1)]
     public byte MotivationEndure
     {
-        get => Read<byte>("MotivationEndure");
-        set => WatchWrite("MotivationEndure", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xE2)]
     public byte MotivationPull
     {
-        get => Read<byte>("MotivationPull");
-        set => WatchWrite("MotivationPull", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xE3)]
     public byte MotivationMeditate
     {
-        get => Read<byte>("MotivationMeditate");
-        set => WatchWrite("MotivationMeditate", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xE4)]
     public byte MotivationLeap
     {
-        get => Read<byte>("MotivationLeap");
-        set => WatchWrite("MotivationLeap", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xE5)]
     public byte MotivationSwim
     {
-        get => Read<byte>("MotivationSwim");
-        set => WatchWrite("MotivationSwim", value);
+        get => Read<byte>();
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x16C)]
     public string Name
     {
-        get => ReadStr("Name", 12);
-        set => WriteStr("Name", value);
+        get => ReadStr(12);
+        set => WriteStr(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1E)]
     public uint PrizeMoney
     {
-        get => Read<uint>("PrizeMoney");
-        set => WatchWrite("PrizeMoney", value);
+        get => Read<uint>();
+        set => WatchWrite(value);
     }
 
     public void UpdateCache()
@@ -389,10 +394,10 @@ public class Monster : BaseObject<Monster>, IMonster
     /// </summary>
     public event IGame.MonsterChange? ModChanged;
 
-    private void WatchWrite<T>(string fieldName, T val) where T : unmanaged
+    private void WatchWrite<T>(T val, [CallerMemberName] string fieldName = "") where T : unmanaged
     {
         // Always write just in case the cache is out of date or something
-        Write(fieldName, val);
+        Write(val, fieldName);
         if (Cache.Get<T>(fieldName).Equals(val)) return;
         var newCache = Cache with { };
         newCache.Set(fieldName, val);
@@ -597,5 +602,131 @@ public record struct MonsterCache : IMonster
     public void Set<T>(string propName, T val)
     {
         GetType().GetProperty(propName)!.SetValue(this, val, null);
+    }
+}
+
+public class ErrantryEnemyMonster : BaseObject<ErrantryEnemyMonster>, IBattleMonster
+{
+    public ErrantryEnemyMonster(int offset) : base(offset)
+    {
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1e)]
+    public ushort Lifespan
+    {
+        get => Read<ushort>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x0)]
+    public string Name
+    {
+        get => ReadStr(13);
+        set => WriteStr(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1a)]
+    public MonsterGenus GenusMain
+    {
+        get => Read<MonsterGenus>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1b)]
+    public MonsterGenus GenusSub
+    {
+        get => Read<MonsterGenus>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1c)]
+    public ushort Life
+    {
+        get => Read<ushort>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1e)]
+    public ushort Power
+    {
+        get => Read<ushort>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x20)]
+    public ushort Defense
+    {
+        get => Read<ushort>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x22)]
+    public ushort Skill
+    {
+        get => Read<ushort>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x24)]
+    public ushort Speed
+    {
+        get => Read<ushort>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x26)]
+    public ushort Intelligence
+    {
+        get => Read<ushort>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x28)]
+    public sbyte Nature
+    {
+        get => Read<sbyte>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x29)]
+    public byte Spoil
+    {
+        get => Read<byte>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2a)]
+    public byte Fear
+    {
+        get => Read<byte>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2c)]
+    public byte[] Attacks
+    {
+        get => ReadArray<byte>(3).ToArray();
+        set => WriteArray(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x30)]
+    public byte ArenaSpeed
+    {
+        get => Read<byte>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x31)]
+    public byte GutsRate
+    {
+        get => Read<byte>();
+        set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x34)]
+    public BattleSpecials BattleSpecial
+    {
+        get => (BattleSpecials)Read<ushort>();
+        set => Write((ushort)value);
     }
 }
