@@ -173,7 +173,7 @@ public class BaseObject<TParent> where TParent : class
         // {
         //     _memory.WriteWithMarshalling(addr, val);
         // }
-        _memory.ChangePermission(addr, size, Kernel32.MEM_PROTECTION.PAGE_READWRITE);
+        _memory.ChangePermission(addr, size, Kernel32.MEM_PROTECTION.PAGE_EXECUTE_READWRITE);
         _memory.Write(addr, val, true);
     }
 
