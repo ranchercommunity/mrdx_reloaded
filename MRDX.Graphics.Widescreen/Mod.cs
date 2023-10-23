@@ -68,7 +68,6 @@ public class Mod : ModBase // <= Do not Remove.
         _owner = context.Owner;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
-        Debugger.Launch();
         _gameClient = _modLoader.GetController<IGameClient>();
 
         _modLoader.GetController<IHooks>().TryGetTarget(out var hooks);
@@ -76,8 +75,10 @@ public class Mod : ModBase // <= Do not Remove.
             .ContinueWith(result => _createOverlayHook = result.Result?.Activate());
         UpdateWindowBounds(_configuration.AspectRatio);
         CalculateSkyboxCoords(_configuration.AspectRatio);
-        var _startupScanner = _modLoader.GetController<IStartupScanner>();
-        if (_startupScanner != null && _startupScanner.TryGetTarget(out var scanner)) InitSkyboxHooks(scanner);
+        var startupScanner = _modLoader.GetController<IStartupScanner>();
+        if (startupScanner != null && startupScanner.TryGetTarget(out var scanner)) InitSkyboxHooks(scanner);
+        else
+            _logger.WriteLine($"[{_modConfig.ModId}] Could not load startup scanner!");
     }
 
     #region For Exports, Serialization etc.
@@ -138,22 +139,18 @@ public class Mod : ModBase // <= Do not Remove.
     private void CalculateSkyboxCoords(Config.AspectRatioEnum ratio)
     {
         var newWidth = CalculateNewWidth(OriginalWidth, ratio);
-        _logger!.WriteLine($"[MRDX.Graphics.Widescreen] newwidth: {(uint)newWidth}");
 
         _skyboxEndYPtr = Marshal.AllocHGlobal(2);
         short newYVal = 0x78;
         Marshal.WriteInt16(_skyboxEndYPtr, newYVal);
-        _logger!.WriteLine($"[MRDX.Graphics.Widescreen] newYVal: {(uint)newYVal}");
 
         _skyboxStartXPtr = Marshal.AllocHGlobal(2);
         var newXVal = (short)(newWidth / 2 * -1);
         Marshal.WriteInt16(_skyboxStartXPtr, newXVal);
-        _logger!.WriteLine($"[MRDX.Graphics.Widescreen] newXVal: {(uint)newXVal}");
 
         _skyboxEndXPtr = Marshal.AllocHGlobal(2);
         var newXVal1 = (short)(newWidth / 2);
         Marshal.WriteInt16(_skyboxEndXPtr, newXVal1);
-        _logger!.WriteLine($"[MRDX.Graphics.Widescreen] newXVal1: {(uint)newXVal1}");
     }
 
     private void InitSkyboxHooks(IStartupScanner scanner)

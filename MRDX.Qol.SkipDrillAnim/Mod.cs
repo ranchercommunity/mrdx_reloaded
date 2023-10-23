@@ -1,7 +1,7 @@
 ﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Qol.SkipDrillAnim.Template;
 using Reloaded.Hooks.Definitions;
-using Reloaded.Memory;
+using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Qol.SkipDrillAnim;

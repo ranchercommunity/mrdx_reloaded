@@ -6,7 +6,7 @@ Split-Path $MyInvocation.MyCommand.Path | Push-Location
 
 # Name of interface mod, version
 # These are kinda hard coded into the publish script for now.
-$BaseModInterfaceVersion = "1.1.0"
+$BaseModInterfaceVersion = "1.1.1"
 $InterfaceVersions = @{
     BaseExtractDataBinInterface = "1.1.1";
     BaseModInterfaces = $BaseModInterfaceVersion
@@ -14,18 +14,18 @@ $InterfaceVersions = @{
 
 $AllProjects = @(
 # Name of mod, version
-    @("MRDX.Audio.VolumeConfig", "1.1.4", $false),
-    @("MRDX.Base.ExtractDataBin", "1.1.1", $false),
+    @("MRDX.Audio.VolumeConfig", "1.1.5", $false),
+    @("MRDX.Base.ExtractDataBin", "1.1.2", $false),
     @("MRDX.Base.Mod", $BaseModInterfaceVersion, $false),
-    @("MRDX.Game.HardMode", "2.1.0", $false),
+    @("MRDX.Game.HardMode", "2.1.1", $false),
 #    Not ready for release yet, so leave it commented out for now
 #    @("MRDX.Game.MonsterEditor", "1.0.0", $false),
-    @("MRDX.Graphics.Widescreen", "1.2.1", $false),
-    @("MRDX.Qol.BattleTimer", "1.0.1", $false),
-    @("MRDX.Qol.FastForward", "1.3.3", $false),
-    @("MRDX.Qol.SkipDrillAnim", "1.2.5", $false),
-    @("MRDX.Qol.TurboInput", "1.0.3", $false),
-    @("MRDX.Ui.RawTechValues", "1.0.6", $false)
+    @("MRDX.Graphics.Widescreen", "1.2.2", $false),
+    @("MRDX.Qol.BattleTimer", "1.0.2", $false),
+    @("MRDX.Qol.FastForward", "1.3.4", $false),
+    @("MRDX.Qol.SkipDrillAnim", "1.2.6", $false),
+    @("MRDX.Qol.TurboInput", "1.0.4", $false),
+    @("MRDX.Ui.RawTechValues", "1.0.7", $false)
 )
 
 Write-Output "Starting Publish All"

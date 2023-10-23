@@ -23,6 +23,7 @@
   "IsUniversalMod": false,
   "ModDependencies": [
     "reloaded.sharedlib.hooks",
+    "Reloaded.Memory.SigScan.ReloadedII",
     "MRDX.Base.Mod"
   ],
   "OptionalDependencies": [],

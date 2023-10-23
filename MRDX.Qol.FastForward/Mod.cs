@@ -1,11 +1,11 @@
-﻿using MRDX.Base.Mod.Interfaces;
+﻿using System.Runtime.InteropServices;
+using MRDX.Base.Mod.Interfaces;
 using MRDX.Qol.FastForward.Template;
 using Reloaded.Hooks;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.Enums;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
-using System.Runtime.InteropServices;
 
 namespace MRDX.Qol.FastForward;
 
@@ -48,25 +48,13 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private Config _configuration;
 
-    private bool _wasPressed;
-
-    [DllImport("libcocos2d.dll",
-        EntryPoint = "?getInstance@Director@cocos2d@@SAPAV12@XZ",
-        ExactSpelling = true,
-        CallingConvention = CallingConvention.Cdecl)]
-    static extern IntPtr GetDirectorInstance();
-
-    [DllImport("libcocos2d.dll",
-        EntryPoint = "?setAnimationInterval@Director@cocos2d@@QAEXM@Z",
-        ExactSpelling = true,
-        CallingConvention = CallingConvention.ThisCall)]
-    static extern IntPtr SetAnimationInterval(IntPtr director, float interval);
+    private nuint _fastForwardTickDelayAddr;
 
     private IAsmHook _tickDelayHook;
 
-    private nuint _fastForwardTickDelayAddr;
+    private readonly nint _tickDelayPtr;
 
-    private nint _tickDelayPtr;
+    private bool _wasPressed;
 
     public Mod(ModContext context)
     {
@@ -85,15 +73,15 @@ public class Mod : ModBase // <= Do not Remove.
         _tickDelayPtr = Marshal.AllocHGlobal(4);
         Marshal.WriteInt32(_tickDelayPtr, _configuration.TickDelay);
 
-        var _startupScanner = _modLoader.GetController<IStartupScanner>();
-        if (_startupScanner != null && _startupScanner.TryGetTarget(out var scanner))
-        {
+        var startupScanner = _modLoader.GetController<IStartupScanner>();
+        if (startupScanner != null && startupScanner.TryGetTarget(out var scanner))
             scanner.AddMainModuleScan("BF 00 7D 00 00 BA 80 3E 00 00", result =>
             {
-                _fastForwardTickDelayAddr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+                _fastForwardTickDelayAddr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
                 HookTickDelay();
             });
-        }
+        else
+            _logger.WriteLine($"[{_modConfig.ModId}] Unable to load startup scanner!");
     }
 
     #region For Exports, Serialization etc.
@@ -105,6 +93,18 @@ public class Mod : ModBase // <= Do not Remove.
 #pragma warning restore CS8618
 
     #endregion
+
+    [DllImport("libcocos2d.dll",
+        EntryPoint = "?getInstance@Director@cocos2d@@SAPAV12@XZ",
+        ExactSpelling = true,
+        CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr GetDirectorInstance();
+
+    [DllImport("libcocos2d.dll",
+        EntryPoint = "?setAnimationInterval@Director@cocos2d@@QAEXM@Z",
+        ExactSpelling = true,
+        CallingConvention = CallingConvention.ThisCall)]
+    private static extern IntPtr SetAnimationInterval(IntPtr director, float interval);
 
     private void HandleInputChanged(IInput input)
     {
@@ -136,11 +136,12 @@ public class Mod : ModBase // <= Do not Remove.
     {
         string[] modifyTickDelay =
         {
-            $"use32",
-            $"mov edx, [{_tickDelayPtr}]",
+            "use32",
+            $"mov edx, [{_tickDelayPtr}]"
         };
 
-        _tickDelayHook = new AsmHook(modifyTickDelay, _fastForwardTickDelayAddr, AsmHookBehaviour.ExecuteAfter).Activate();
+        _tickDelayHook =
+            new AsmHook(modifyTickDelay, _fastForwardTickDelayAddr, AsmHookBehaviour.ExecuteAfter).Activate();
     }
 
     public override void ConfigurationUpdated(Config configuration)

@@ -41,7 +41,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Reloaded.Memory" Version="9.1.0" />
+        <PackageReference Include="Reloaded.Memory" Version="8.1.0" />
         <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime" />
         <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />
         <PackageReference Include="Reloaded.Universal.Redirector.Interfaces" Version="1.1.0" />

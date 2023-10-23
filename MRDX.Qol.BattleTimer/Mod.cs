@@ -2,7 +2,7 @@
 using MRDX.Qol.BattleTimer.Configuration;
 using MRDX.Qol.BattleTimer.Template;
 using Reloaded.Hooks.Definitions;
-using Reloaded.Memory;
+using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 

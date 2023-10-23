@@ -39,9 +39,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Reloaded.Assembler" Version="1.0.15" />
+        <PackageReference Include="Reloaded.Assembler" Version="1.0.14" />
         <PackageReference Include="Reloaded.Hooks" Version="4.3.0" />
-        <PackageReference Include="Reloaded.Memory.Buffers" Version="3.0.6" />
+        <PackageReference Include="Reloaded.Memory.Buffers" Version="2.0.0" />
         <PackageReference Include="Reloaded.Memory.SigScan.ReloadedII.Interfaces" Version="1.2.0" />
         <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime" />
         <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />
