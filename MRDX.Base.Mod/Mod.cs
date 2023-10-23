@@ -1,10 +1,9 @@
 ﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Base.Mod.Template;
 using Reloaded.Hooks.Definitions;
-using Reloaded.Memory;
-using Reloaded.Memory.Interfaces;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
+using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Base.Mod;
@@ -89,7 +88,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     private readonly IStartupScanner? _startupScanner;
 
-    private Memory _memory;
+    private readonly Memory _memory;
 
     public Mod(ModContext context)
     {
@@ -148,7 +147,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         {
             const int len = 13 * 2;
             var straddr = nuint.Add(addr, i * (len + 1));
-            var bytes = _memory.ReadRaw(straddr, len);
+            _memory.ReadRaw(straddr, out var bytes, len);
             var str = bytes.AsShorts().AsString();
             var unpluralized = _pluralNames[str].AsBytes();
 

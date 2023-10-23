@@ -4,9 +4,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using MRDX.Base.Mod.Interfaces;
-using Reloaded.Memory;
-using Reloaded.Memory.Enums;
-using Reloaded.Memory.Interfaces;
+using Reloaded.Memory.Kernel32;
+using Reloaded.Memory.Sources;
 
 namespace MRDX.Base.Mod;
 
@@ -28,9 +27,9 @@ public static class Base
 
 public class BaseObject<TParent> where TParent : class
 {
+    private readonly Memory _memory;
     private readonly IDictionary<string, IList<int>> _offsetMapping = new Dictionary<string, IList<int>>();
     public readonly long BaseAddress;
-    private Memory _memory;
 
     protected BaseObject(int baseOffset = 0)
     {
@@ -149,7 +148,8 @@ public class BaseObject<TParent> where TParent : class
     protected Span<T> ReadArrayOffset<T>(int offset, int len) where T : unmanaged
     {
         var size = Marshal.SizeOf(typeof(T));
-        var value = _memory.ReadRaw((nuint)(BaseAddress + offset), size * len);
+        // var value = _memory.ReadRaw((nuint)(BaseAddress + offset), size * len);
+        _memory.ReadRaw((nuint)(BaseAddress + offset), out var value, size * len);
         return MemoryMarshal.Cast<byte, T>(value);
     }
 
@@ -161,22 +161,27 @@ public class BaseObject<TParent> where TParent : class
     protected void WriteArrayOffset<T>(T[] val, int offset) where T : unmanaged
     {
         var value = MemoryMarshal.Cast<T, byte>(val);
-        _memory.WriteRaw((nuint)(BaseAddress + offset), value);
+        // _memory.WriteRaw((nuint)(BaseAddress + offset), value);
+        _memory.WriteRaw((nuint)(BaseAddress + offset), value.ToArray());
     }
 
     protected void SafeWriteOffset<T>(T val, int offset) where T : unmanaged
     {
         var size = Marshal.SizeOf(typeof(T));
         var addr = (nuint)(BaseAddress + offset);
-        using (_memory.ChangeProtectionDisposable(addr, size, MemoryProtection.ReadWriteExecute))
-        {
-            _memory.WriteWithMarshalling(addr, val);
-        }
+        // using (_memory.ChangeProtectionDisposable(addr, size, MemoryProtection.ReadWriteExecute))
+        // {
+        //     _memory.WriteWithMarshalling(addr, val);
+        // }
+        _memory.ChangePermission(addr, size, Kernel32.MEM_PROTECTION.PAGE_READWRITE);
+        _memory.Write(addr, val, true);
     }
 
     protected string ReadStrOffset(int offset, int length)
     {
-        var rawBytes = _memory.ReadRaw((nuint)(BaseAddress + offset), length * 2);
+        // var rawBytes = _memory.ReadRaw((nuint)(BaseAddress + offset), length * 2);
+
+        _memory.ReadRaw((nuint)(BaseAddress + offset), out var rawBytes, length * 2);
         // Strings are a variable length byte/ushort combination. If the first byte is 0xb0 <= x <= 0xb6 then
         // its a multi byte string and we read an extra number.
         // 0xff is a terminator byte for the string.

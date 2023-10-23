@@ -16,10 +16,14 @@ namespace MRDX.Graphics.Widescreen;
 /// </summary>
 public class Mod : ModBase // <= Do not Remove.
 {
+    private const float OriginalWidth = 320.0f;
+
     /// <summary>
     ///     Provides access to the Reloaded logger.
     /// </summary>
     private static ILogger _logger = null!;
+
+    private readonly WeakReference<IGameClient> _gameClient;
 
     /// <summary>
     ///     Provides access to the Reloaded.Hooks API.
@@ -49,15 +53,12 @@ public class Mod : ModBase // <= Do not Remove.
 
     private IHook<CreateOverlay>? _createOverlayHook;
 
-    private const float OriginalWidth = 320.0f;
-
-    private readonly WeakReference<IGameClient> _gameClient;
+    private nint _skyboxEndXPtr;
     // private IHook<SetUniform>? _setUniformHook;
     // private IHook<RenderFrameCall>? _renderFrameCallHook;
 
     private nint _skyboxEndYPtr;
     private nint _skyboxStartXPtr;
-    private nint _skyboxEndXPtr;
 
     public Mod(ModContext context)
     {
@@ -67,7 +68,7 @@ public class Mod : ModBase // <= Do not Remove.
         _owner = context.Owner;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
-
+        Debugger.Launch();
         _gameClient = _modLoader.GetController<IGameClient>();
 
         _modLoader.GetController<IHooks>().TryGetTarget(out var hooks);
@@ -76,10 +77,7 @@ public class Mod : ModBase // <= Do not Remove.
         UpdateWindowBounds(_configuration.AspectRatio);
         CalculateSkyboxCoords(_configuration.AspectRatio);
         var _startupScanner = _modLoader.GetController<IStartupScanner>();
-        if (_startupScanner != null && _startupScanner.TryGetTarget(out var scanner))
-        {
-            InitSkyboxHooks(scanner);
-        }
+        if (_startupScanner != null && _startupScanner.TryGetTarget(out var scanner)) InitSkyboxHooks(scanner);
     }
 
     #region For Exports, Serialization etc.
@@ -133,25 +131,29 @@ public class Mod : ModBase // <= Do not Remove.
 
     private nint CreateOverlayHook(nint self, OverlayDrawMode drawMode)
     {
-        _logger!.WriteLine($"[] original drawmode value: {(uint)drawMode}");
+        _logger!.WriteLine($"[MRDX.Graphics.Widescreen] original drawmode value: {(uint)drawMode}");
         return _createOverlayHook!.OriginalFunction(self, OverlayDrawMode.NoOverlay);
     }
 
     private void CalculateSkyboxCoords(Config.AspectRatioEnum ratio)
     {
         var newWidth = CalculateNewWidth(OriginalWidth, ratio);
+        _logger!.WriteLine($"[MRDX.Graphics.Widescreen] newwidth: {(uint)newWidth}");
 
         _skyboxEndYPtr = Marshal.AllocHGlobal(2);
         short newYVal = 0x78;
         Marshal.WriteInt16(_skyboxEndYPtr, newYVal);
+        _logger!.WriteLine($"[MRDX.Graphics.Widescreen] newYVal: {(uint)newYVal}");
 
         _skyboxStartXPtr = Marshal.AllocHGlobal(2);
-        short newXVal = (short)(newWidth / 2 * -1);
+        var newXVal = (short)(newWidth / 2 * -1);
         Marshal.WriteInt16(_skyboxStartXPtr, newXVal);
+        _logger!.WriteLine($"[MRDX.Graphics.Widescreen] newXVal: {(uint)newXVal}");
 
         _skyboxEndXPtr = Marshal.AllocHGlobal(2);
-        short newXVal1 = (short)(newWidth / 2);
+        var newXVal1 = (short)(newWidth / 2);
         Marshal.WriteInt16(_skyboxEndXPtr, newXVal1);
+        _logger!.WriteLine($"[MRDX.Graphics.Widescreen] newXVal1: {(uint)newXVal1}");
     }
 
     private void InitSkyboxHooks(IStartupScanner scanner)
@@ -161,11 +163,11 @@ public class Mod : ModBase // <= Do not Remove.
         {
             string[] modifyCoords =
             {
-                $"use32",
-                $"mov bx, [{_skyboxStartXPtr}]",
+                "use32",
+                $"mov bx, [{_skyboxStartXPtr}]"
             };
 
-            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
         });
 
@@ -173,14 +175,14 @@ public class Mod : ModBase // <= Do not Remove.
         {
             string[] modifyCoords =
             {
-                $"use32",
+                "use32",
                 $"mov ax, [{_skyboxStartXPtr}]",
-                $"mov [esi+0x8], ax",
+                "mov [esi+0x8], ax",
                 $"mov ax, [{_skyboxEndXPtr}]",
-                $"mov [esi+0x10], ax"
+                "mov [esi+0x10], ax"
             };
 
-            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter, 14).Activate();
         });
 
@@ -188,11 +190,11 @@ public class Mod : ModBase // <= Do not Remove.
         {
             string[] modifyCoords =
             {
-                $"use32",
+                "use32",
                 $"mov cx, [{_skyboxEndXPtr}]"
             };
 
-            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
         });
 
@@ -200,12 +202,12 @@ public class Mod : ModBase // <= Do not Remove.
         {
             string[] modifyCoords =
             {
-                $"use32",
+                "use32",
                 $"mov ax, [{_skyboxEndYPtr}]",
-                $"mov [edi+0xA], eax"
+                "mov [edi+0xA], eax"
             };
 
-            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteFirst).Activate();
         });
 
@@ -213,14 +215,14 @@ public class Mod : ModBase // <= Do not Remove.
         {
             string[] modifyCoords =
             {
-                $"use32",
+                "use32",
                 $"mov ax, [{_skyboxStartXPtr}]",
-                $"mov [esi+0x18], ax",
+                "mov [esi+0x18], ax",
                 $"mov ax, [{_skyboxEndXPtr}]",
-                $"mov [esi+0x20], ax"
+                "mov [esi+0x20], ax"
             };
 
-            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter, 14).Activate();
         });
 
@@ -229,12 +231,12 @@ public class Mod : ModBase // <= Do not Remove.
         {
             string[] modifyCoords =
             {
-                $"use32",
-                $"mov ecx, 0",
-                $"mov [edi+0x520], ecx"
+                "use32",
+                "mov ecx, 0",
+                "mov [edi+0x520], ecx"
             };
 
-            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteFirst).Activate();
         });
 
@@ -243,11 +245,11 @@ public class Mod : ModBase // <= Do not Remove.
         {
             string[] modifyCoords =
             {
-                $"use32",
-                $"mov cx, [{_skyboxEndXPtr}]",
+                "use32",
+                $"mov cx, [{_skyboxEndXPtr}]"
             };
 
-            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
         });
 
@@ -255,11 +257,11 @@ public class Mod : ModBase // <= Do not Remove.
         {
             string[] modifyCoords =
             {
-                $"use32",
+                "use32",
                 $"mov dx, [{_skyboxStartXPtr}]"
             };
 
-            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
         });
 
@@ -267,14 +269,14 @@ public class Mod : ModBase // <= Do not Remove.
         {
             string[] modifyCoords =
             {
-                $"use32",
-                $"push dx",
+                "use32",
+                "push dx",
                 $"mov dx, [{_skyboxStartXPtr}]",
-                $"mov [esp+0x22], dx",
-                $"pop dx"
+                "mov [esp+0x22], dx",
+                "pop dx"
             };
 
-            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
         });
 
@@ -282,14 +284,14 @@ public class Mod : ModBase // <= Do not Remove.
         {
             string[] modifyCoords =
             {
-                $"use32",
-                $"push dx",
+                "use32",
+                "push dx",
                 $"mov dx, [{_skyboxEndXPtr}]",
-                $"mov [esp+0x3E], dx",
-                $"pop dx"
+                "mov [esp+0x3E], dx",
+                "pop dx"
             };
 
-            nuint addr = (nuint)(MRDX.Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
             new AsmHook(modifyCoords, addr, AsmHookBehaviour.ExecuteAfter).Activate();
         });
     }
