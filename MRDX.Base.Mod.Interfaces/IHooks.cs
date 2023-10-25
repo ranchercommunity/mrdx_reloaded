@@ -24,6 +24,11 @@ public delegate bool IsTrainingDone(nint self);
 [Function(CallingConventions.Fastcall)]
 public delegate void UpdateGenericState(nint self);
 
+[HookDef(BaseGame.Mr2, Region.Us, "55 8B EC 83 EC 4C A1 ?? ?? ?? ?? 33 C5 89 45 ?? 8B 45 ??")]
+[Function(CallingConventions.MicrosoftThiscall)]
+public delegate void Initialize2dRuinsMap(nint self, uint param1, int param2, int param3, uint param4,
+    uint param5, short param6, nint param7, nint param8, nint param9, uint param10);
+
 // Called when checking if the monster grabbed the item or not
 // This is called by the RuinsTurningPoint state handler for the CModeIsekiMap2D
 [HookDef(BaseGame.Mr2, Region.Us, "C6 41 56 00 8D 41 64 C7 41 ?? ?? ?? ??")]

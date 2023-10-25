@@ -43,11 +43,11 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<IsTrainingDone>? _drillhook;
 
     private CheckIfMonsterGrabbedAnItem? _itemfunc;
-    private IHook<UpdateGenericState>? _itemhook;
+    private IHook<Initialize2dRuinsMap>? _itemhook;
 
 
     private Config.SkipAnimationSetting _skipDrillAnimation;
-    private Config.SkipAnimationSetting _skipItemFindAnimation;
+    private bool _skipItemFindAnimation;
 
     public Mod(ModContext context)
     {
@@ -60,10 +60,9 @@ public class Mod : ModBase // <= Do not Remove.
         _skipItemFindAnimation = context.Configuration.SkipItemFind;
 
         _modLoader.GetController<IHooks>().TryGetTarget(out var hooks);
-        Debugger.Launch();
         hooks!.AddHook<IsTrainingDone>(ShouldSkipTraining)
             .ContinueWith(result => _drillhook = result.Result?.Activate());
-        hooks!.AddHook<UpdateGenericState>(ShouldSkipItemFind)
+        hooks!.AddHook<Initialize2dRuinsMap>(ShouldSkipItemFind)
             .ContinueWith(result => { _itemhook = result.Result?.Activate(); });
 
         hooks.CreateWrapper<CheckIfMonsterGrabbedAnItem>().ContinueWith(result => _itemfunc = result.Result);
@@ -101,38 +100,23 @@ public class Mod : ModBase // <= Do not Remove.
         return _drillhook!.OriginalFunction(self);
     }
 
-    private void ShouldSkipItemFind(nint self)
+    private void ShouldSkipItemFind(nint self, uint param1, int param2, int param3, uint param4,
+        uint param5, short param6, nint param7, nint param8, nint param9, uint param10)
     {
-        _input.TryGetTarget(out var controller);
-        // Memory.Instance.Read(nuint.Add((nuint)self, 4), out byte state);
-        Memory.Instance.Read(nuint.Add((nuint)self, 0), out nuint vtable);
+        Debugger.Launch();
 
-        // Check for the vtable for the monster find expedition state
-        if (vtable != 0x11b45cc)
-        {
-            _itemhook!.OriginalFunction(self);
-            return;
-        }
+        // Call the original init function first
+        _itemhook!.OriginalFunction(self, param1, param2, param3, param4, param5, param6, param7, param8, param9,
+            param10);
 
-        // We are finding an item in an expedition, so bump to the end of the find check.
-        // The value 0x0b is the "last" time its called right after the item search is finished.
-        // I think the state values look something like this
-        // 0x7 - walk towards item 0x8 - stop 0x9 - go back 0xa - close box 0xb - item find? 
+        // If we aren't trying to skip the animation, then early return
+        if (!_skipItemFindAnimation) return;
 
-        // _logger.WriteLine($"[{_modConfig.ModId}] current vtable: {vtable:X} current state: {state}");
+        // Now call the function that actually "finds" the item or not based on the INT stat
+        _itemfunc!.Invoke(self);
 
-        var manualInput = _skipItemFindAnimation == Config.SkipAnimationSetting.Manual &&
-                          (controller?.Current.Buttons & (ButtonFlags.Circle | ButtonFlags.Triangle)) != 0;
-        if (_skipItemFindAnimation == Config.SkipAnimationSetting.Auto || manualInput)
-        {
-            // Before we can skip to the last offset, we need to call the function that gets called
-            // when the monster turns around
-            _itemfunc!.Invoke(self);
-            // The number at offset 4 seems to relate to the monster's current animation state.
-            // If we bump this to 0x0b, then the function will increment it to 0x0c and then it seems to complete early
-            Memory.Instance.Write(nuint.Add((nuint)self, 4), 0x0b);
-        }
-
-        _itemhook!.OriginalFunction(self);
+        // The number at offset 4 seems to relate to the monster's current animation state.
+        // If we bump this to 0x0b, then the function will increment it to 0x0c and then it seems to complete early
+        Memory.Instance.Write(nuint.Add((nuint)self, 4), 0x0b);
     }
 }

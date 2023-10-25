@@ -19,10 +19,9 @@ public class Config : Configurable<Config>
     public SkipAnimationSetting SkipDrill { get; set; } = SkipAnimationSetting.Auto;
 
     [DisplayName("Skip Expedition Item Find Animations")]
-    [Description(
-        "Auto - Skips the item maze animation instantly. Manual - Press Triangle /\\ to skip. Disabled - Do not allow skipping item find animations")]
-    [DefaultValue(SkipAnimationSetting.Auto)]
-    public SkipAnimationSetting SkipItemFind { get; set; } = SkipAnimationSetting.Auto;
+    [Description("On - Skips the item maze animation instantly. Off - Do not skip item find animations")]
+    [DefaultValue(true)]
+    public bool SkipItemFind { get; set; } = true;
 }
 
 /// <summary>
