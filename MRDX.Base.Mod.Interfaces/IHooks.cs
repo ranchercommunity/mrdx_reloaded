@@ -19,10 +19,16 @@ public delegate void RegisterUserInput();
 [Function(CallingConventions.Fastcall)]
 public delegate bool IsTrainingDone(nint self);
 
-// Called during training to see if the training animation is complete. Return true to exit training early.
+// Called from a lot of places. Seems to push the object to the next state.
 [HookDef(BaseGame.Mr2, Region.Us, "8A 41 ?? FE 41 ??")]
 [Function(CallingConventions.Fastcall)]
-public delegate void UpdateMonsterStateDuringFindAnimation(nint self);
+public delegate void UpdateGenericState(nint self);
+
+// Called when checking if the monster grabbed the item or not
+// This is called by the RuinsTurningPoint state handler for the CModeIsekiMap2D
+[HookDef(BaseGame.Mr2, Region.Us, "C6 41 56 00 8D 41 64 C7 41 ?? ?? ?? ??")]
+[Function(CallingConventions.Fastcall)]
+public delegate void CheckIfMonsterGrabbedAnItem(nint self);
 
 // Called before the game creates the custom client overlay. Passing in 5 to the original function skips drawing the overlay
 [HookDef(BaseGame.Mr2, Region.Us, "55 8B EC 8B 45 ?? 53 8B D9 89 83 ?? ?? ?? ??")]

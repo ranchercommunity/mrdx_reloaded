@@ -41,7 +41,10 @@ public class Mod : ModBase // <= Do not Remove.
     private readonly IMod _owner;
 
     private IHook<IsTrainingDone>? _drillhook;
-    private IHook<UpdateMonsterStateDuringFindAnimation>? _itemhook;
+
+    private CheckIfMonsterGrabbedAnItem? _itemfunc;
+    private IHook<UpdateGenericState>? _itemhook;
+
 
     private Config.SkipAnimationSetting _skipDrillAnimation;
     private Config.SkipAnimationSetting _skipItemFindAnimation;
@@ -60,8 +63,10 @@ public class Mod : ModBase // <= Do not Remove.
         Debugger.Launch();
         hooks!.AddHook<IsTrainingDone>(ShouldSkipTraining)
             .ContinueWith(result => _drillhook = result.Result?.Activate());
-        hooks!.AddHook<UpdateMonsterStateDuringFindAnimation>(ShouldSkipItemFind)
+        hooks!.AddHook<UpdateGenericState>(ShouldSkipItemFind)
             .ContinueWith(result => { _itemhook = result.Result?.Activate(); });
+
+        hooks.CreateWrapper<CheckIfMonsterGrabbedAnItem>().ContinueWith(result => _itemfunc = result.Result);
         _input = _modLoader.GetController<IController>();
     }
 
@@ -119,9 +124,14 @@ public class Mod : ModBase // <= Do not Remove.
         var manualInput = _skipItemFindAnimation == Config.SkipAnimationSetting.Manual &&
                           (controller?.Current.Buttons & (ButtonFlags.Circle | ButtonFlags.Triangle)) != 0;
         if (_skipItemFindAnimation == Config.SkipAnimationSetting.Auto || manualInput)
+        {
+            // Before we can skip to the last offset, we need to call the function that gets called
+            // when the monster turns around
+            _itemfunc!.Invoke(self);
             // The number at offset 4 seems to relate to the monster's current animation state.
             // If we bump this to 0x0b, then the function will increment it to 0x0c and then it seems to complete early
             Memory.Instance.Write(nuint.Add((nuint)self, 4), 0x0b);
+        }
 
         _itemhook!.OriginalFunction(self);
     }
