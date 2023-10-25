@@ -5,10 +5,24 @@ namespace MRDX.Qol.SkipDrillAnim;
 
 public class Config : Configurable<Config>
 {
-    [DisplayName("Auto Skip Drill")]
-    [Description("When On, no input is required to skip the drill. When Off, you must press /\\ to skip")]
-    [DefaultValue(true)]
-    public bool AutoSkip { get; set; } = true;
+    public enum SkipAnimationSetting
+    {
+        Auto,
+        Manual,
+        Disabled
+    }
+
+    [DisplayName("Skip Drill Animations")]
+    [Description(
+        "Auto - Skips the drill instantly. Manual - Press Triangle /\\ to skip. Disabled - Do not allow skipping drill animations")]
+    [DefaultValue(SkipAnimationSetting.Auto)]
+    public SkipAnimationSetting SkipDrill { get; set; } = SkipAnimationSetting.Auto;
+
+    [DisplayName("Skip Expedition Item Find Animations")]
+    [Description(
+        "Auto - Skips the item maze animation instantly. Manual - Press Triangle /\\ to skip. Disabled - Do not allow skipping item find animations")]
+    [DefaultValue(SkipAnimationSetting.Auto)]
+    public SkipAnimationSetting SkipItemFind { get; set; } = SkipAnimationSetting.Auto;
 }
 
 /// <summary>

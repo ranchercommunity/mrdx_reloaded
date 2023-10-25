@@ -19,6 +19,11 @@ public delegate void RegisterUserInput();
 [Function(CallingConventions.Fastcall)]
 public delegate bool IsTrainingDone(nint self);
 
+// Called during training to see if the training animation is complete. Return true to exit training early.
+[HookDef(BaseGame.Mr2, Region.Us, "8A 41 ?? FE 41 ??")]
+[Function(CallingConventions.Fastcall)]
+public delegate void UpdateMonsterStateDuringFindAnimation(nint self);
+
 // Called before the game creates the custom client overlay. Passing in 5 to the original function skips drawing the overlay
 [HookDef(BaseGame.Mr2, Region.Us, "55 8B EC 8B 45 ?? 53 8B D9 89 83 ?? ?? ?? ??")]
 [Function(CallingConventions.MicrosoftThiscall)]

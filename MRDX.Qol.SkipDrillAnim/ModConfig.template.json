@@ -1,9 +1,9 @@
 {
   "ModId": "MRDX.Qol.SkipDrillAnim",
-  "ModName": "Skip Drill Animation",
+  "ModName": "Skip Animation",
   "ModAuthor": "fadillzzz",
   "ModVersion": "{{ MOD_VERSION }}",
-  "ModDescription": "Skip drill animation in MR2DX",
+  "ModDescription": "Skip various animations in MR2DX",
   "ModDll": "MRDX.Qol.SkipDrillAnim.dll",
   "ModIcon": "Preview.png",
   "ModR2RManagedDll32": "x86/MRDX.Qol.SkipDrillAnim.dll",
