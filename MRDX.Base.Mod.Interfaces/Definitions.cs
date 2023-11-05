@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace MRDX.Base.Mod.Interfaces;
 
@@ -283,4 +284,72 @@ public enum ErrantyType : byte
     Withering,
     Skill,
     Special
+}
+
+[StructLayout(LayoutKind.Explicit)]
+public struct Box
+{
+    [FieldOffset(0x0)]
+    public nint Next;
+
+    [FieldOffset(0x4)]
+    public nint Previous;
+
+    [FieldOffset(0x8)]
+    public nint Attribute;
+
+    [FieldOffset(0xC)]
+    public short XCopy;
+
+    [FieldOffset(0xE)]
+    public short YCopy;
+
+    [FieldOffset(0x10)]
+    public short X;
+
+    [FieldOffset(0x12)]
+    public short Y;
+
+    [FieldOffset(0x1E)]
+    public short Z;
+
+    [FieldOffset(0x2C)]
+    public short XOffset;
+
+    [FieldOffset(0x2E)]
+    public short YOffset;
+
+    [FieldOffset(0x40)]
+    public int unk1;
+
+    [FieldOffset(0x44)]
+    public int unk2;
+
+    [FieldOffset(0x48)]
+    public int unk3;
+}
+
+[StructLayout(LayoutKind.Explicit)]
+public struct BoxAttribute
+{
+    [FieldOffset(0x0)]
+    public byte unk1;
+
+    [FieldOffset(0x10)]
+    public ushort Width;
+
+    [FieldOffset(0x12)]
+    public ushort Height;
+
+    [FieldOffset(0x14)]
+    public byte R;
+
+    [FieldOffset(0x15)]
+    public byte G;
+
+    [FieldOffset(0x16)]
+    public byte B;
+
+    [FieldOffset(0x17)]
+    public byte IsSemiTransparent;
 }

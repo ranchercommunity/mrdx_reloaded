@@ -81,6 +81,24 @@ public delegate int DrawMonsterCardWitheringValue(nint self);
 [Function(CallingConventions.Fastcall)]
 public delegate int DrawIntWithHorizontalSpacing(short x, short y, int number);
 
+[HookDef(BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 56 57 8B 7D 08 6A 03")]
+[Function(CallingConventions.Cdecl)]
+public delegate int DrawLoyalty(nint unk1);
+
+[HookDef(BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 81 EC ?? ?? ?? ?? A1 ?? ?? ?? ?? 33 C4 89 84 24 ?? ?? ?? ?? 53 56 8B 75 08 8D 44 24 14")]
+[Function(CallingConventions.Fastcall)]
+public delegate int DrawTextWithPadding(short x, short y, nint text, short padding);
+
+// Function that is called every tick while you're in the farm.
+// Hooking this causes various UI elements in the Farm to not function for some reason.
+[HookDef(BaseGame.Mr2, Region.Us, "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D 45 F4 64 A3 ?? ?? ?? ?? 8B 75 08 8B 7D 10 F6 46 0C 03 0F 84")]
+[Function(CallingConventions.Cdecl)]
+public delegate void DrawFarmUiElements(nint unk1, nint unk2, nint unk3);
+
+[HookDef(BaseGame.Mr2, Region.Us, "80 79 38 01 75 38")]
+[Function(CallingConventions.MicrosoftThiscall)]
+public delegate void RemovesSomeUiElements(nint self);
+
 /**
  * Called when setting up the battle controls. CCtrlBattle seems to store things like the battle timer among other things.
  * Its heap allocated so we can't just use a fixed memory address.
