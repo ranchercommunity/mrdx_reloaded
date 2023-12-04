@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using MRDX.Base.Mod.Interfaces;
+﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Qol.SkipDrillAnim.Template;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Memory.Sources;
@@ -43,7 +42,7 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<IsTrainingDone>? _drillhook;
 
     private CheckIfMonsterGrabbedAnItem? _itemfunc;
-    private IHook<Initialize2dRuinsMap>? _itemhook;
+    private IHook<InitializeRuins2dData>? _itemhook;
 
 
     private Config.SkipAnimationSetting _skipDrillAnimation;
@@ -62,7 +61,8 @@ public class Mod : ModBase // <= Do not Remove.
         _modLoader.GetController<IHooks>().TryGetTarget(out var hooks);
         hooks!.AddHook<IsTrainingDone>(ShouldSkipTraining)
             .ContinueWith(result => _drillhook = result.Result?.Activate());
-        hooks!.AddHook<Initialize2dRuinsMap>(ShouldSkipItemFind)
+
+        hooks!.AddHook<InitializeRuins2dData>(ShouldSkipItemFind)
             .ContinueWith(result => { _itemhook = result.Result?.Activate(); });
 
         hooks.CreateWrapper<CheckIfMonsterGrabbedAnItem>().ContinueWith(result => _itemfunc = result.Result);
@@ -97,17 +97,13 @@ public class Mod : ModBase // <= Do not Remove.
             // returning from this function if we ended. In my testing the game usually sets it to 2 after the training animation ends.
             Memory.Instance.Write(nuint.Add((nuint)self, 8), 2);
 
-        return _drillhook!.OriginalFunction(self);
+        return _drillhook!.OriginalFunction.Invoke(self);
     }
 
-    private void ShouldSkipItemFind(nint self, uint param1, int param2, int param3, uint param4,
-        uint param5, short param6, nint param7, nint param8, nint param9, uint param10)
+    private void ShouldSkipItemFind(nint self)
     {
-        Debugger.Launch();
-
         // Call the original init function first
-        _itemhook!.OriginalFunction(self, param1, param2, param3, param4, param5, param6, param7, param8, param9,
-            param10);
+        _itemhook!.OriginalFunction.Invoke(self);
 
         // If we aren't trying to skip the animation, then early return
         if (!_skipItemFindAnimation) return;
