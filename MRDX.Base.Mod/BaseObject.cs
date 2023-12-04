@@ -37,12 +37,7 @@ public class BaseObject<TParent> where TParent : class
 
         // If no base is provided, check the class for the offset attribute for static memory locations
         if (baseOffset == 0)
-            foreach (var offset in typeof(TParent).GetCustomAttributes().OfType<BaseOffsetAttribute>())
-            {
-                if (offset.Game != Base.Game || offset.Region != Base.Region) continue;
-                baseOffset = offset.Offset;
-                break;
-            }
+            baseOffset = BaseOffset();
 
         BaseAddress = Base.ExeBaseAddress + baseOffset;
 
@@ -217,6 +212,16 @@ public class BaseObject<TParent> where TParent : class
         _memory.WriteRaw((nuint)(BaseAddress + offset), bytes);
     }
 
+    public static int BaseOffset()
+    {
+        foreach (var offset in typeof(TParent).GetCustomAttributes().OfType<BaseOffsetAttribute>())
+        {
+            if (offset.Game != Base.Game || offset.Region != Base.Region) continue;
+            return offset.Offset;
+        }
+
+        return 0;
+    }
 
     public static int Get([CallerMemberName] string propName = "")
     {
