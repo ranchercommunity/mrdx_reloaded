@@ -97,6 +97,27 @@ public delegate int DrawMonsterCardWitheringValue(nint self);
 public delegate int DrawIntWithHorizontalSpacing(short x, short y, int number);
 
 /**
+ * Common text based drawing code used by several different text rendering routines
+ */
+[HookDef(BaseGame.Mr2, Region.Us,
+    "55 8B EC 81 EC B0 04 00 00")]
+[Function(CallingConventions.Fastcall)]
+public delegate int DrawTextToScreen(uint unk1, ushort unk2, nint text, int unk4, nint unk5);
+
+
+[HookDef(BaseGame.Mr2, Region.Us,
+    "55 8B EC 83 EC 20 A1 ?? ?? ?? ?? 33 C5 89 45 ?? 53 56 8B 75 ?? 33 DB")]
+[Function(CallingConventions.Fastcall)]
+public delegate void ParseTextWithCommandCodes(nint input, nint output, nint unk3);
+
+[HookDef(BaseGame.Mr2, Region.Us,
+    "55 8B EC 83 EC 0C 83 3D ?? ?? ?? ?? 0A")]
+[Function(CallingConventions.Fastcall)]
+public delegate void DrawBattleNumberToScreen(int number, short xcoord, short ycoord, short unkflag, uint unused5,
+    uint unused6, nint unkdata);
+
+
+/**
  * Called when setting up the battle controls. CCtrlBattle seems to store things like the battle timer among other things.
  * Its heap allocated so we can't just use a fixed memory address.
  */

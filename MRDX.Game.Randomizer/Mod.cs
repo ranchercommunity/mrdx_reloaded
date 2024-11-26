@@ -1,4 +1,3 @@
-
 using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Game.Randomizer.Configuration;
 using MRDX.Game.Randomizer.Template;
@@ -57,7 +56,7 @@ public class Mod : ModBase // <= Do not Remove.
         if (redirector == null)
         {
             _logger.WriteLine(
-                "[MRDX Randomizer] Could not initialize randomizer, bailing out while I can!");
+                "[MRDX Randomizer] Could not initialize randomizer, failed to get redirector!");
             return;
         }
 
@@ -66,14 +65,14 @@ public class Mod : ModBase // <= Do not Remove.
         if (randomizer == null)
         {
             _logger.WriteLine(
-                "[MRDX Randomizer] Could not initialize randomizer, bailing out while I can!");
+                "[MRDX Randomizer] Could not initialize randomizer, failed to launch randomizer!");
             return;
         }
 
         if (!_modLoader.GetController<IExtractDataBin>().TryGetTarget(out var extract))
         {
             _logger.WriteLine(
-                "[MRDX Randomizer] Could not initialize extraction, bailing out while I can!");
+                "[MRDX Randomizer] Could not initialize extraction, failed to extract bin!");
             return;
         }
 

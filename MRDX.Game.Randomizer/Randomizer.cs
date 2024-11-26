@@ -12,21 +12,20 @@ public class RandomizerConfig
 
     public static RandomizerConfig? FromFlags(string flags)
     {
-        // var data = Convert.FromBase64String(flags);
-        // var cbor = new CborReader(data);
-        // var cfg = new RandomizerConfig();
-        // try
-        // {
-        //     cfg.ShuffleTechSlots = cbor.ReadBoolean();
-        // }
-        // catch (Exception e)
-        // {
-        //     // todo better exception handling
-        //     return null;
-        // }
-
+        var data = Convert.FromBase64String(flags);
+        var cbor = new CborReader(data);
         var cfg = new RandomizerConfig();
-        cfg.ShuffleTechSlots = true;
+        try
+        {
+            cfg.ShuffleTechSlots = cbor.ReadBoolean();
+        }
+        catch (Exception e)
+        {
+            // todo better exception handling
+            Randomizer.Logger?.WriteLine($"[MRDX Randomizer] could not parse flags {e}");
+            return null;
+        }
+
         return cfg;
     }
 
@@ -108,13 +107,15 @@ public class MonsterAttacks
         {
             var tech = j * 4;
             var slot = i * 24;
-            // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack tech {tech} slot {slot}");
+            Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack tech {tech} slot {slot}");
             var offset = BitConverter.ToInt32(raw[(tech + slot) .. (tech + slot + 4)]);
             if (offset < 0)
-                // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] skipping negative offset {offset}");
+            {
+                Randomizer.Logger?.WriteLine($"[MRDX Randomizer] skipping negative offset {offset}");
                 continue;
+            }
 
-            // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
+            Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
             Slots[i, j] = new MonsterAttack(raw[offset .. (offset + 0x20)]);
         }
     }
@@ -132,16 +133,16 @@ public class MonsterAttacks
             var slot = i * 6 * 4;
             if (Slots[i, j] == null)
             {
-                // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] writing nooffset to i {i} j {j}");
+                Randomizer.Logger?.WriteLine($"[MRDX Randomizer] writing nooffset to i {i} j {j}");
                 nooffset.CopyTo(output, tech + slot);
                 continue;
             }
 
-            // Randomizer.Logger?.WriteLine("[MRDX Randomizer] bit converting");
+            Randomizer.Logger?.WriteLine("[MRDX Randomizer] bit converting");
             var offset = 0x60 + j * 0x20 + i * 0x20 * 6;
-            // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
+            Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
             BitConverter.GetBytes(offset).CopyTo(output, tech + slot);
-            // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] copying raw data to offset {offset}");
+            Randomizer.Logger?.WriteLine($"[MRDX Randomizer] copying raw data to offset {offset}");
             Slots[i, j]!.Raw.CopyTo(output, offset);
         }
 
@@ -189,17 +190,14 @@ public class Randomizer
     public async Task Load()
     {
         if (DataPath == null) return;
-        await Task.Run(async () =>
+        Logger?.WriteLine("[MRDX Randomizer] writing new files");
+        foreach (var (display, name) in Monster.ALL_MONSTERS)
         {
-            Logger?.WriteLine("[MRDX Randomizer] writing new files");
-            foreach (var (display, name) in Monster.ALL_MONSTERS)
-            {
-                var atkfilename = $"{name[..2]}_{name[..2]}_wz.bin";
-                var atkpath = Path.Combine(DataPath, "mf2", "data", "mon", name, atkfilename);
-                var data = await File.ReadAllBytesAsync(atkpath);
-                Monsters[display] = new Monster(data, display, name);
-            }
-        });
+            var atkfilename = $"{name[..2]}_{name[..2]}_wz.bin";
+            var atkpath = Path.Combine(DataPath, "mf2", "data", "mon", name, atkfilename);
+            var data = await File.ReadAllBytesAsync(atkpath);
+            Monsters[display] = new Monster(data, display, name);
+        }
     }
 
     public async Task Shuffle()
@@ -212,23 +210,20 @@ public class Randomizer
     public async Task Save()
     {
         if (DataPath == null) return;
-        await Task.Run(async () =>
+        Logger?.WriteLine($"[MRDX Randomizer] creating directory {RedirectPath}");
+        Directory.CreateDirectory(RedirectPath);
+        foreach (var (display, monster) in Monsters)
         {
-            Logger?.WriteLine($"[MRDX Randomizer] creating directory {RedirectPath}");
-            Directory.CreateDirectory(RedirectPath);
-            foreach (var (display, monster) in Monsters)
-            {
-                var name = monster.Name;
-                var atkfilename = $"{name[..2]}_{name[..2]}_wz.bin";
-                var srcpath = Path.Combine(DataPath, "mf2", "data", "mon", name, atkfilename);
-                var dstpath = Path.Combine(RedirectPath, atkfilename);
+            var name = monster.Name;
+            var atkfilename = $"{name[..2]}_{name[..2]}_wz.bin";
+            var srcpath = Path.Combine(DataPath, "mf2", "data", "mon", name, atkfilename);
+            var dstpath = Path.Combine(RedirectPath, atkfilename);
 
-                Logger?.WriteLine($"[MRDX Randomizer] monster {display} creating file for attacks {dstpath}");
-                await File.WriteAllBytesAsync(dstpath, monster.Attacks.Serialize());
-                Logger?.WriteLine($"[MRDX Randomizer] redirecting {srcpath} to {dstpath}");
-                _redirector.AddRedirect(srcpath, dstpath);
-            }
-        });
+            Logger?.WriteLine($"[MRDX Randomizer] monster {display} creating file for attacks {dstpath}");
+            await File.WriteAllBytesAsync(dstpath, monster.Attacks.Serialize());
+            Logger?.WriteLine($"[MRDX Randomizer] redirecting {srcpath} to {dstpath}");
+            _redirector.AddRedirect(srcpath, dstpath);
+        }
     }
 
     public void DataExtractComplete(string? path)
