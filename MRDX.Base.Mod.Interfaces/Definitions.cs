@@ -229,6 +229,7 @@ public enum MonsterGenus : byte
     Ape = 35,
     Worm = 36,
     Naga = 37,
+    Count = 38,
     Unknown1 = 38,
     Unknown2 = 39,
     Unknown3 = 40,
@@ -277,10 +278,33 @@ public enum TechType : byte
 
 public enum ErrantyType : byte
 {
-    Basic,
-    Sharp,
-    Heavy,
-    Withering,
-    Skill,
-    Special
+    Basic = 0,
+    Skill = 1,
+    Heavy = 2,
+    Withering = 3,
+    Sharp = 4,
+    Special = 5
+}
+
+public enum TechRange : byte
+{
+    Melee = 0,
+    Short = 1,
+    Medium = 2,
+    Long = 3,
+    Count
+}
+
+public enum TechNature : byte
+{
+    Neutral = 0,
+    Good = 1,
+    Evil = 2
+}
+
+public record MonsterInfo
+{
+    public MonsterGenus Id { get; init; } = 0;
+    public string Name { get; init; } = string.Empty;
+    public string ShortName { get; init; } = string.Empty;
 }

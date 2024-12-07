@@ -93,10 +93,65 @@ public static class MonsterHelper
     {
         return (short)Math.Truncate(Math.Asin(natureMod / 100.0f) * 2048 / Math.PI);
     }
+
+    public static void Deconstruct(this MonsterInfo src, out MonsterGenus a0, out string a1, out string a2)
+    {
+        a0 = src.Id;
+        a1 = src.Name;
+        a2 = src.ShortName;
+    }
 }
 
 public interface IMonster
 {
+    static readonly MonsterInfo[] AllMonsters =
+    {
+        new() { Id = MonsterGenus.Pixie, Name = "Pixie", ShortName = "kapi" },
+        new() { Id = MonsterGenus.Dragon, Name = "Dragon", ShortName = "kbdr" },
+        new() { Id = MonsterGenus.Centaur, Name = "Centaur", ShortName = "kckn" },
+        new() { Id = MonsterGenus.ColorPandora, Name = "ColorPandora", ShortName = "kdro" },
+        new() { Id = MonsterGenus.Beaclon, Name = "Beaclon", ShortName = "kebe" },
+        new() { Id = MonsterGenus.Henger, Name = "Henger", ShortName = "kfhe" },
+        new() { Id = MonsterGenus.Wracky, Name = "Wracky", ShortName = "khcy" },
+        new() { Id = MonsterGenus.Golem, Name = "Golem", ShortName = "kigo" },
+        new() { Id = MonsterGenus.Zuum, Name = "Zuum", ShortName = "kkro" },
+        new() { Id = MonsterGenus.Durahan, Name = "Durahan", ShortName = "klyo" },
+        new() { Id = MonsterGenus.Arrowhead, Name = "Arrow Head", ShortName = "kmto" },
+        new() { Id = MonsterGenus.Tiger, Name = "Tiger", ShortName = "marig" },
+        new() { Id = MonsterGenus.Hopper, Name = "Hopper", ShortName = "mbhop" },
+        new() { Id = MonsterGenus.Hare, Name = "Hare", ShortName = "mcham" },
+        new() { Id = MonsterGenus.Baku, Name = "Baku", ShortName = "mdbak" },
+        new() { Id = MonsterGenus.Gali, Name = "Gali", ShortName = "megar" },
+        new() { Id = MonsterGenus.Kato, Name = "Kato", ShortName = "mfakr" },
+        new() { Id = MonsterGenus.Zilla, Name = "Zilla", ShortName = "mggjr" },
+        new() { Id = MonsterGenus.Bajarl, Name = "Bajarl", ShortName = "mhlam" },
+        new() { Id = MonsterGenus.Mew, Name = "Mew", ShortName = "minya" },
+        new() { Id = MonsterGenus.Phoenix, Name = "Phoenix", ShortName = "mjfbd" },
+        new() { Id = MonsterGenus.Ghost, Name = "Ghost", ShortName = "mkgho" },
+        new() { Id = MonsterGenus.Metalner, Name = "Metalner", ShortName = "mlspm" },
+        new() { Id = MonsterGenus.Suezo, Name = "Suezo", ShortName = "mmxsu" },
+        new() { Id = MonsterGenus.Jill, Name = "Jill", ShortName = "mnsnm" },
+        new() { Id = MonsterGenus.Mocchi, Name = "Mocchi", ShortName = "mochy" },
+        new() { Id = MonsterGenus.Joker, Name = "Joker", ShortName = "mpjok" },
+        new() { Id = MonsterGenus.Gaboo, Name = "Gaboo", ShortName = "mqnen" },
+        new() { Id = MonsterGenus.Jell, Name = "Jell", ShortName = "mrpru" },
+        new() { Id = MonsterGenus.Undine, Name = "Undine", ShortName = "msund" },
+        new() { Id = MonsterGenus.Niton, Name = "Niton", ShortName = "mtgai" },
+        new() { Id = MonsterGenus.Mock, Name = "Mock", ShortName = "muoku" },
+        new() { Id = MonsterGenus.Ducken, Name = "Ducken", ShortName = "mvdak" },
+        new() { Id = MonsterGenus.Plant, Name = "Plant", ShortName = "mwpla" },
+        new() { Id = MonsterGenus.Monol, Name = "Monol", ShortName = "mxris" },
+        new() { Id = MonsterGenus.Ape, Name = "Ape", ShortName = "mylau" },
+        new() { Id = MonsterGenus.Worm, Name = "Worm", ShortName = "mzmus" },
+        new() { Id = MonsterGenus.Naga, Name = "Naga", ShortName = "naaga" },
+        new() { Id = MonsterGenus.Unknown1, Name = "Unknown1", ShortName = "unk1" },
+        new() { Id = MonsterGenus.Unknown2, Name = "Unknown2", ShortName = "unk2" },
+        new() { Id = MonsterGenus.Unknown3, Name = "Unknown3", ShortName = "unk3" },
+        new() { Id = MonsterGenus.Unknown4, Name = "Unknown4", ShortName = "unk4" },
+        new() { Id = MonsterGenus.Unknown5, Name = "Unknown5", ShortName = "unk5" },
+        new() { Id = MonsterGenus.Unknown6, Name = "Unknown6", ShortName = "unk6" }
+    };
+
     ushort Age { get; set; }
 
     MonsterGenus GenusMain { get; set; }

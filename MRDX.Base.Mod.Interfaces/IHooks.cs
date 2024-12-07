@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.X86;
@@ -104,7 +102,6 @@ public delegate int DrawIntWithHorizontalSpacing(short x, short y, int number);
 [Function(CallingConventions.Fastcall)]
 public delegate int DrawTextToScreen(uint unk1, ushort unk2, nint text, int unk4, nint unk5);
 
-
 [HookDef(BaseGame.Mr2, Region.Us,
     "55 8B EC 83 EC 20 A1 ?? ?? ?? ?? 33 C5 89 45 ?? 53 56 8B 75 ?? 33 DB")]
 [Function(CallingConventions.Fastcall)]
@@ -115,7 +112,6 @@ public delegate void ParseTextWithCommandCodes(nint input, nint output, nint unk
 [Function(CallingConventions.Fastcall)]
 public delegate void DrawBattleNumberToScreen(int number, short xcoord, short ycoord, short unkflag, uint unused5,
     uint unused6, nint unkdata);
-
 
 /**
  * Called when setting up the battle controls. CCtrlBattle seems to store things like the battle timer among other things.
@@ -153,24 +149,4 @@ public class HookDefAttribute : Attribute
     public BaseGame Game { get; }
     public Region Region { get; }
     public string Signature { get; }
-}
-
-public static class Utils
-{
-    /// <summary>
-    ///     Use reflection to find the appropriate signature for this memory location
-    /// </summary>
-    /// <param name="game"></param>
-    /// <param name="region"></param>
-    /// <typeparam name="T">Delegate or the type that you want to get the hookdef from</typeparam>
-    /// <returns>Signature string for this location</returns>
-    /// <exception cref="Exception">If no hookdef attribute can be found.</exception>
-    public static string GetSignature<T>(BaseGame game, Region region)
-    {
-        foreach (var attr in typeof(T).GetCustomAttributes().OfType<HookDefAttribute>())
-            if ((attr.Game & game) != 0 && (attr.Region & region) != 0)
-                return attr.Signature;
-        throw new Exception(
-            $"Unable to find signature for Hook func {typeof(T)} with Game {game} and Region {region}\n   Make sure you define a hook signature!");
-    }
 }

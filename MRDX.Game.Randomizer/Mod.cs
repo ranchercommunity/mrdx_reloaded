@@ -52,6 +52,9 @@ public class Mod : ModBase // <= Do not Remove.
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
+        _logger.WriteLine(
+            $"[MRDX Randomizer] Default flagstring {new RandomizerConfig().ToFlags()}");
+
         _modLoader.GetController<IRedirectorController>().TryGetTarget(out var redirector);
         if (redirector == null)
         {

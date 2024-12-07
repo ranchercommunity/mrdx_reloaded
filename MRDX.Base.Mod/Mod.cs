@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using MRDX.Base.Mod.Interfaces;
+﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Base.Mod.Template;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
@@ -72,6 +71,8 @@ public class Mod : ModBase, IExports // <= Do not Remove.
     /// </summary>
     private readonly ILogger _logger;
 
+    private readonly Memory _memory;
+
     /// <summary>
     ///     The configuration of the currently executing mod.
     /// </summary>
@@ -89,12 +90,10 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     private readonly IStartupScanner? _startupScanner;
 
-    private readonly Memory _memory;
+    private IHook<DrawBattleNumberToScreen>? _numberHook;
 
     private IHook<ParseTextWithCommandCodes>? _textHook;
 
-    private IHook<DrawBattleNumberToScreen>? _numberHook;
-    
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -119,9 +118,9 @@ public class Mod : ModBase, IExports // <= Do not Remove.
             // directly instead of hooking the text rendering functions
             _startupScanner.AddMainModuleScan("05 ?? ?? ?? ?? 50 E8 ?? ?? ?? ?? 6B C6 1B",
                 result => FixMonsterBreedPluralization(result, 1));
-        
+
 //        hooks!.AddHook<ParseTextWithCommandCodes>(DrawTextToScreenHook)
-  //          .ContinueWith(result => _textHook = result.Result.Activate());
+        //          .ContinueWith(result => _textHook = result.Result.Activate());
         hooks!.AddHook<DrawBattleNumberToScreen>(DrawBattleNumberToScreenHook)
             .ContinueWith(result => _numberHook = result.Result.Activate());
     }
@@ -166,19 +165,20 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
         _logger.WriteLine($"[MRDX.Base] Patching Pluralization at {addr:x} Complete");
     }
-    
+
     private void DrawTextToScreenHook(nint input, nint output, nint unk2)
     {
-        Debugger.Launch();
+        // Debugger.Launch();
         _textHook!.OriginalFunction(input, output, unk2);
         var o = Base.ReadString(output);
-        _logger.WriteLine($"Parsed Text: {o}");
+        // _logger.WriteLine($"Parsed Text: {o}");
     }
 
-    private void DrawBattleNumberToScreenHook(int number, short xcoord, short ycoord, short unkflag, uint unused5, uint unused6, IntPtr unkdata)
+    private void DrawBattleNumberToScreenHook(int number, short xcoord, short ycoord, short unkflag, uint unused5,
+        uint unused6, IntPtr unkdata)
     {
-        Debugger.Launch();
-        _logger.WriteLine($"Number: {number} at ({xcoord}, {ycoord}) flag: {unkflag} ptr: {unkdata.ToInt64():02X}");
+        // Debugger.Launch();
+        // _logger.WriteLine($"Number: {number} at ({xcoord}, {ycoord}) flag: {unkflag} ptr: {unkdata.ToInt64():02X}");
         _numberHook!.OriginalFunction(number, xcoord, ycoord, unkflag, unused5, unused6, unkdata);
     }
 }

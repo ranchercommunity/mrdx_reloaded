@@ -1092,7 +1092,9 @@ public static class CharMap
         { 0xb55f, '8' },
         { 0xb560, '9' },
         { 0xb561, ' ' },
+        { 0x00, '\0' },
         { 0xff, '\0' },
+        { 0xff00, '\0' },
         { 0xffff, '\0' }
     };
 
