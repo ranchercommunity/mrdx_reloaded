@@ -119,10 +119,11 @@ public class Mod : ModBase, IExports // <= Do not Remove.
             _startupScanner.AddMainModuleScan("05 ?? ?? ?? ?? 50 E8 ?? ?? ?? ?? 6B C6 1B",
                 result => FixMonsterBreedPluralization(result, 1));
 
-//        hooks!.AddHook<ParseTextWithCommandCodes>(DrawTextToScreenHook)
-        //          .ContinueWith(result => _textHook = result.Result.Activate());
-        hooks!.AddHook<DrawBattleNumberToScreen>(DrawBattleNumberToScreenHook)
-            .ContinueWith(result => _numberHook = result.Result.Activate());
+        // Disable these hooks until we fix it later
+        // hooks!.AddHook<ParseTextWithCommandCodes>(DrawTextToScreenHook)
+        // .ContinueWith(result => _textHook = result.Result.Activate());
+        // hooks!.AddHook<DrawBattleNumberToScreen>(DrawBattleNumberToScreenHook)
+        //     .ContinueWith(result => _numberHook = result.Result.Activate());
     }
 
     #region For Exports, Serialization etc.
@@ -178,7 +179,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         uint unused6, IntPtr unkdata)
     {
         // Debugger.Launch();
-        // _logger.WriteLine($"Number: {number} at ({xcoord}, {ycoord}) flag: {unkflag} ptr: {unkdata.ToInt64():02X}");
+        _logger.WriteLine($"Number: {number} at ({xcoord}, {ycoord}) flag: {unkflag} ptr: {unkdata.ToInt64():02X}");
         _numberHook!.OriginalFunction(number, xcoord, ycoord, unkflag, unused5, unused6, unkdata);
     }
 }

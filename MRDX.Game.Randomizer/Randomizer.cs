@@ -1,4 +1,5 @@
-﻿using System.Formats.Cbor;
+﻿using System.Diagnostics;
+using System.Formats.Cbor;
 using System.Security.Cryptography;
 using System.Text;
 using MRDX.Base.Mod.Interfaces;
@@ -306,32 +307,37 @@ public class Randomizer
 
         var atkData =
             new byte[Monster.HeaderSize * (int)MonsterGenus.Count + Monster.NameSize * (int)MonsterGenus.Count * 24];
-
-        for (var i = 0; i < (int)MonsterGenus.Count; i++)
+        Debugger.Launch();
+        for (var genus = 0; genus < (int)MonsterGenus.Count; genus++)
         {
-            var mon = IMonster.AllMonsters[i];
+            var mon = IMonster.AllMonsters[genus];
             var (_, display, name) = mon;
-            var headerOffset = Monster.HeaderSize * i;
-            var atkNameOffset = Monster.NameSize * i + Monster.HeaderSize * (int)MonsterGenus.Count;
+            var headerOffset = Monster.HeaderSize * genus;
+            var atkNameOffset = Monster.NameSize * genus + Monster.HeaderSize * (int)MonsterGenus.Count;
 
             // Write the attack name and header to the temp array so we can write it out later
             var monster = Monsters[display];
             // Build a header for the attacks 
-            for (var j = 0; j < 6 * 4; j++)
+            for (var i = 0; i < (int)TechRange.Count; ++i)
             {
-                var tech = monster.Techs.ElementAtOrDefault(j);
-                if (tech?.Available ?? false)
+                var range = (TechRange)i;
+                var techs = monster.Techs.FindAll(t => t.Range == range).OrderBy(t => t.Slot).ToArray();
+                for (var j = 0; j < 6; ++j)
                 {
+                    // var headerOffset = (i * 6 + j) * 4;
+                    if (j >= techs.Length)
+                    {
+                        NO_OFFSET.CopyTo(atkData, headerOffset);
+                        headerOffset += byteCountForHeader;
+                        continue;
+                    }
+
+                    var tech = techs[j];
                     BitConverter.GetBytes(atkNameOffset).CopyTo(atkData, headerOffset);
                     tech.Name.AsMr2().AsBytes().CopyTo(atkData, atkNameOffset);
                     atkNameOffset += byteCountForAtkName;
+                    headerOffset += byteCountForHeader;
                 }
-                else
-                {
-                    NO_OFFSET.CopyTo(atkData, headerOffset);
-                }
-
-                headerOffset += byteCountForHeader;
             }
 
             // Write the attack data out to a file to redirect.
@@ -362,7 +368,7 @@ public class Randomizer
         try
         {
             await Load();
-            if (Config.ShuffleTechSlots) ShuffleTechSlots();
+            // if (Config.ShuffleTechSlots) ShuffleTechSlots();
             await Save();
         }
         catch (Exception e)
