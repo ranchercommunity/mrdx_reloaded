@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Formats.Cbor;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using MRDX.Base.Mod.Interfaces;
 using Reloaded.Memory.Sources;
@@ -9,190 +7,9 @@ using Reloaded.Universal.Redirector.Interfaces;
 
 namespace MRDX.Game.Randomizer;
 
-public class RandomizerConfig
-{
-    public bool ShuffleTechSlots { get; private set; } = true;
-
-    public static RandomizerConfig? FromFlags(string flags)
-    {
-        var data = Convert.FromBase64String(flags);
-        var cbor = new CborReader(data);
-        var cfg = new RandomizerConfig();
-        try
-        {
-            cfg.ShuffleTechSlots = cbor.ReadBoolean();
-        }
-        catch (Exception e)
-        {
-            // todo better exception handling
-            Randomizer.Logger?.WriteLine($"[MRDX Randomizer] could not parse flags {e}");
-            return null;
-        }
-
-        return cfg;
-    }
-
-    public string ToFlags()
-    {
-        var cbor = new CborWriter();
-        cbor.WriteBoolean(ShuffleTechSlots);
-        return Convert.ToBase64String(cbor.Encode());
-    }
-}
-
-public class Monster
-{
-    // 4 bytes per offset, 24 attacks
-    public const int HeaderSize = 4 * 24;
-    public const int NameSize = 34;
-    public const int AtkNameDataOffset = HeaderSize * (int)MonsterGenus.Count;
-
-    private static readonly byte[] NO_OFFSET = BitConverter.GetBytes(0xffffffff);
-
-    public Monster(Dictionary<MonsterGenus, string[,]> monAtks, byte[] atkData, MonsterInfo monsterInfo)
-    {
-        Info = monsterInfo;
-        CreateTechs(monAtks[monsterInfo.Id], atkData);
-    }
-
-    public MonsterInfo Info { get; }
-    public List<MonsterAttack> Techs { get; } = new();
-
-    private void CreateTechs(string[,] atkNames, Span<byte> rawStats)
-    {
-        for (var i = 0; i < (int)TechRange.Count; ++i)
-        {
-            var tech = (TechRange)i;
-            for (var j = 0; j < 6; ++j)
-            {
-                var slot = (i * 6 + j) * 4;
-                // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack tech {tech} slot {slot}");
-                var offset = BitConverter.ToInt32(rawStats[slot .. (slot + 4)]);
-                if (offset < 0)
-                    // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] skipping negative offset {offset}");
-                    continue;
-
-                // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
-                Techs.Add(new MonsterAttack(atkNames[i, j], j, rawStats[offset .. (offset + 0x20)]));
-            }
-        }
-    }
-
-    public byte[] SerializeAttackFileData()
-    {
-        // var nooffset = new byte[] { 0xff, 0xff, 0xff, 0xff };
-        var output = new byte[0x360];
-        var filledSlot = 0x60; // start from the first offset after the header
-        for (var i = 0; i < (int)TechRange.Count; ++i)
-        {
-            var range = (TechRange)i;
-            var techs = Techs.FindAll(t => t.Range == range).OrderBy(t => t.Slot).ToArray();
-            for (var j = 0; j < 6; ++j)
-            {
-                var headerOffset = (i * 6 + j) * 4;
-                if (j >= techs.Length)
-                {
-                    // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] writing nooffset to i {i} j {j}");
-                    // NOTE: This is essentially a break because once the game sees a 0xffffffff it will also skip to the next
-                    // column, so thats why we sort by the Slot value, but then ignore it when filling attacks into the file
-                    NO_OFFSET.CopyTo(output, headerOffset);
-                    continue;
-                }
-
-                var tech = techs[j];
-
-                // Randomizer.Logger?.WriteLine("[MRDX Randomizer] bit converting");
-                var offset = filledSlot;
-                filledSlot += 0x20;
-                // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
-                BitConverter.GetBytes(offset).CopyTo(output, headerOffset);
-                // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] copying raw data to offset {offset}");
-                tech.SerializeData().CopyTo(output, offset);
-            }
-        }
-
-        return output;
-    }
-}
-
-public record MonsterAttack
-{
-    public MonsterAttack(string atkName, int slot, Span<byte> data)
-    {
-        var dat = data.ToArray();
-        Name = atkName;
-        Slot = slot;
-        JpnName = dat[..16];
-        Type = (ErrantyType)dat[16];
-        Range = (TechRange)dat[17];
-        Nature = (TechNature)dat[18];
-        Scaling = (TechType)dat[19];
-        Available = dat[20] == 1;
-        HitPercent = dat[21];
-        Force = dat[22];
-        Withering = dat[23];
-        Sharpness = dat[24];
-        GutsCost = dat[25];
-        GutsSteal = dat[26];
-        LifeSteal = dat[27];
-        LifeRecovery = dat[28];
-        ForceMissSelf = dat[29];
-        ForceHitSelf = dat[30];
-    }
-
-    // Slot is not a real value on the monster tech data, but rather the position in the attack
-    // list where it belongs. This way we can build the actual tech list easier.
-    public int Slot { get; set; }
-
-    public byte[] JpnName { get; set; }
-    public string Name { get; set; }
-    public ErrantyType Type { get; set; }
-    public TechRange Range { get; set; }
-    public TechNature Nature { get; set; }
-    public TechType Scaling { get; set; }
-    public bool Available { get; set; }
-    public byte HitPercent { get; set; }
-    public byte Force { get; set; }
-    public byte Withering { get; set; }
-    public byte Sharpness { get; set; }
-    public byte GutsCost { get; set; }
-    public byte GutsSteal { get; set; }
-    public byte LifeSteal { get; set; }
-    public byte LifeRecovery { get; set; }
-    public byte ForceMissSelf { get; set; }
-    public byte ForceHitSelf { get; set; }
-
-    public byte[] SerializeName()
-    {
-        return Name.AsMr2().AsBytes();
-    }
-
-    public byte[] SerializeData()
-    {
-        var o = new byte[32];
-        JpnName.CopyTo(o, 0);
-        o[16] = (byte)Type;
-        o[17] = (byte)Range;
-        o[18] = (byte)Nature;
-        o[19] = (byte)Scaling;
-        o[20] = (byte)(Available ? 1 : 0);
-        o[21] = HitPercent;
-        o[22] = Force;
-        o[23] = Withering;
-        o[24] = Sharpness;
-        o[25] = GutsCost;
-        o[26] = GutsSteal;
-        o[27] = LifeSteal;
-        o[28] = LifeRecovery;
-        o[29] = ForceMissSelf;
-        o[30] = ForceHitSelf;
-        return o;
-    }
-}
-
 public class Randomizer
 {
-    public const string RANDOMIZER_VERSION = "v1_0_0";
+    // public const string RANDOMIZER_VERSION = "v1_0_0";
 
     private const nuint ATK_HEADER_OFFSET = 0x340870;
     private const nuint ATK_NAME_OFFSET = 0x3416B0;
@@ -210,6 +27,7 @@ public class Randomizer
     {
         _memory = Memory.Instance;
         Rng = new Random((int)seed);
+        TourneyRng = new Random(Rng.Next());
         Config = config;
         Logger = logger;
         _redirector = redirector;
@@ -223,12 +41,13 @@ public class Randomizer
 
     public Random Rng { get; set; }
 
-    public RandomizerConfig Config { get; set; }
+    // Will be used when generating new tourney monsters with rotating by tourney
+    public Random TourneyRng { get; set; }
 
+    public RandomizerConfig Config { get; set; }
 
     public void ShuffleTechSlots()
     {
-        // Debugger.Launch();
         foreach (var (_, monster) in Monsters)
         {
             // var slots = new MonsterAttack[4, 6];
@@ -299,15 +118,19 @@ public class Randomizer
 
     public async Task Save()
     {
-        const int byteCountForAtkName = 34;
-        const int byteCountForHeader = 4;
         if (DataPath == null) return;
         Logger?.WriteLine($"[MRDX Randomizer] creating directory {RedirectPath}");
         Directory.CreateDirectory(RedirectPath);
 
+        await SaveAttacks();
+    }
+
+    private async Task SaveAttacks()
+    {
+        const int byteCountForAtkName = 34;
+        const int byteCountForHeader = 4;
         var atkData =
             new byte[Monster.HeaderSize * (int)MonsterGenus.Count + Monster.NameSize * (int)MonsterGenus.Count * 24];
-        Debugger.Launch();
         for (var genus = 0; genus < (int)MonsterGenus.Count; genus++)
         {
             var mon = IMonster.AllMonsters[genus];
@@ -317,27 +140,26 @@ public class Randomizer
 
             // Write the attack name and header to the temp array so we can write it out later
             var monster = Monsters[display];
+
+            // Convert the techs into a slot ordered array to make it easier to access it.
+            var techs = new MonsterAttack?[4, 6];
+            foreach (var tech in monster.Techs) techs[(int)tech.Range, tech.Slot] = tech;
             // Build a header for the attacks 
             for (var i = 0; i < (int)TechRange.Count; ++i)
+            for (var j = 0; j < 6; ++j)
             {
-                var range = (TechRange)i;
-                var techs = monster.Techs.FindAll(t => t.Range == range).OrderBy(t => t.Slot).ToArray();
-                for (var j = 0; j < 6; ++j)
+                var tech = techs[i, j];
+                if (tech == null)
                 {
-                    // var headerOffset = (i * 6 + j) * 4;
-                    if (j >= techs.Length)
-                    {
-                        NO_OFFSET.CopyTo(atkData, headerOffset);
-                        headerOffset += byteCountForHeader;
-                        continue;
-                    }
-
-                    var tech = techs[j];
-                    BitConverter.GetBytes(atkNameOffset).CopyTo(atkData, headerOffset);
-                    tech.Name.AsMr2().AsBytes().CopyTo(atkData, atkNameOffset);
-                    atkNameOffset += byteCountForAtkName;
+                    NO_OFFSET.CopyTo(atkData, headerOffset);
                     headerOffset += byteCountForHeader;
+                    continue;
                 }
+
+                BitConverter.GetBytes(atkNameOffset).CopyTo(atkData, headerOffset);
+                tech.Name.AsMr2().AsBytes().CopyTo(atkData, atkNameOffset);
+                atkNameOffset += byteCountForAtkName;
+                headerOffset += byteCountForHeader;
             }
 
             // Write the attack data out to a file to redirect.
@@ -352,7 +174,8 @@ public class Randomizer
         }
 
         // Now write the attack data back to the exe
-        _memory.Write((nuint)(Base.Mod.Base.ExeBaseAddress + ATK_HEADER_OFFSET.ToUInt32()), atkData);
+        // TODO actually get the attack name table working
+        // _memory.Write((nuint)(Base.Mod.Base.ExeBaseAddress + ATK_HEADER_OFFSET.ToUInt32()), atkData);
         Logger?.WriteLine("[MRDX Randomizer] Finished Saving atk data");
     }
 
@@ -363,12 +186,100 @@ public class Randomizer
         process.Wait();
     }
 
+    private void ShuffleTechStats(ShuffleMode mode)
+    {
+        // Todo: Consider allowing users to add/remove stats from the shuffle
+        var order = new[]
+        {
+            StatShuffleOrder.Force,
+            StatShuffleOrder.Hit,
+            StatShuffleOrder.Sharp,
+            StatShuffleOrder.Wither
+        };
+
+        Action<MonsterAttack> shuffleStrategy = mode switch
+        {
+            ShuffleMode.BalancedRandom => atk =>
+            {
+                var total = atk.Force + atk.HitPercent + atk.Sharpness * .5 + atk.Withering;
+                // Create a variance of +/- 20% to the stats
+                total += total * Rng.Next(-20, 21) / 100.0;
+                // and then reapply stats in a random order
+                Utils.Shuffle(Rng, order);
+                foreach (var stat in order)
+                {
+                    var val = 0;
+                    switch (stat)
+                    {
+                        case StatShuffleOrder.Force:
+                            // Set the range from 1, 60
+                            val = Rng.Next(1, (byte)Math.Max(2, Math.Round(Math.Min(total, 60))));
+                            atk.Force = (byte)val;
+                            break;
+                        case StatShuffleOrder.Hit:
+                            // NOTE: This range is different, its -16, 34
+                            val = Rng.Next(0, (byte)Math.Max(1, Math.Round(Math.Min(total, 50)))) - 16;
+                            atk.HitPercent = (byte)val;
+                            break;
+                        case StatShuffleOrder.Sharp:
+                            // Set the range 0, 50 (times 2)
+                            // NOTE: we double the effectiveness of sharpness to make it more useful
+                            val = Rng.Next(0, (byte)Math.Max(1, Math.Round(Math.Min(total, 50))));
+                            atk.Sharpness = (byte)(val * 2);
+                            break;
+                        case StatShuffleOrder.Wither:
+                            // Set the range 0, 50
+                            val = Rng.Next(0, (byte)Math.Max(1, Math.Round(Math.Min(total, 50))));
+                            atk.Withering = (byte)val;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+                    total -= val;
+                }
+
+                // And calculate a new guts cost based on the final stats with a +/- 20% variance
+                var gutsCost = atk.Force + atk.HitPercent + atk.Sharpness * .5 + atk.Withering;
+                atk.GutsCost = (byte)(Math.Max(0, gutsCost + gutsCost * Rng.Next(-20, 21) / 100.0) + 8);
+            },
+            ShuffleMode.ShuffledRandom => atk =>
+            {
+                // atk.Force
+            },
+            ShuffleMode.FullRandom => atk =>
+            {
+                // TODO: adjustable biases?
+                // Bias towards lower values to prevent too many crazy overpowered moves 
+                atk.Force = (byte)Math.Min(Rng.Next(1, 60), Rng.Next(1, 60));
+                atk.HitPercent = (byte)Math.Min(Rng.Next(-16, 35), Rng.Next(-16, 35));
+                atk.GutsCost = (byte)Math.Min(Rng.Next(10, 55), Rng.Next(10, 55));
+                atk.Withering = (byte)Math.Min(Rng.Next(0, 55), Rng.Next(0, 55));
+                atk.Sharpness = (byte)Math.Min(Rng.Next(0, 55), Rng.Next(0, 55));
+            },
+            _ => throw new NotImplementedException()
+        };
+
+        foreach (var (_, mon) in Monsters)
+        foreach (var tech in mon.Techs)
+            shuffleStrategy(tech);
+    }
+
+    private void ShuffleTechType()
+    {
+        foreach (var (_, mon) in Monsters)
+        foreach (var tech in mon.Techs)
+            tech.Scaling = (TechType)Rng.Next(0, 1);
+    }
+
     private async Task Randomize()
     {
         try
         {
             await Load();
-            // if (Config.ShuffleTechSlots) ShuffleTechSlots();
+            // if (Config.TechSlots) TechSlots();
+            if (Config.TechStats != ShuffleMode.Vanilla) ShuffleTechStats(Config.TechStats);
+            if (Config.TechType) ShuffleTechType();
             await Save();
         }
         catch (Exception e)
@@ -379,27 +290,21 @@ public class Randomizer
 
     public static Randomizer? Create(ILogger logger, IRedirectorController redirector, string modpath, string raw)
     {
-        var arr = raw.Split(";");
-        if (arr.Length != 3)
+        var arr = raw.Split("_");
+        if (arr.Length != 2)
         {
             logger.WriteLine(
-                $"[MRDX Randomizer] Invalid flag string! Does not have all required parts <seed>;<flags>;<version> : {raw}");
+                $"[MRDX Randomizer] Invalid flag string! Does not have all required parts <seed>_<flags> : {raw}");
             return null;
         }
 
-        var (seed, flags, version) = arr;
-        if (version != RANDOMIZER_VERSION)
-        {
-            logger.WriteLine(
-                $"[MRDX Randomizer] Invalid flag string! Version ({version}) does not match current randomizer version ({RANDOMIZER_VERSION})");
-            return null;
-        }
+        var (seed, flags) = arr;
 
         var config = RandomizerConfig.FromFlags(flags);
         if (config == null)
         {
             logger.WriteLine(
-                $"[MRDX Randomizer] Invalid flag string! Version ({version}) does not match current randomizer version ({RANDOMIZER_VERSION})");
+                "[MRDX Randomizer] Invalid flag string!");
             return null;
         }
 
@@ -411,5 +316,21 @@ public class Randomizer
         var data = Encoding.UTF8.GetBytes(read);
         var blah = MD5.HashData(data);
         return BitConverter.ToUInt32(blah);
+    }
+
+    private enum StatShuffleOrder
+    {
+        Force,
+        Hit,
+        Sharp,
+        Wither
+    }
+
+    private enum TechShuffleType
+    {
+        Force,
+        Hit,
+        Sharp,
+        Withering
     }
 }
