@@ -39,6 +39,8 @@ public class Randomizer
 
     public Dictionary<string, Monster> Monsters { get; } = new();
 
+    public Dictionary<string, byte[]> MonsterFlkFile { get; } = new();
+
     public Random Rng { get; set; }
 
     // Will be used when generating new tourney monsters with rotating by tourney
@@ -79,8 +81,12 @@ public class Randomizer
             var (_, display, name) = mon;
             var atkfilename = $"{name[..2]}_{name[..2]}_wz.bin";
             var atkpath = Path.Combine(DataPath, "mf2", "data", "mon", name, atkfilename);
+            var batfilename = $"{name[..2]}_{name[..2]}_b.flk";
+            var battlepath = Path.Combine(DataPath, "mf2", "data", "mon", "btl_con", batfilename);
             var data = await File.ReadAllBytesAsync(atkpath);
             Monsters[display] = new Monster(atkNameTable, data, mon);
+            var btl = await File.ReadAllBytesAsync(battlepath);
+            MonsterFlkFile[display] = btl;
         }
     }
 
@@ -168,9 +174,20 @@ public class Randomizer
             var dstpath = Path.Combine(RedirectPath, atkfilename);
 
             Logger?.WriteLine($"[MRDX Randomizer] monster {display} creating file for attacks {dstpath}");
-            await File.WriteAllBytesAsync(dstpath, monster.SerializeAttackFileData());
+            var atkfile = monster.SerializeAttackFileData();
+            await File.WriteAllBytesAsync(dstpath, atkfile);
             Logger?.WriteLine($"[MRDX Randomizer] redirecting {srcpath} to {dstpath}");
             _redirector.AddRedirect(srcpath, dstpath);
+
+            Logger?.WriteLine($"[MRDX Randomizer] monster {display} updating battle data {dstpath}");
+            var flkfilename = $"{name[..2]}_{name[..2]}_b.flk";
+            var flksrcpath = Path.Combine(DataPath, "mf2", "data", "mon", "btl_con", flkfilename);
+            var flkdstpath = Path.Combine(RedirectPath, flkfilename);
+            var flk = MonsterFlkFile[display];
+            atkfile.CopyTo(flk, 0);
+            await File.WriteAllBytesAsync(flkdstpath, flk);
+            Logger?.WriteLine($"[MRDX Randomizer] redirecting {flksrcpath} to {flkdstpath}");
+            _redirector.AddRedirect(flksrcpath, flkdstpath);
         }
 
         // Now write the attack data back to the exe
