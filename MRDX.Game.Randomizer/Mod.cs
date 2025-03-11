@@ -1,7 +1,7 @@
 using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Game.Randomizer.Configuration;
 using MRDX.Game.Randomizer.Template;
-using Reloaded.Hooks.ReloadedII.Interfaces;
+using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Universal.Redirector.Interfaces;
 
@@ -38,12 +38,12 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private readonly IMod _owner;
 
+    private readonly WeakReference<IRedirectorController>? _redirector;
+
     /// <summary>
     ///     Provides access to this mod's configuration.
     /// </summary>
     private Config _configuration;
-
-    private readonly WeakReference<IRedirectorController>? _redirector;
 
     public Mod(ModContext context)
     {

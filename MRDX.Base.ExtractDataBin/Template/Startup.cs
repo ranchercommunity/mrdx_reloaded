@@ -4,7 +4,7 @@
  */
 
 using System;
-using Reloaded.Hooks.ReloadedII.Interfaces;
+using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
 

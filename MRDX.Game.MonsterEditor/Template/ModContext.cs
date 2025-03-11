@@ -1,5 +1,5 @@
 ﻿using MRDX.Game.MonsterEditor.Configuration;
-using Reloaded.Hooks.ReloadedII.Interfaces;
+using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Game.MonsterEditor.Template;

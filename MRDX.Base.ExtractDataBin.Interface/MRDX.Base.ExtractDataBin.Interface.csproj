@@ -9,4 +9,9 @@
         <AssemblyVersion Condition="'$(BaseExtractBinInterfaceVersion)' != ''">$(BaseExtractBinInterfaceVersion)</AssemblyVersion>
     </PropertyGroup>
 
+    <ItemGroup>
+        <PackageReference Include="Reloaded.Hooks.Definitions" Version="1.15.0" />
+        <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.16.3" />
+    </ItemGroup>
+
 </Project>

@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using MRDX.Game.MonsterEditor.Configuration;
 using MRDX.Game.MonsterEditor.Template;
-using Reloaded.Hooks.ReloadedII.Interfaces;
+using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Game.MonsterEditor;

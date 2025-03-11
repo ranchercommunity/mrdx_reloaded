@@ -1,4 +1,4 @@
-﻿using Reloaded.Hooks.ReloadedII.Interfaces;
+﻿using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Audio.VolumeConfig.Template;

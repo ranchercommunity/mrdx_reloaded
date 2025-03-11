@@ -1,6 +1,6 @@
 ﻿using Reloaded.Mod.Interfaces;
-using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 using MRDX.Qol.BattleTimer.Configuration;
+using Reloaded.Hooks.Definitions;
 
 namespace MRDX.Qol.BattleTimer.Template;
 

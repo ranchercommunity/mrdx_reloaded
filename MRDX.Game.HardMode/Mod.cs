@@ -3,7 +3,7 @@ using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.Mod;
 using MRDX.Base.Mod.Interfaces;
 using MRDX.Game.HardMode.Template;
-using Reloaded.Hooks.ReloadedII.Interfaces;
+using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Universal.Redirector.Interfaces;
 using Config = MRDX.Game.HardMode.Configuration.Config;

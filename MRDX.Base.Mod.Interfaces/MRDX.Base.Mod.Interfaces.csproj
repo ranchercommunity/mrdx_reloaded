@@ -11,8 +11,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Reloaded.Hooks.Definitions" Version="1.15.0" />
         <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" />
-        <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />
+        <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.16.3" />
     </ItemGroup>
 
 </Project>

@@ -1,12 +1,11 @@
 ﻿/*
  * This file and other files in the `Template` folder are intended to be left unedited (if possible),
  * to make it easier to upgrade to newer versions of the template.
-*/
+ */
 
-using System;
 using MRDX.Game.MonsterEditor.Configuration;
 using MRDX.Game.MonsterEditor.Template.Configuration;
-using Reloaded.Hooks.ReloadedII.Interfaces;
+using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
 
@@ -111,7 +110,7 @@ public class Startup : IMod
     private void OnConfigurationUpdated(IConfigurable obj)
     {
         /*
-            This is executed when the configuration file gets 
+            This is executed when the configuration file gets
             updated by the user at runtime.
         */
 

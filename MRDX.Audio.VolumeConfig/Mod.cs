@@ -6,7 +6,6 @@ using MRDX.Audio.VolumeConfig.Template;
 using MRDX.Base.Mod.Interfaces;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
-using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 
 namespace MRDX.Audio.VolumeConfig;
 

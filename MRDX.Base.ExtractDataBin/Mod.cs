@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.ExtractDataBin.Template;
-using Reloaded.Hooks.ReloadedII.Interfaces;
+using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Base.ExtractDataBin;

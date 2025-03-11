@@ -1,7 +1,7 @@
 ﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Qol.TurboInput.Configuration;
 using MRDX.Qol.TurboInput.Template;
-using Reloaded.Hooks.ReloadedII.Interfaces;
+using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Qol.TurboInput;
