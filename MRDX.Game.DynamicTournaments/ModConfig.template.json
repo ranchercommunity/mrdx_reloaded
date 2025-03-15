@@ -1,0 +1,35 @@
+{
+    "ModId": "MRDX.Game.DynamicTournaments",
+    "ModName": "Dynamic Tournament Progression",
+    "ModAuthor": "ArchbishopDave",
+    "ModVersion": "{{ MOD_VERSION }}",
+    "ModDescription": "Dynamically updates tournament data as time passes. New monsters are introduced into tournament brackets and grow over time.",
+    "ModDll": "MRDX.Game.DynamicTournaments.dll",
+    "ModIcon": "Preview.png",
+    "ModR2RManagedDll32": "x86/MRDX.Game.DynamicTournaments.dll",
+    "ModR2RManagedDll64": "x64/MRDX.Game.DynamicTournaments.dll",
+    "ModNativeDll32": "",
+    "ModNativeDll64": "",
+    "IsLibrary": false,
+    "ReleaseMetadataFileName": "MRDX.Game.DynamicTournaments.ReleaseMetadata.json",
+    "PluginData": {
+        "GitHubRelease": {
+            "UserName": "archbishopdave",
+            "RepositoryName": "mrdx_reloaded",
+            "UseReleaseTag": false
+        }
+    },
+    "IsUniversalMod": false,
+    "ModDependencies": [
+        "reloaded.sharedlib.hooks",
+        "reloaded.universal.redirector",
+        "Reloaded.Memory.SigScan.ReloadedII",
+        "MRDX.Base.Mod",
+        "MRDX.Base.ExtractDataBin"
+    ],
+    "OptionalDependencies": [],
+    "SupportedAppId": [
+        "mf2.exe"
+    ],
+    "ProjectUrl": "https://github.com/ArchbishopDave/mrdx_reloaded"
+}
