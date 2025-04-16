@@ -61,6 +61,10 @@
     <ProjectReference Include="..\MRDX.Base.Mod.Interfaces\MRDX.Base.Mod.Interfaces.csproj" />
     <ProjectReference Include="..\MRDX.Base.Mod\MRDX.Base.Mod.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Redirector\Resources\" />
+  </ItemGroup>
 	
 	<Target Name="Replace" BeforeTargets="BeforeBuild;BeforeRebuild">
 		<PropertyGroup>

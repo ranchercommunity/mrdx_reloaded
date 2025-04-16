@@ -43,6 +43,7 @@ public class MonsterBreed
                 // Build a singular tech list. This will be the same for every breed until I do the right now and actually check errantry (no thanks :( )
                 FileStream fs = File.OpenRead( techniqueFile );
 
+                TournamentData._mod.DebugLog( 2, "DEBUG: " + info.Name );
                 List<MonsterTechnique> techniqueList = MonsterTechnique.ParseTechniqueFile( fs );
 
                 //Console.Write( "\nReading Techniques for " + info.Name + ": " );

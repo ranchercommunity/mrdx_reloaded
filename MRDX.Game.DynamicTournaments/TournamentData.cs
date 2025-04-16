@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Diagnostics.Metrics;
-using System.Diagnostics.Tracing;
-using System.Drawing;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.JavaScript;
-using System.Runtime.InteropServices.Marshalling;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using MRDX.Base.ExtractDataBin.Interface;
-using MRDX.Base.Mod;
+﻿using System.Drawing;
 using MRDX.Base.Mod.Interfaces;
 using Reloaded.Mod.Interfaces;
 //using static MRDX.Base.Mod.Interfaces.TournamentData;

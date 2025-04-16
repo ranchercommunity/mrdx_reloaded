@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using MRDX.Base.Mod.Interfaces;
 
 namespace MRDX.Game.DynamicTournaments
@@ -60,11 +56,11 @@ namespace MRDX.Game.DynamicTournaments
 
             // 20 is 'Available' which means effectively nothing.
 
-            _hit = rawtech[ 21 ];
-            _force = rawtech[ 22 ];
-            _wither = rawtech[ 23 ];
-            _sharp = rawtech[ 24 ];
-            _gutsCost = rawtech[ 25 ];
+            _hit = (sbyte) rawtech[ 21 ];
+            _force = (sbyte) rawtech[ 22 ];
+            _wither = (sbyte) rawtech[ 23 ];
+            _sharp = (sbyte) rawtech[ 24 ];
+            _gutsCost = (sbyte)  rawtech[ 25 ];
 
             _sGutsSteal = ( rawtech[ 26 ] == 1 );
             _sLifeSteal = ( rawtech[ 27 ] == 1 );
@@ -74,8 +70,16 @@ namespace MRDX.Game.DynamicTournaments
 
             // 31 is always FF, indicating the end of the technique.
 
-            _techValue = _hit + ( _force * 2 ) + _wither + ( _sharp / 2 ) - _gutsCost;
+            _techValue = 30 + (int) ( ( _hit * 1.5 ) + ( _force * 1.8 ) + ( _wither * 1.2 ) + ( _sharp / 1.25 ) - _gutsCost);
+
+            if ( _sGutsSteal || _sLifeSteal || _sLifeRecovery ) { _techValue = (int) (_techValue * 1.3); }
+            if ( _sDamageSelfMiss || _sDamageSelfHit ) _techValue = (int) (_techValue * 0.85);
         }
+
+        public override string ToString () {
+            return "TECH: { NAME: " + _name + ", ERR: " + _errantry + ", RANGE: " + _range + ", NATURE: " + _nature + ", SCALE: " + _scaling + ", HIT%: " + _hit + ", FORCE: " + _force + ", WITH: " + _wither + ", SHARP: " + _sharp + ", GUTS: " + _gutsCost + ", VALUE: " + _techValue + "}";
+        }
+
 
         /// <summary> Reads from the provided FileStream and returns a byte list. 0 = Basic, 1 Hit, 2 Heavy, 3 Withering, 4 Sharp, 5 Special, 6 Invalid </summary>
         public static List<MonsterTechnique> ParseTechniqueFile ( FileStream fs ) {
@@ -86,9 +90,10 @@ namespace MRDX.Game.DynamicTournaments
             for ( var i = 0; i < 24; i++ ) {
                 fs.Position = i * 4;
                 tpos = (long) fs.ReadByte(); tpos += (long) fs.ReadByte() * 256;
+                TournamentData._mod.DebugLog( 2, "TECH HEADER: " + i + " - tpos " + tpos, Color.MediumOrchid );
 
                 if ( tpos != 0xFFFF ) {
-                    //fs.Position = (long) tpos + 0x10;
+                    fs.Position = (long) tpos;
 
                     byte[] rawtech = new byte[32];
                     for ( var nb = 0; nb < 32; nb++ ) {
@@ -96,6 +101,7 @@ namespace MRDX.Game.DynamicTournaments
 
                     byte slot = (byte) ( ( tpos - 0x60 ) / 0x20 );
                     MonsterTechnique mt = new MonsterTechnique(slot, rawtech);
+                    TournamentData._mod.DebugLog( 2, "TECHNIQUE READ " + mt, Color.MediumOrchid );
                     techniques.Add( mt );
                 }
             }
@@ -103,5 +109,9 @@ namespace MRDX.Game.DynamicTournaments
             fs.Close();
             return techniques;
         }
+
+
+        // TODO: Move these functions into the base mod.
+
     }
 }
