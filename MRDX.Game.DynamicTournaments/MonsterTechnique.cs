@@ -76,6 +76,7 @@ namespace MRDX.Game.DynamicTournaments
 
             _techValue = _hit + ( _force * 2 ) + _wither + ( _sharp / 2 ) - _gutsCost;
         }
+
         /// <summary> Reads from the provided FileStream and returns a byte list. 0 = Basic, 1 Hit, 2 Heavy, 3 Withering, 4 Sharp, 5 Special, 6 Invalid </summary>
         public static List<MonsterTechnique> ParseTechniqueFile ( FileStream fs ) {
             List<MonsterTechnique> techniques = new List<MonsterTechnique>();
@@ -93,8 +94,8 @@ namespace MRDX.Game.DynamicTournaments
                     for ( var nb = 0; nb < 32; nb++ ) {
                         rawtech[ nb ] = (byte) fs.ReadByte(); }
 
-
-                    MonsterTechnique mt = new MonsterTechnique(i, rawtech);
+                    byte slot = (byte) ( ( tpos - 0x60 ) / 0x20 );
+                    MonsterTechnique mt = new MonsterTechnique(slot, rawtech);
                     techniques.Add( mt );
                 }
             }
