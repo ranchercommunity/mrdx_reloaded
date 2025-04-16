@@ -174,8 +174,10 @@ public class TournamentData
         _unlockedTournamentBreeds = unlockedmonsters;
 
         if ( !_initialized ) { _currentWeek = currentWeek; return; }
-        if ( _firstweek ) { _currentWeek = currentWeek - 1; }
+        if ( _firstweek && currentWeek != 0 ) { _currentWeek = currentWeek - 1; }
+        else if ( currentWeek > int.MaxValue - 4 ) { _currentWeek = 0; currentWeek = 0; }
 
+        TournamentData._mod.DebugLog( 2, "Advancing Weeks in TD: " + _currentWeek + " trying to get to " + currentWeek );
         while ( _currentWeek < currentWeek ) {
             _currentWeek++;
 

@@ -20,6 +20,7 @@ using Reloaded.Memory.SigScan;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Diagnostics;
 using Reloaded.Memory.Sigscan.Definitions;
+using MRDX.Base.Mod;
 
 //using static MRDX.Base.Mod.Interfaces.TournamentData;
 //using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
@@ -87,6 +88,7 @@ public class Mod : ModBase // <= Do not Remove.
     private nuint _address_unlockedmonsters = 0;
 
     private List<MonsterGenus> _unlockedmonsters;
+    private IHooks _iHooks;
 
     private LearningTesting _LT;
 
@@ -103,7 +105,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         _redirector = _modLoader.GetController<IRedirectorController>();
         _modLoader.GetController<IExtractDataBin>().TryGetTarget(out var extract);
-        _modLoader.GetController<IHooks>().TryGetTarget(out var hooks);
+        _modLoader.GetController<IHooks>().TryGetTarget(out _iHooks);
 
         var startupScanner = _modLoader.GetController<IStartupScanner>();
         //var memscanner = _modLoader.GetController<IScanner>();
@@ -127,9 +129,9 @@ public class Mod : ModBase // <= Do not Remove.
 
         
 
-        if ( hooks == null ) { _logger.WriteLine($"[{_modConfig.ModId}] Could not get hook controller.", Color.Red); return; }
+        if ( _iHooks == null ) { _logger.WriteLine($"[{_modConfig.ModId}] Could not get hook controller.", Color.Red); return; }
 
-        hooks.AddHook<UpdateGenericState>(SetupUpdateHook)
+        _iHooks.AddHook<UpdateGenericState>(SetupUpdateHook)
             .ContinueWith(result => _updateHook = result.Result.Activate());
 
         
@@ -141,19 +143,51 @@ public class Mod : ModBase // <= Do not Remove.
 
         _modLoader.GetController<IScannerFactory>().TryGetTarget( out var sf );
         _memoryScanner = sf.CreateScanner( Process.GetCurrentProcess(), Process.GetCurrentProcess().MainModule );
-        
 
-        tournamentData = new TournamentData(this, _logger, _configuration);
-        SetupMonsterBreeds();
-        SetupTournamentParticipantsFromTaikai();
+        /*_logger.WriteLine( _gamePath + "GP", Color.Blue );
+        extract.ExtractComplete += ( string? path ) => {
+            _logger.WriteLine( path, Color.Blue );
+            tournamentData = new TournamentData( this, _logger, _configuration );
+            SetupMonsterBreeds();
+            SetupTournamentParticipantsFromTaikai();
 
 
-        _LT = new LearningTesting( hooks, _address_currentweek );
-        _LT._tournamentStatBonus = _configuration._confDTP_tournament_stat_growth > 0 ? _configuration._confDTP_tournament_stat_growth + 1 : 0;
-
+            _LT = new LearningTesting( hooks, _address_currentweek );
+            _LT._tournamentStatBonus = _configuration._confDTP_tournament_stat_growth > 0 ? _configuration._confDTP_tournament_stat_growth + 1 : 0;
+       };
+        */
+        HandleExtraction(extract);
 
         //Debugger.Launch();
 
+    }
+
+    /// <summary>
+    /// Attempts to perform a file read. If it fails, we assume that the binary has not been extracted and begin the extraction process.
+    /// If it succeeds, then simply process the extracted data.
+    /// </summary>
+    /// <param name="extract"></param>
+    private void HandleExtraction( IExtractDataBin extract ) {
+        try { FileStream fs = File.OpenRead( _gamePath + "\\mf2\\data\\mon\\kapi\\" + "ka_ka_wz.bin" ); fs.Close();
+            ProcessExtractedData();
+        }
+        catch {
+            extract.ExtractComplete += ( string? path ) => {
+                ProcessExtractedData();
+            };
+        }
+    }
+
+    /// <summary>
+    /// Processes data that requires the extraction of the binary first. Can be called two separate ways.
+    /// </summary>
+    private void ProcessExtractedData() {
+        tournamentData = new TournamentData( this, _logger, _configuration );
+        SetupMonsterBreeds();
+        SetupTournamentParticipantsFromTaikai();
+
+        _LT = new LearningTesting( _iHooks, _address_currentweek );
+        _LT._tournamentStatBonus = _configuration._confDTP_tournament_stat_growth > 0 ? _configuration._confDTP_tournament_stat_growth + 1 : 0;
     }
 
     private void ProcessReloadedFileLoad(string filename) {
