@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MRDX.Base.Mod.Interfaces;
 
@@ -34,6 +35,9 @@ public interface IGame
     ///     This event allows you to receive a copy of the inputs before they are sent to the game.
     /// </summary>
     public event GameSceneChange OnGameSceneChanged;
+
+    public Task<Dictionary<string, IList<IMonsterAttack>>> LoadMonsterAttackData();
+    public Task SaveMonsterAttackData(Dictionary<string, List<IMonsterAttack>> monsters);
 }
 
 public interface ISaveFile

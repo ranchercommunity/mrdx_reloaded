@@ -1,4 +1,5 @@
-﻿using MRDX.Base.Mod.Interfaces;
+﻿using MRDX.Base.ExtractDataBin.Interface;
+using MRDX.Base.Mod.Interfaces;
 using MRDX.Base.Mod.Template;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
@@ -90,10 +91,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     private readonly IStartupScanner? _startupScanner;
 
-    private IHook<DrawBattleNumberToScreen>? _numberHook;
-
-    private IHook<ParseTextWithCommandCodes>? _textHook;
-
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -102,6 +99,18 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _owner = context.Owner;
         _modConfig = context.ModConfig;
         _configuration = context.Configuration;
+
+
+        var maybeExtractor = _modLoader.GetController<IExtractDataBin>();
+        if (maybeExtractor != null && maybeExtractor.TryGetTarget(out var extract))
+            lock (IExtractDataBin.LockMr2)
+            {
+                if (extract.ExtractedPath != null)
+                    DataPath = extract.ExtractedPath;
+                else
+                    extract.ExtractComplete += path => { DataPath = path; };
+            }
+
         var hooks = new Hooks(context);
         _modLoader.AddOrReplaceController<IHooks>(_owner, hooks);
         _modLoader.AddOrReplaceController<IController>(_owner, new Controller(context));
@@ -136,6 +145,12 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     #endregion
 
+    // private IHook<DrawBattleNumberToScreen>? _numberHook;
+
+    // private IHook<ParseTextWithCommandCodes>? _textHook;
+
+    public static string? DataPath { get; set; }
+
     public Type[] GetTypes()
     {
         return new[] { typeof(IController) };
@@ -167,19 +182,19 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _logger.WriteLine($"[MRDX.Base] Patching Pluralization at {addr:x} Complete");
     }
 
-    private void DrawTextToScreenHook(nint input, nint output, nint unk2)
-    {
-        // Debugger.Launch();
-        _textHook!.OriginalFunction(input, output, unk2);
-        var o = Base.ReadString(output);
-        // _logger.WriteLine($"Parsed Text: {o}");
-    }
+    // private void DrawTextToScreenHook(nint input, nint output, nint unk2)
+    // {
+    //     // Debugger.Launch();
+    //     _textHook!.OriginalFunction(input, output, unk2);
+    //     var o = Base.ReadString(output);
+    //     // _logger.WriteLine($"Parsed Text: {o}");
+    // }
 
-    private void DrawBattleNumberToScreenHook(int number, short xcoord, short ycoord, short unkflag, uint unused5,
-        uint unused6, IntPtr unkdata)
-    {
-        // Debugger.Launch();
-        _logger.WriteLine($"Number: {number} at ({xcoord}, {ycoord}) flag: {unkflag} ptr: {unkdata.ToInt64():02X}");
-        _numberHook!.OriginalFunction(number, xcoord, ycoord, unkflag, unused5, unused6, unkdata);
-    }
+    // private void DrawBattleNumberToScreenHook(int number, short xcoord, short ycoord, short unkflag, uint unused5,
+    //     uint unused6, IntPtr unkdata)
+    // {
+    //     // Debugger.Launch();
+    //     _logger.WriteLine($"Number: {number} at ({xcoord}, {ycoord}) flag: {unkflag} ptr: {unkdata.ToInt64():02X}");
+    //     _numberHook!.OriginalFunction(number, xcoord, ycoord, unkflag, unused5, unused6, unkdata);
+    // }
 }

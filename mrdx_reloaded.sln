@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MRDX.Game.Randomizer", "MRD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Game.DynamicTournaments", "MRDX.Game.DynamicTournaments\MRDX.Game.DynamicTournaments.csproj", "{938E8D29-B5FB-8626-8D17-61EFB7CFE65B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Base.BattleSimulator", "MRDX.Base.BattleSimulator\MRDX.Base.BattleSimulator.csproj", "{F5BADF20-FB54-4535-9182-106F7CC62612}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Qol.MagicBananaStatic", "MRDX.Qol.MagicBananaStatic\MRDX.Qol.MagicBananaStatic.csproj", "{A226A302-4318-77B9-D947-0CAEF0859DBE}"
 EndProject
 Global
@@ -101,6 +103,10 @@ Global
 		{938E8D29-B5FB-8626-8D17-61EFB7CFE65B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{938E8D29-B5FB-8626-8D17-61EFB7CFE65B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{938E8D29-B5FB-8626-8D17-61EFB7CFE65B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5BADF20-FB54-4535-9182-106F7CC62612}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5BADF20-FB54-4535-9182-106F7CC62612}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5BADF20-FB54-4535-9182-106F7CC62612}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5BADF20-FB54-4535-9182-106F7CC62612}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A226A302-4318-77B9-D947-0CAEF0859DBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A226A302-4318-77B9-D947-0CAEF0859DBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A226A302-4318-77B9-D947-0CAEF0859DBE}.Release|Any CPU.ActiveCfg = Release|Any CPU

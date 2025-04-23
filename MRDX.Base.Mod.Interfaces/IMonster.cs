@@ -104,8 +104,8 @@ public static class MonsterHelper
 
 public interface IMonster
 {
-    static readonly MonsterInfo[] AllMonsters =
-    {
+    public static readonly MonsterInfo[] AllMonsters =
+    [
         new() { Id = MonsterGenus.Pixie, Name = "Pixie", ShortName = "kapi" },
         new() { Id = MonsterGenus.Dragon, Name = "Dragon", ShortName = "kbdr" },
         new() { Id = MonsterGenus.Centaur, Name = "Centaur", ShortName = "kckn" },
@@ -150,7 +150,11 @@ public interface IMonster
         new() { Id = MonsterGenus.Unknown4, Name = "Unknown4", ShortName = "unk4" },
         new() { Id = MonsterGenus.Unknown5, Name = "Unknown5", ShortName = "unk5" },
         new() { Id = MonsterGenus.Unknown6, Name = "Unknown6", ShortName = "unk6" }
-    };
+    ];
+
+    public static readonly MonsterBreed[] AllBreeds = [
+        
+    ];
 
     ushort Age { get; set; }
 
@@ -170,7 +174,7 @@ public interface IMonster
     short NatureRaw { get; set; }
     sbyte NatureBase { get; set; }
 
-    EffectiveNature Nature
+    EffectiveNature NatureDisplay
     {
         get =>
             MonsterHelper.ToRangeEnum<EffectiveNature, sbyte>(
@@ -179,6 +183,14 @@ public interface IMonster
             NatureRaw = MonsterHelper.NatureModToRaw(
                 (short)(MonsterHelper.FromRangeEnum<EffectiveNature, sbyte>(value) - NatureBase));
     }
+
+    sbyte Nature => (sbyte)(NatureBase + MonsterHelper.NatureRawToMod(NatureRaw));
+
+    ushort AdjustedSpeed => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+        (double)Speed * (sbyte)(NatureBase + MonsterHelper.NatureRawToMod(NatureRaw)) / 4 * 100) / 10000), 1, 999);
+
+    ushort AdjustedDefense => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+        (double)Defense * (sbyte)(NatureBase + MonsterHelper.NatureRawToMod(NatureRaw)) / 4 * 100) / 10000), 1, 999);
 
     byte Fatigue { get; set; }
     byte Fame { get; set; }
@@ -236,7 +248,7 @@ public interface IMonster
     uint PrizeMoney { get; set; }
 }
 
-public interface IBattleMonster
+public interface IBattleMonsterData
 {
     string Name { get; set; }
 
@@ -250,6 +262,12 @@ public interface IBattleMonster
     ushort Speed { get; set; }
     ushort Intelligence { get; set; }
 
+    ushort AdjustedSpeed => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+        (double)Speed * Nature / 4 * 100) / 10000), 1, 999);
+
+    ushort AdjustedDefense => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+        (double)Defense * Nature / 4 * 100) / 10000), 1, 999);
+
     sbyte Nature { get; set; }
 
     byte Spoil { get; set; }
@@ -261,6 +279,23 @@ public interface IBattleMonster
     byte GutsRate { get; set; }
 
     BattleSpecials BattleSpecial { get; set; }
+}
+
+public interface IBattleMonster : IBattleMonsterData
+{
+    ushort Hp { get; set; }
+
+    sbyte Stress { get; set; }
+
+    byte Fame { get; set; }
+
+    BattleSpecials ActiveBattleSpecial { get; set; }
+
+    BattleSpecials InactiveBattleSpecial { get; set; }
+
+    byte Guts { get; set; }
+
+    IList<IMonsterAttack> Techs { get; }
 }
 
 public static class StatFlagUtil

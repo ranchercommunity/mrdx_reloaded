@@ -4,7 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-        <LangVersion>10.0</LangVersion>
+        <LangVersion>14</LangVersion>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <OutputPath>$(RELOADEDIIMODS)/MRDX.Base.Mod</OutputPath>
@@ -42,9 +42,11 @@
         <PackageReference Include="Reloaded.Memory" Version="8.1.0" />
         <PackageReference Include="Reloaded.Memory.SigScan.ReloadedII.Interfaces" Version="1.2.0" />
         <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime" />
+        <PackageReference Include="Reloaded.Universal.Redirector.Interfaces" Version="1.1.0" />
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\MRDX.Base.ExtractDataBin.Interface\MRDX.Base.ExtractDataBin.Interface.csproj" />
         <ProjectReference Include="..\MRDX.Base.Mod.Interfaces\MRDX.Base.Mod.Interfaces.csproj" />
     </ItemGroup>
 

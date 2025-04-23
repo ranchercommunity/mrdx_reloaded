@@ -308,3 +308,10 @@ public record MonsterInfo
     public string Name { get; init; } = string.Empty;
     public string ShortName { get; init; } = string.Empty;
 }
+
+public record MonsterBreed
+{
+    public MonsterGenus Main { get; init; } = 0;
+    public MonsterGenus Sub { get; init; } = 0;
+    public string Name { get; init; } = string.Empty;
+}

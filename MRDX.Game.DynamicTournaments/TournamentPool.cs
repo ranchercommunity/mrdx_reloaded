@@ -62,7 +62,7 @@ namespace MRDX.Game.DynamicTournaments
         /// </summary>
         /// <param name="newPool"></param>
         public void MonstersPromoteToNewPool ( TournamentPool newPool ) {
-            TournamentData._mod.DebugLog( 1, "Promoting monsters from " + _name + " to " + newPool._name, Color.LightBlue );
+            Logger.Info("Promoting monsters from " + _name + " to " + newPool._name, Color.LightBlue );
             int stattotal = 0; ABD_TournamentMonster promoted;
             promoted = monsters[ 0 ];
 
@@ -81,7 +81,7 @@ namespace MRDX.Game.DynamicTournaments
 
                 MonsterPromoteToNewPool( promoted, newPool );
             }
-            else { TournamentData._mod.DebugLog( 1, "Tournament Stat Totals dangeorusly low. Growth rates may be too low.", Color.Yellow ); } 
+            else { Logger.Info("Tournament Stat Totals dangeorusly low. Growth rates may be too low.", Color.Yellow ); } 
 
             for ( var i = monsters.Count() - 1; i >= 0; i-- ) { 
                 if ( monsters[i].monster.stat_total - 100 > stat_end ) {
@@ -96,11 +96,11 @@ namespace MRDX.Game.DynamicTournaments
 
             MonsterRemove( monster );
             newPool.MonsterAdd( monster );
-            TournamentData._mod.DebugLog( 1, monster.monster.name + " promoted.", Color.LightBlue );
+            Logger.Info(monster.monster.name + " promoted.", Color.LightBlue );
         }
 
         public void GenerateNewValidMonster ( List<MonsterGenus> available ) {
-            TournamentData._mod.DebugLog( 1, "TP: Getting Breed", Color.AliceBlue );
+            Logger.Info("TP: Getting Breed", Color.AliceBlue );
             MonsterBreed breed = MonsterBreed.AllBreeds[ 0 ];
 
             if ( _tournamentPool == ETournamentPools.A_Phoenix ) {
@@ -181,18 +181,18 @@ namespace MRDX.Game.DynamicTournaments
                     }
                 }
             }
-            TournamentData._mod.DebugLog( 1, "Breed chosen " + breed.breed_id + "/" + breed.sub_id, Color.AliceBlue );
+            Logger.Info("Breed chosen " + breed.breed_id + "/" + breed.sub_id, Color.AliceBlue );
             GenerateNewValidMonster( breed );
 
         }
         private void GenerateNewValidMonster ( MonsterBreed breed ) {
-            TournamentData._mod.DebugLog( 2, "TP: Generating", Color.AliceBlue );
+            Logger.Debug("TP: Generating", Color.AliceBlue );
             byte[] nmraw = new byte[ 60 ];// This doesn't matter, it gets completely overwritten below anyways.
             TournamentMonster nm = new TournamentMonster( nmraw );
 
 
             nm.breed_main = breed.breed_id; nm.breed_sub = breed.sub_id;
-            TournamentData._mod.DebugLog( 3, "TP: Breed " + nm.breed_main + " " + nm.breed_sub, Color.AliceBlue );
+            Logger.Trace("TP: Breed " + nm.breed_main + " " + nm.breed_sub, Color.AliceBlue );
             // // // // // //
 
             ABD_TournamentMonster abdm = new ABD_TournamentMonster( nm );
@@ -205,14 +205,14 @@ namespace MRDX.Game.DynamicTournaments
             abdm.monster.stat_def = 1;
             abdm.monster.stat_int = 1;
 
-            abdm.monster.per_nature = (byte) ( Random.Shared.Next() % 255 );
-            abdm.monster.per_fear = (byte) ( Random.Shared.Next() % 25 );
-            abdm.monster.per_spoil = (byte) ( Random.Shared.Next() % 25 );
+            abdm.monster.per_nature = (byte) Random.Shared.Next(255);
+            abdm.monster.per_fear = (byte) Random.Shared.Next(25);
+            abdm.monster.per_spoil = (byte) Random.Shared.Next(25);
 
-            abdm.monster.arena_movespeed = (byte) ( Random.Shared.Next() % 4 ); // TODO: Where does this come from?
-            abdm.monster.arena_gutsrate = (byte) ( 7 + Random.Shared.Next() % 14 ); // 7 - 20?
+            abdm.monster.arena_movespeed = (byte) Random.Shared.Next(4); // TODO: Where does this come from?
+            abdm.monster.arena_gutsrate = (byte) Random.Shared.Next(7, 21); // 7 - 20?
 
-            abdm.monster.battle_specials = (byte) (Random.Shared.Next() % 4);
+            abdm.monster.battle_specials = (byte) Random.Shared.Next(4);
 
             // Attempt to assign three basics, weighted generally towards worse basic techs with variance.
             if ( abdm.breedInfo._techniques[ 0 ]._errantry == ErrantryType.Basic ) { 
@@ -221,7 +221,7 @@ namespace MRDX.Game.DynamicTournaments
             }
 
             for ( var tc = 0; tc < 3; tc++ ) {
-                MonsterTechnique tech = abdm.breedInfo._techniques[ 0 ];
+                IMonsterAttack tech = abdm.breedInfo._techniques[ 0 ];
 
                 for ( var j = 1; j < abdm.breedInfo._techniques.Count; j++ ) {
                     var nt = abdm.breedInfo._techniques[ j ];
@@ -234,33 +234,37 @@ namespace MRDX.Game.DynamicTournaments
 
                 abdm.MonsterAddTechnique( tech );
             }
-            TournamentData._mod.DebugLog( 3, "TP: Basics Setup " + abdm.techniques.Count, Color.AliceBlue );
+            Logger.Trace("TP: Basics Setup " + abdm.techniques.Count, Color.AliceBlue );
 
             // This is significantly messing with growth rates across the board. Going to manually set the lifespan afterwards based upon the rank.
             while ( abdm.monster.stat_total < stat_start ) {
                 abdm.AdvanceMonth();
             }
-            TournamentData._mod.DebugLog( 3, "TP: Stats Generated", Color.AliceBlue );
+            Logger.Trace("TP: Stats Generated", Color.AliceBlue );
 
             for ( int i = 0; i < tournament_tier; i++ ) {
                 abdm.LearnTechnique();
             }
-            TournamentData._mod.DebugLog( 3, "TP: Techs", Color.AliceBlue );
+            Logger.Trace("TP: Techs", Color.AliceBlue );
 
-            // Need this to account for bad growth rate monsters. At minimum monsters should be living for at least 8 months. Not a lot of time but enough to reduce churn.
-                    if ( _monsterRank == EMonsterRanks.L ) { abdm.lifespan = (ushort) ( 12 + ( TournamentData.LifespanRNG.Next() % 5 ) ); }
-            else    if ( _monsterRank == EMonsterRanks.M ) { abdm.lifespan = (ushort) ( 16 + ( TournamentData.LifespanRNG.Next() % 5 ) ); }
-            else    if ( _monsterRank == EMonsterRanks.S ) { abdm.lifespan = (ushort) ( 20 + ( TournamentData.LifespanRNG.Next() % 7 ) ); }
-            else    if ( _monsterRank == EMonsterRanks.A ) { abdm.lifespan = (ushort) ( 24 + ( TournamentData.LifespanRNG.Next() % 7 ) ); }
-            else    if ( _monsterRank == EMonsterRanks.B ) { abdm.lifespan = (ushort) ( abdm.lifetotal - ( 14 + ( TournamentData.LifespanRNG.Next() % 9 ) ) ); }
-            else    if ( _monsterRank == EMonsterRanks.C ) { abdm.lifespan = (ushort) ( abdm.lifetotal - ( 6 + ( TournamentData.LifespanRNG.Next() % 7 ) ) ); }
-            else    if ( _monsterRank == EMonsterRanks.D ) { abdm.lifespan = (ushort) (abdm.lifetotal - ( 2 + ( TournamentData.LifespanRNG.Next() % 5 ) ) ); }
-            else    if ( _monsterRank == EMonsterRanks.E ) { abdm.lifespan = abdm.lifetotal; }
+            abdm.lifespan = _monsterRank switch
+            {
+                // Need this to account for bad growth rate monsters. At minimum monsters should be living for at least 8 months. Not a lot of time but enough to reduce churn.
+                EMonsterRanks.L => (ushort)TournamentData.LifespanRNG.Next(12, 17),
+                EMonsterRanks.M => (ushort)TournamentData.LifespanRNG.Next(16, 21),
+                EMonsterRanks.S => (ushort)TournamentData.LifespanRNG.Next(20, 27),
+                EMonsterRanks.A => (ushort)TournamentData.LifespanRNG.Next(24, 31),
+                EMonsterRanks.B => (ushort)(abdm.lifetotal - TournamentData.LifespanRNG.Next(14, 23)),
+                EMonsterRanks.C => (ushort)(abdm.lifetotal - TournamentData.LifespanRNG.Next(6, 13)),
+                EMonsterRanks.D => (ushort)(abdm.lifetotal - TournamentData.LifespanRNG.Next(2, 7)),
+                EMonsterRanks.E => abdm.lifetotal,
+                _ => abdm.lifespan
+            };
             abdm.alive = true;
 
             abdm.PromoteToRank( _monsterRank );
             
-            TournamentData._mod.DebugLog( 2, "TP: Complete", Color.AliceBlue );
+            Logger.Debug("TP: Complete", Color.AliceBlue );
             tournamentData.monsters.Add( abdm );
             this.MonsterAdd( abdm );
         }

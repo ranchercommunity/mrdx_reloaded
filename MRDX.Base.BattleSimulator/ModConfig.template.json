@@ -1,17 +1,17 @@
 {
-  "ModId": "MRDX.Base.Mod",
-  "ModName": "MRDX Base Mod",
+  "ModId": "MRDX.Base.BattleSimulator",
+  "ModName": "MR2 Battle Simulator",
   "ModAuthor": "jroweboy",
   "ModVersion": "{{ MOD_VERSION }}",
-  "ModDescription": "Shared code for mods. Configure this mod to select bug fixes.",
-  "ModDll": "MRDX.Base.Mod.dll",
+  "ModDescription": "Runs simplified battle simulations for AI v AI combat",
+  "ModDll": "MRDX.Base.BattleSimulator.dll",
   "ModIcon": "Preview.png",
-  "ModR2RManagedDll32": "x86/MRDX.Base.Mod.dll",
-  "ModR2RManagedDll64": "x64/MRDX.Base.Mod.dll",
+  "ModR2RManagedDll32": "x86/MRDX.Base.BattleSimulator.dll",
+  "ModR2RManagedDll64": "x64/MRDX.Base.BattleSimulator.dll",
   "ModNativeDll32": "",
   "ModNativeDll64": "",
   "IsLibrary": false,
-  "ReleaseMetadataFileName": "MRDX.Base.Mod.ReleaseMetadata.json",
+  "ReleaseMetadataFileName": "MRDX.Base.BattleSimulator.ReleaseMetadata.json",
   "PluginData": {
     "GitHubRelease": {
       "UserName": "ranchercommunity",
@@ -23,13 +23,12 @@
   "IsUniversalMod": false,
   "ModDependencies": [
     "reloaded.sharedlib.hooks",
-    "Reloaded.Memory.SigScan.ReloadedII"
+    "reloaded.universal.redirector",
+    "MRDX.Base.ExtractDataBin",
+    "MRDX.Base.Mod"
   ],
-  "OptionalDependencies": [
-    "MRDX.Base.ExtractDataBin"
-  ],
+  "OptionalDependencies": [],
   "SupportedAppId": [
-    "mf.exe",
     "mf2.exe"
   ],
   "ProjectUrl": "https://github.com/ranchercommunity/mrdx_reloaded"

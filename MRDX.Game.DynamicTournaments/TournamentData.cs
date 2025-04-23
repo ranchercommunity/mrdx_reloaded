@@ -121,36 +121,35 @@ public class TournamentData
         ETournamentPools pool = ETournamentPools.S;
         ABD_TournamentMonster abdm = new ABD_TournamentMonster(m);
 
-        if ( id >= 1 && id <= 8 )           { pool = ETournamentPools.S; }
-        else if ( id >= 9 && id <= 16 )     { pool = ETournamentPools.A; }
-        else if ( id >= 17 && id <= 26 )    { pool = ETournamentPools.B; }
-        else if ( id >= 27 && id <= 36 )    { pool = ETournamentPools.C; }
-        else if ( id >= 37 && id <= 44 )    { pool = ETournamentPools.D; }
-        else if ( id >= 45 && id <= 50 )    { pool = ETournamentPools.E; }
-
-        else if ( id >= 51 && id <= 51 )    { pool = ETournamentPools.X_MOO; } 
-        else if ( id >= 52 && id <= 53 )    { pool = ETournamentPools.L; }
-        else if ( id >= 54 && id <= 61 )    { pool = ETournamentPools.M; }
-
-        else if ( id >= 62 && id <= 64 )    { pool = ETournamentPools.A_Phoenix; }
-        else if ( id >= 65 && id <= 65 )    { pool = ETournamentPools.B_Dragon; }
-        else if ( id >= 66 && id <= 66 )    { pool = ETournamentPools.A_DEdge; }
-
-        else if ( id >= 67 && id <= 71 )    { pool = ETournamentPools.F_Hero; }
-        else if ( id >= 72 && id <= 76 )    { pool = ETournamentPools.F_Heel; }
-        else if ( id >= 77 && id <= 79 )    { pool = ETournamentPools.F_Elder; }
-
-        else if ( id >= 80 && id <= 83 )    { pool = ETournamentPools.S_FIMBA; }
-        else if ( id >= 84 && id <= 87 )    { pool = ETournamentPools.A_FIMBA; }
-        else if ( id >= 88 && id <= 91 )    { pool = ETournamentPools.B_FIMBA; }
-        else if ( id >= 92 && id <= 95 )    { pool = ETournamentPools.C_FIMBA; }
-        else if ( id >= 96 && id <= 99 )    { pool = ETournamentPools.D_FIMBA; }
-
-        else if ( id >= 100 && id <= 103 )  { pool = ETournamentPools.S_FIMBA2; }
-        else if ( id >= 104 && id <= 107 )  { pool = ETournamentPools.A_FIMBA2; }
-        else if ( id >= 108 && id <= 111 )  { pool = ETournamentPools.B_FIMBA2; }
-        else if ( id >= 112 && id <= 115 )  { pool = ETournamentPools.C_FIMBA2; }
-        else if ( id >= 116 && id <= 119 )  { pool = ETournamentPools.D_FIMBA2; }
+        pool = id switch
+        {
+            >= 1 and <= 8 => ETournamentPools.S,
+            >= 9 and <= 16 => ETournamentPools.A,
+            >= 17 and <= 26 => ETournamentPools.B,
+            >= 27 and <= 36 => ETournamentPools.C,
+            >= 37 and <= 44 => ETournamentPools.D,
+            >= 45 and <= 50 => ETournamentPools.E,
+            >= 51 and <= 51 => ETournamentPools.X_MOO,
+            >= 52 and <= 53 => ETournamentPools.L,
+            >= 54 and <= 61 => ETournamentPools.M,
+            >= 62 and <= 64 => ETournamentPools.A_Phoenix,
+            >= 65 and <= 65 => ETournamentPools.B_Dragon,
+            >= 66 and <= 66 => ETournamentPools.A_DEdge,
+            >= 67 and <= 71 => ETournamentPools.F_Hero,
+            >= 72 and <= 76 => ETournamentPools.F_Heel,
+            >= 77 and <= 79 => ETournamentPools.F_Elder,
+            >= 80 and <= 83 => ETournamentPools.S_FIMBA,
+            >= 84 and <= 87 => ETournamentPools.A_FIMBA,
+            >= 88 and <= 91 => ETournamentPools.B_FIMBA,
+            >= 92 and <= 95 => ETournamentPools.C_FIMBA,
+            >= 96 and <= 99 => ETournamentPools.D_FIMBA,
+            >= 100 and <= 103 => ETournamentPools.S_FIMBA2,
+            >= 104 and <= 107 => ETournamentPools.A_FIMBA2,
+            >= 108 and <= 111 => ETournamentPools.B_FIMBA2,
+            >= 112 and <= 115 => ETournamentPools.C_FIMBA2,
+            >= 116 and <= 119 => ETournamentPools.D_FIMBA2,
+            _ => pool
+        };
 
         abdm._monsterRank = tournamentPools[ pool ]._monsterRank;
 
@@ -177,7 +176,7 @@ public class TournamentData
         if ( _firstweek && currentWeek != 0 ) { _currentWeek = currentWeek - 1; }
         else if ( currentWeek > int.MaxValue - 4 ) { _currentWeek = 0; currentWeek = 0; }
 
-        TournamentData._mod.DebugLog( 2, "Advancing Weeks in TD: " + _currentWeek + " trying to get to " + currentWeek );
+        Logger.Debug("Advancing Weeks in TD: " + _currentWeek + " trying to get to " + currentWeek );
         while ( _currentWeek < currentWeek ) {
             _currentWeek++;
 
@@ -190,7 +189,7 @@ public class TournamentData
             }
         }
 
-        _mod.DebugLog( 2, "Finished Advancing Weeks, Checking Pools", Color.Yellow );
+        Logger.Debug("Finished Advancing Weeks, Checking Pools", Color.Yellow );
         foreach ( TournamentPool pool in tournamentPools.Values ) {
             while ( pool.monsters.Count < pool._minimumSize ) {
                 pool.GenerateNewValidMonster(_unlockedTournamentBreeds);
@@ -206,13 +205,13 @@ public class TournamentData
     }
     public void AdvanceMonth()
     {
-        _mod.DebugLog( 2, "Advancing month from TournamentData", Color.Blue );
+        Logger.Debug("Advancing month from TournamentData", Color.Blue );
         for (var i = monsters.Count - 1 ; i >= 0 ; i--) {
             var m = monsters[i];
 
             m.AdvanceMonth();
             if ( !m.alive ) {
-                _mod.DebugLog( 1, m.monster.name + " has died. Rest in peace.", Color.Blue );
+                Logger.Info(m.monster.name + " has died. Rest in peace.", Color.Blue );
                 for ( var j = m.pools.Count() - 1; j >= 0; j-- ) {
                     m.pools[j].MonsterRemove( m );
                 }

@@ -605,7 +605,7 @@ public record struct MonsterCache : IMonster
     }
 }
 
-public class ErrantryEnemyMonster : BaseObject<ErrantryEnemyMonster>, IBattleMonster
+public class ErrantryEnemyMonster : BaseObject<ErrantryEnemyMonster>, IBattleMonsterData
 {
     public ErrantryEnemyMonster(int offset) : base(offset)
     {
