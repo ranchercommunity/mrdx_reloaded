@@ -42,7 +42,7 @@ public class Game : BaseObject<Game>, IGame
     public event IGame.GameSceneChange? OnGameSceneChanged;
 #pragma warning restore 0067
 
-    public async Task<Dictionary<string, IList<IMonsterAttack>>> LoadMonsterAttackData()
+    public async Task<Dictionary<string, IList<IMonsterTechnique>>> LoadMonsterAttackData()
     {
         if (Mod.DataPath == null)
         {
@@ -50,7 +50,7 @@ public class Game : BaseObject<Game>, IGame
             return [];
         }
 
-        var techData = new Dictionary<string, IList<IMonsterAttack>>();
+        var techData = new Dictionary<string, IList<IMonsterTechnique>>();
         var atkNameTable = LoadAtkNames();
         for (var i = 0; i < (int)MonsterGenus.Count; i++)
         {
@@ -65,7 +65,7 @@ public class Game : BaseObject<Game>, IGame
         return techData;
     }
 
-    public async Task SaveMonsterAttackData(Dictionary<string, List<IMonsterAttack>> monsters)
+    public async Task SaveMonsterAttackData(Dictionary<string, List<IMonsterTechnique>> monsters)
     {
         _redirector.TryGetTarget(out var redirector);
         if (redirector == null)
@@ -93,7 +93,7 @@ public class Game : BaseObject<Game>, IGame
             var monsterTechs = monsters[display];
 
             // Convert the techs into a slot ordered array to make it easier to access it.
-            var techs = new IMonsterAttack?[4, 6];
+            var techs = new IMonsterTechnique?[4, 6];
             foreach (var tech in monsterTechs) techs[(int)tech.Range, tech.Slot] = tech;
             // Build a header for the attacks 
             for (var i = 0; i < (int)TechRange.Count; ++i)
@@ -119,7 +119,7 @@ public class Game : BaseObject<Game>, IGame
             var dstpath = Path.Combine(RedirectPath, atkfilename);
 
             Logger.Debug($"Monster {display} creating file for attacks {dstpath}");
-            var atkfile = IMonsterAttack.SerializeAttackFileData(monsterTechs);
+            var atkfile = IMonsterTechnique.SerializeAttackFileData(monsterTechs);
             await File.WriteAllBytesAsync(dstpath, atkfile);
             Logger.Debug($"Redirecting {srcpath} to {dstpath}");
             redirector.AddRedirect(srcpath, dstpath);
@@ -225,9 +225,9 @@ public class Game : BaseObject<Game>, IGame
         return atkList;
     }
 
-    private List<IMonsterAttack> CreateTechs(string[,] atkNames, Span<byte> rawStats)
+    private List<IMonsterTechnique> CreateTechs(string[,] atkNames, Span<byte> rawStats)
     {
-        var techs = new List<IMonsterAttack>
+        var techs = new List<IMonsterTechnique>
         {
             Capacity = 24
         };
@@ -244,7 +244,7 @@ public class Game : BaseObject<Game>, IGame
                     continue;
 
                 // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
-                techs.Add(new MonsterAttack(atkNames[i, j], j, rawStats[offset .. (offset + 0x20)]));
+                techs.Add(new MonsterTechnique(atkNames[i, j], j, rawStats[offset .. (offset + 0x20)]));
             }
         }
 

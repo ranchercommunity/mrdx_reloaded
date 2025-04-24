@@ -302,6 +302,19 @@ public enum TechNature : byte
     Evil = 2
 }
 
+public record struct Range<T>(T Min, T Max)
+{
+    public static implicit operator ValueTuple<T, T>(Range<T> record)
+    {
+        return (record.Min, record.Max);
+    }
+
+    public static implicit operator Range<T>(ValueTuple<T, T> record)
+    {
+        return new Range<T> { Min = record.Item1, Max = record.Item2 };
+    }
+}
+
 public record MonsterInfo
 {
     public MonsterGenus Id { get; init; } = 0;

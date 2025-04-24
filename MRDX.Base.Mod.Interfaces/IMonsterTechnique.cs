@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace MRDX.Base.Mod.Interfaces;
 
-public interface IMonsterAttack
+public interface IMonsterTechnique
 {
     private static readonly byte[] NO_OFFSET = BitConverter.GetBytes(0xffffffff);
 
@@ -33,12 +33,26 @@ public interface IMonsterAttack
     byte ForceMissSelf { get; set; }
     byte ForceHitSelf { get; set; }
 
+    /// <summary>
+    ///     Estimated value for how good this tech is based on a simply formula
+    /// </summary>
+    double TechValue
+    {
+        get
+        {
+            var v = 30 + (HitPercent * 1.5 + Force * 1.8 + Withering * 1.2 + Sharpness / 1.25) - GutsCost;
+            v *= GutsSteal > 0 || LifeSteal > 0 || LifeRecovery > 0 ? 1.3 : 1.0;
+            v *= ForceHitSelf > 0 || ForceMissSelf > 0 ? 0.85 : 1.0;
+            return v;
+        }
+    }
+
     public byte[] SerializeName()
     {
         return Name.AsMr2().AsBytes();
     }
 
-    public byte[] SerializeData()
+    public byte[] Serialize()
     {
         var o = new byte[32];
         JpnName.CopyTo(o, 0);
@@ -60,7 +74,7 @@ public interface IMonsterAttack
         return o;
     }
 
-    public static byte[] SerializeAttackFileData(List<IMonsterAttack> allTechs)
+    public static byte[] SerializeAttackFileData(List<IMonsterTechnique> allTechs)
     {
         // var nooffset = new byte[] { 0xff, 0xff, 0xff, 0xff };
         var output = new byte[0x360];
@@ -89,7 +103,7 @@ public interface IMonsterAttack
                 // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
                 BitConverter.GetBytes(offset).CopyTo(output, headerOffset);
                 // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] copying raw data to offset {offset}");
-                tech.SerializeData().CopyTo(output, offset);
+                tech.Serialize().CopyTo(output, offset);
             }
         }
 

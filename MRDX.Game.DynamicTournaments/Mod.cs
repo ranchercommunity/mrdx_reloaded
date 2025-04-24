@@ -25,29 +25,30 @@ public class Mod : ModBase // <= Do not Remove.
     [Function(CallingConventions.Fastcall)]
     public delegate void CheckShrineUnlockRequirementHook(nint parent);
 
-    private readonly WeakReference<IRedirectorController> _redirector;
     private readonly nuint _address_currentweek;
     private readonly nuint _address_tournamentmonsters;
     private readonly nuint _address_unlockedmonsters;
-    private uint _game_currentWeek;
 
     private readonly string _gamePath = "";
     private readonly IHooks _iHooks;
-
-    private LearningTesting _LT;
     private readonly IScanner _memoryScanner;
 
+    private readonly WeakReference<IRedirectorController> _redirector;
+
     private readonly SaveFileManager _saveFileManager;
+
+    private readonly List<MonsterGenus> _unlockedmonsters;
+    private readonly nuint gameAddress;
+    private uint _game_currentWeek;
+
+    private LearningTesting _LT;
 
     //private IHook<CheckShrineUnlockRequirementHook>? _shrineUnlockHook;
     //private bool monsterUnlockCheckDefaults = false;
 
     private IStartupScanner _startupScanner;
 
-    private readonly List<MonsterGenus> _unlockedmonsters;
-
     private IHook<UpdateGenericState>? _updateHook;
-    private readonly nuint gameAddress;
 
     public TournamentData tournamentData;
 
@@ -60,8 +61,7 @@ public class Mod : ModBase // <= Do not Remove.
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
-        _saveFileManager = new SaveFileManager(this, _modLoader, _modConfig, _logger,
-            _configuration._confDTP_experimental_autosaves);
+        _saveFileManager = new SaveFileManager(this, _modLoader, _modConfig, _logger, _configuration.Autosaves);
 
         _redirector = _modLoader.GetController<IRedirectorController>();
         _modLoader.GetController<IExtractDataBin>().TryGetTarget(out var extract);
@@ -164,8 +164,8 @@ public class Mod : ModBase // <= Do not Remove.
         SetupTournamentParticipantsFromTaikai();
 
         _LT = new LearningTesting(_iHooks, gameAddress);
-        _LT._tournamentStatBonus = _configuration._confDTP_tournament_stat_growth > 0
-            ? _configuration._confDTP_tournament_stat_growth + 1
+        _LT._tournamentStatBonus = _configuration.StatGrowth > 0
+            ? _configuration.StatGrowth + 1
             : 0;
     }
 
@@ -180,8 +180,8 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private void SetupMonsterBreeds()
     {
-        MonsterBreed.SetupMonsterBreedList(_gamePath);
-        ABD_TournamentMonster._configuration = _configuration;
+        // MonsterBreed.SetupMonsterBreedList(_gamePath);
+        // TournamentMonster._configuration = _configuration;
     }
 
     /// <summary>
@@ -195,21 +195,19 @@ public class Mod : ModBase // <= Do not Remove.
         var tournamentMonsterFile = _gamePath + "\\mf2\\data\\taikai\\taikai_en.flk";
         var rawmonster = new byte[60];
 
-        var fs = new FileStream(tournamentMonsterFile, FileMode.Open);
+        using var fs = new FileStream(tournamentMonsterFile, FileMode.Open);
         fs.Position = 0xA8C + 60; // This relies upon nothing earlier in the file being appended. 
         for (var i = 1; i < 120; i++)
         {
             // 0 = Dummy Monster so skip. 119 in the standard file.
-            fs.Read(rawmonster, 0, 60);
+            fs.ReadExactly(rawmonster, 0, 60);
             TournamentMonster tm = new(rawmonster);
             tournamentData.AddExistingMonster(tm, i);
 
-            var bytes = "";
-            for (var z = 0; z < 60; z++) bytes += rawmonster[z] + ",";
+            // var bytes = "";
+            // for (var z = 0; z < 60; z++) bytes += rawmonster[z] + ",";
             Logger.Trace("Monster " + i + " Parsed: " + tm, Color.Lime);
         }
-
-        fs.Close();
 
         tournamentData._initialized = true;
     }

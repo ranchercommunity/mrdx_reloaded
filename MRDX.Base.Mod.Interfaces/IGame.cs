@@ -36,8 +36,8 @@ public interface IGame
     /// </summary>
     public event GameSceneChange OnGameSceneChanged;
 
-    public Task<Dictionary<string, IList<IMonsterAttack>>> LoadMonsterAttackData();
-    public Task SaveMonsterAttackData(Dictionary<string, List<IMonsterAttack>> monsters);
+    public Task<Dictionary<string, IList<IMonsterTechnique>>> LoadMonsterAttackData();
+    public Task SaveMonsterAttackData(Dictionary<string, List<IMonsterTechnique>> monsters);
 }
 
 public interface ISaveFile

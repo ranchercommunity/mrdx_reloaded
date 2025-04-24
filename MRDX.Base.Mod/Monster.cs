@@ -297,7 +297,7 @@ public class Monster : BaseObject<Monster>, IMonster
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1E)]
 
-    public IList<IMonsterAttack> Moves { get; set; } = new List<IMonsterAttack>();
+    public IList<IMonsterTechnique> Moves { get; set; } = new List<IMonsterTechnique>();
 
     public IList<byte> MoveUseCount { get; set; } = new List<byte>();
 
@@ -426,7 +426,7 @@ public record struct MonsterCache : IMonster
     public MonsterCache()
     {
         Name = "";
-        Moves = new List<IMonsterAttack>();
+        Moves = new List<IMonsterTechnique>();
         MoveUseCount = new List<byte>();
         Age = 0;
         GenusMain = MonsterGenus.Pixie;
@@ -579,7 +579,7 @@ public record struct MonsterCache : IMonster
     public LifeType LifeType { get; set; }
     public byte ArenaSpeed { get; set; }
     public byte GutsRate { get; set; }
-    public IList<IMonsterAttack> Moves { get; set; } = new List<IMonsterAttack>();
+    public IList<IMonsterTechnique> Moves { get; set; } = new List<IMonsterTechnique>();
     public IList<byte> MoveUseCount { get; set; } = new List<byte>();
     public byte MotivationDomino { get; set; }
     public byte MotivationStudy { get; set; }
@@ -605,17 +605,20 @@ public record struct MonsterCache : IMonster
     }
 }
 
-public class ErrantryEnemyMonster : BaseObject<ErrantryEnemyMonster>, IBattleMonsterData
+public class ErrantryEnemyMonster(int offset) : BaseObject<ErrantryEnemyMonster>(offset), IBattleMonsterData
 {
-    public ErrantryEnemyMonster(int offset) : base(offset)
-    {
-    }
-
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1e)]
     public ushort Lifespan
     {
         get => Read<ushort>();
         set => Write(value);
+    }
+
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2c)]
+    public byte[] Techs
+    {
+        get => ReadArray<byte>(3).ToArray();
+        set => WriteArray(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x0)]
@@ -700,13 +703,6 @@ public class ErrantryEnemyMonster : BaseObject<ErrantryEnemyMonster>, IBattleMon
     {
         get => Read<byte>();
         set => Write(value);
-    }
-
-    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2c)]
-    public byte[] Attacks
-    {
-        get => ReadArray<byte>(3).ToArray();
-        set => WriteArray(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x30)]

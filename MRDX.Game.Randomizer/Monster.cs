@@ -15,7 +15,7 @@ public class Monster
     }
 
     public MonsterInfo Info { get; }
-    public List<MonsterAttack> Techs { get; } = new();
+    public List<MonsterTechnique> Techs { get; } = new();
 
     private void CreateTechs(string[,] atkNames, Span<byte> rawStats)
     {
@@ -32,7 +32,7 @@ public class Monster
                     continue;
 
                 // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
-                Techs.Add(new MonsterAttack(atkNames[i, j], j, rawStats[offset .. (offset + 0x20)]));
+                Techs.Add(new MonsterTechnique(atkNames[i, j], j, rawStats[offset .. (offset + 0x20)]));
             }
         }
     }

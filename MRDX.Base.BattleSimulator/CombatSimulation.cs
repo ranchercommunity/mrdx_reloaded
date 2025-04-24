@@ -2,14 +2,6 @@
 
 namespace MRDX.Base.BattleSimulator;
 
-public record struct Range<T>(T Min, T Max)
-{
-    public static implicit operator ValueTuple<T, T>(Range<T> record)
-    {
-        return (record.Min, record.Max);
-    }
-}
-
 public enum Attacker
 {
     Left,
@@ -26,7 +18,7 @@ public record struct CombatResult
 
 public class CombatSimulation(IBattleMonster left, IBattleMonster right)
 {
-    public Range Damage(Attacker user, IMonsterAttack tech)
+    public Range Damage(Attacker user, IMonsterTechnique tech)
     {
         var attacker = user == Attacker.Left ? left : right;
         var defender = user == Attacker.Left ? right : left;
@@ -103,7 +95,7 @@ public class CombatSimulation(IBattleMonster left, IBattleMonster right)
         return new Range(lo, hi);
     }
 
-    public int CritChance(Attacker user, IMonsterAttack tech)
+    public int CritChance(Attacker user, IMonsterTechnique tech)
     {
         var attacker = user == Attacker.Left ? left : right;
         var defender = user == Attacker.Left ? right : left;
@@ -133,7 +125,7 @@ public class CombatSimulation(IBattleMonster left, IBattleMonster right)
         return c;
     }
 
-    public static int CalcHitChance(Attacker user, IMonsterAttack tech)
+    public static int CalcHitChance(Attacker user, IMonsterTechnique tech)
     {
         // Calculate base hit contribution from TEC and guts
         var atkGutsComponent = Math.Round(atkGuts / (14.0 - Math.Floor(atkRate / 2.0)) * 10000) / 10000;

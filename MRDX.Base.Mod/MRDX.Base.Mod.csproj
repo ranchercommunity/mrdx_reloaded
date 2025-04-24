@@ -4,7 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-        <LangVersion>14</LangVersion>
+        <LangVersion>13</LangVersion>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <OutputPath>$(RELOADEDIIMODS)/MRDX.Base.Mod</OutputPath>

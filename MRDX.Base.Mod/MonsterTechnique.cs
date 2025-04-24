@@ -2,9 +2,9 @@
 
 namespace MRDX.Base.Mod;
 
-public record MonsterAttack : IMonsterAttack
+public record MonsterTechnique : IMonsterTechnique
 {
-    public MonsterAttack(string atkName, int slot, Span<byte> data)
+    public MonsterTechnique(string atkName, int slot, Span<byte> data)
     {
         var dat = data.ToArray();
         Name = atkName;

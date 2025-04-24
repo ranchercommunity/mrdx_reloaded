@@ -91,7 +91,7 @@ public class Randomizer
             StatShuffleOrder.Wither
         };
 
-        Action<IMonsterAttack> shuffleStrategy = mode switch
+        Action<IMonsterTechnique> shuffleStrategy = mode switch
         {
             ShuffleMode.BalancedRandom => atk =>
             {
