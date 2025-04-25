@@ -167,8 +167,6 @@ public class Mod : ModBase // <= Do not Remove.
         }
     };
 
-    private readonly string? _dataBinPath;
-
     /// <summary>
     ///     Provides access to the Reloaded.Hooks API.
     /// </summary>
@@ -204,6 +202,8 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private Config _configuration;
 
+    private string _dataBinPath;
+
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -230,9 +230,12 @@ public class Mod : ModBase // <= Do not Remove.
             return;
         }
 
-        _dataBinPath = extract.ExtractedPath;
-        SetupRedirectToLifespan();
-        UpdateErrantryMonsterStats();
+        extract.ExtractComplete.Subscribe(path =>
+        {
+            _dataBinPath = path!;
+            SetupRedirectToLifespan();
+            UpdateErrantryMonsterStats();
+        });
     }
 
     #region For Exports, Serialization etc.
@@ -247,7 +250,6 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void UpdateErrantryMonsterStats()
     {
-        // Debugger.Launch();
         foreach (var (offset, enemy) in Enemies)
         {
             var p = new ErrantryEnemyMonster(0x31b540 + offset);

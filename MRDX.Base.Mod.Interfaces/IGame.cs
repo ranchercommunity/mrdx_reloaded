@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace MRDX.Base.Mod.Interfaces;
+﻿namespace MRDX.Base.Mod.Interfaces;
 
 public enum GameScene
 {
@@ -29,9 +27,11 @@ public interface IGame
     /// <summary>
     ///     Event that is fired when the week changes
     /// </summary>
-    public delegate void WeekChange(IMonsterChange change);
+    public delegate void WeekChange(IWeekChange change);
 
     public IMonster Monster { get; set; }
+
+    public Utils.OneTimeEvent<bool> OnMonsterBreedsLoaded { get; }
 
     public event WeekChange OnWeekChange;
 
@@ -41,15 +41,12 @@ public interface IGame
     ///     This event allows you to receive a copy of the inputs before they are sent to the game.
     /// </summary>
     public event GameSceneChange OnGameSceneChanged;
-
-    public MonsterBreed GetBreed(MonsterGenus main, MonsterGenus sub);
-
-    public Task LoadMonsterBreeds();
-    public Task SaveMonsterTechData(string redirectPath);
 }
 
 public interface IWeekChange
 {
+    uint OldWeek { get; }
+    uint NewWeek { get; }
 }
 
 public interface IMonsterChange
@@ -73,9 +70,9 @@ public interface IMonsterCompleteChange : IMonsterChange
 
 public interface ISaveFileEntry
 {
-    string Filename { get; set; }
-    string Slot { get; set; }
-    bool IsAutoSave { get; set; }
+    string Filename { get; }
+    string Slot { get; }
+    bool IsAutoSave { get; }
 }
 
 public interface ISaveFile

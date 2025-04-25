@@ -253,6 +253,8 @@ public class TournamentData
 
         _initialized = true;
     }
+    
+    private void SaveTournamentParticipantsToTaikai()
 
     private void AdvanceMonth()
     {

@@ -37,7 +37,7 @@ public class TournamentMonster : BattleMonsterData
     public TournamentMonster(Config config, IBattleMonsterData m) : base(m)
     {
         Logger.Info("Creating monster from game data.", Color.Lime);
-        BreedInfo = breed;
+        BreedInfo = MonsterBreed.GetBreed(m.GenusMain, m.GenusSub)!;
 
         var lifespanmin = config.LifespanMin;
         // Configuration File
@@ -110,7 +110,7 @@ public class TournamentMonster : BattleMonsterData
     {
         Logger.Info("Loading monster from ABD Save File.", Color.Lime);
 
-        BreedInfo = breed;
+        BreedInfo = MonsterBreed.GetBreed(GenusMain, GenusSub)!;
 
         LifeTotal = BitConverter.ToUInt16(rawabd, 0);
         Lifespan = BitConverter.ToUInt16(rawabd, 2);

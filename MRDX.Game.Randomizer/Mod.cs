@@ -83,10 +83,7 @@ public class Mod : ModBase // <= Do not Remove.
             return;
         }
 
-        if (extract.ExtractedPath != null)
-            randomizer.DataExtractComplete(extract.ExtractedPath);
-        else
-            extract.ExtractComplete += randomizer.DataExtractComplete;
+        extract.ExtractComplete.Subscribe(randomizer.DataExtractComplete);
     }
 
     #region For Exports, Serialization etc.

@@ -333,6 +333,7 @@ public record GenusInfo
 /// </summary>
 public record MonsterBreed
 {
+    public static List<MonsterBreed> AllBreeds = [];
     public MonsterGenus Main { get; init; } = 0;
     public MonsterGenus Sub { get; init; } = 0;
 
@@ -341,4 +342,9 @@ public record MonsterBreed
     public string BreedIdentifier { get; init; } = string.Empty;
 
     public List<IMonsterTechnique> TechList { get; init; } = [];
+
+    public static MonsterBreed? GetBreed(MonsterGenus main, MonsterGenus sub)
+    {
+        return AllBreeds.Find(m => m.Main == main && m.Sub == sub);
+    }
 }

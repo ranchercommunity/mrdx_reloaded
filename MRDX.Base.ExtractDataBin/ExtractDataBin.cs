@@ -14,6 +14,7 @@ namespace MRDX.Base.ExtractDataBin;
 public class ExtractDataBin : IExtractDataBin
 {
     private readonly string? _exepath;
+    private readonly OneTimeEvent<string> _extractComplete;
 
     private readonly ILogger _logger;
     private readonly IModConfig _modConfig;
@@ -35,6 +36,7 @@ public class ExtractDataBin : IExtractDataBin
 
     public ExtractDataBin(ModContext context)
     {
+        _extractComplete = new OneTimeEvent<string>();
         _modConfig = context.ModConfig;
         _logger = context.Logger;
         _redirector = context.ModLoader.GetController<IRedirectorController>();
@@ -48,54 +50,48 @@ public class ExtractDataBin : IExtractDataBin
         _exepath = Path.GetDirectoryName(mainModule.FileName);
     }
 
-    string? IExtractDataBin.ExtractedPath => _extractedPath;
+    OneTimeEvent<string> IExtractDataBin.ExtractComplete => _extractComplete;
 
     public string? ExtractMr1()
     {
-        lock (IExtractDataBin.LockMr1)
+        _logger.WriteLine($"[{_modConfig.ModId}] Lock acquired. Extracting MR1 data.bin");
+        var tokenPath = Path.Combine(_extractedPath!, "extraction_complete.txt");
+        if (!File.Exists(tokenPath))
         {
-            _logger.WriteLine($"[{_modConfig.ModId}] Lock acquired. Extracting MR1 data.bin");
-            var tokenPath = Path.Combine(_extractedPath!, "extraction_complete.txt");
-            if (!File.Exists(tokenPath))
-            {
-                Extract(_mr1RelExtractPath, _mr1RelZipPath);
-            }
-            else
-            {
-                // Immediately call any callbacks that are waiting on extraction
-                _extractedPath = Path.Combine(_exepath ?? "/", _mr1RelExtractPath);
-                ExtractComplete?.Invoke(_extractedPath);
-            }
-
-            using var token = File.CreateText(tokenPath);
-
-            return _extractedPath;
+            Extract(_mr1RelExtractPath, _mr1RelZipPath);
         }
+        else
+        {
+            // Immediately call any callbacks that are waiting on extraction
+            _extractedPath = Path.Combine(_exepath ?? "/", _mr1RelExtractPath);
+            IExtractDataBin.ExtractedPath = _extractedPath;
+            _extractComplete.Fire(_extractedPath);
+        }
+
+        using var token = File.CreateText(tokenPath);
+
+        return _extractedPath;
     }
 
     public string? ExtractMr2()
     {
-        lock (IExtractDataBin.LockMr2)
+        _logger.WriteLine($"[{_modConfig.ModId}] Lock acquired. Extracting MR2 data.bin");
+        var tokenPath = Path.Combine(_extractedPath!, "extraction_complete.txt");
+        if (!File.Exists(tokenPath))
         {
-            _logger.WriteLine($"[{_modConfig.ModId}] Lock acquired. Extracting MR2 data.bin");
-            var tokenPath = Path.Combine(_extractedPath!, "extraction_complete.txt");
-            if (!File.Exists(tokenPath))
-            {
-                Extract(_mr2RelExtractPath, _mr2RelZipPath);
-            }
-            else
-            {
-                // Immediately call any callbacks that are waiting on extraction
-                _extractedPath = Path.Combine(_exepath ?? "/", _mr2RelExtractPath);
-                ExtractComplete?.Invoke(_extractedPath);
-            }
-
-            using var token = File.CreateText(tokenPath);
-            return _extractedPath;
+            Extract(_mr2RelExtractPath, _mr2RelZipPath);
         }
-    }
+        else
+        {
+            // Immediately call any callbacks that are waiting on extraction
+            _extractedPath = Path.Combine(_exepath ?? "/", _mr2RelExtractPath);
+            IExtractDataBin.ExtractedPath = _extractedPath;
+            _extractComplete.Fire(_extractedPath);
+        }
 
-    public event OnExtractComplete? ExtractComplete;
+        using var token = File.CreateText(tokenPath);
+        return _extractedPath;
+    }
 
     private void Extract(string relExtractPath, string relZipPath)
     {
@@ -163,7 +159,8 @@ public class ExtractDataBin : IExtractDataBin
                     redirector.Enable();
                 }
 
-                ExtractComplete?.Invoke(_extractedPath);
+                IExtractDataBin.ExtractedPath = _extractedPath;
+                _extractComplete.Fire(_extractedPath);
             };
             zip.ExtractArchiveAsync(extPath).Wait();
         }

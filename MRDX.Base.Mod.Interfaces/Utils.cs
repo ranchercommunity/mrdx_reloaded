@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace MRDX.Base.Mod.Interfaces;
 
@@ -65,5 +66,56 @@ public static class Utils
                 return attr.Signature;
         throw new Exception(
             $"Unable to find signature for Hook func {typeof(T)} with Game {game} and Region {region}\n   Make sure you define a hook signature!");
+    }
+
+    public class OneTimeEvent<T>
+    {
+        private readonly Lock _lock = new();
+        private readonly List<Action<T?>> _subscribers = new();
+        private T? _eventArgs;
+        private bool _hasFired;
+
+        public void Fire(T? args)
+        {
+            List<Action<T?>> toInvoke = null;
+
+            lock (_lock)
+            {
+                if (_hasFired)
+                    return;
+
+                _hasFired = true;
+                _eventArgs = args;
+                toInvoke = new List<Action<T?>>(_subscribers);
+                _subscribers.Clear(); // Optional: allow only one-time notification
+            }
+
+            foreach (var subscriber in toInvoke) subscriber?.Invoke(args);
+        }
+
+        public void Subscribe(Action<T?> callback)
+        {
+            bool alreadyFired;
+            T? argsCopy = default;
+
+            lock (_lock)
+            {
+                alreadyFired = _hasFired;
+                if (!alreadyFired)
+                    _subscribers.Add(callback);
+                else
+                    argsCopy = _eventArgs;
+            }
+
+            if (alreadyFired) callback?.Invoke(argsCopy);
+        }
+
+        public void Unsubscribe(Action<T?> callback)
+        {
+            lock (_lock)
+            {
+                _subscribers.Remove(callback);
+            }
+        }
     }
 }

@@ -25,9 +25,9 @@ public class Mod : ModBase // <= Do not Remove.
     [Function(CallingConventions.Fastcall)]
     public delegate void CheckShrineUnlockRequirementHook(nint parent);
 
-    private readonly nuint _addressCurrentweek;
     private readonly nuint _addressTournamentmonsters;
     private readonly nuint _addressUnlockedmonsters;
+    private readonly IGame? _game;
     private readonly nuint _gameAddress;
     private readonly IHooks? _iHooks;
     private readonly IScanner _memoryScanner;
@@ -67,11 +67,11 @@ public class Mod : ModBase // <= Do not Remove.
         //var memscanner = _modLoader.GetController<IScanner>();
         //_startupScanner = startupScanner;
 
-        _gameAddress = (nuint)Base.Mod.Base.ExeBaseAddress;
-
-        _addressUnlockedmonsters = _gameAddress + 0x3795A2;
-        _addressTournamentmonsters = _gameAddress + 0x548D10;
-        _addressCurrentweek = _gameAddress + 0x379444;
+        // _gameAddress = (nuint)Base.Mod.Base.ExeBaseAddress;
+        //
+        // _addressUnlockedmonsters = _gameAddress + 0x3795A2;
+        // _addressTournamentmonsters = _gameAddress + 0x548D10;
+        // _addressCurrentweek = _gameAddress + 0x379444;
         //548CD0
 
         if (_iHooks == null)
@@ -79,10 +79,6 @@ public class Mod : ModBase // <= Do not Remove.
             _logger.WriteLine($"[{_modConfig.ModId}] Could not get hook controller.", Color.Red);
             return;
         }
-
-        _iHooks.AddHook<UpdateGenericState>(SetupUpdateHook)
-            .ContinueWith(result => _updateHook = result.Result.Activate());
-
 
         if (startupScanner != null)
         {
@@ -94,25 +90,18 @@ public class Mod : ModBase // <= Do not Remove.
         _modLoader.GetController<IScannerFactory>().TryGetTarget(out var sf);
         _memoryScanner = sf.CreateScanner(Process.GetCurrentProcess(), Process.GetCurrentProcess().MainModule);
 
-        var maybeExtractor = _modLoader.GetController<IExtractDataBin>();
-        if (maybeExtractor != null && maybeExtractor.TryGetTarget(out var extract))
-            lock (IExtractDataBin.LockMr2)
-            {
-                if (extract.ExtractedPath != null)
-                    _gamePath = extract.ExtractedPath;
-                else
-                    extract.ExtractComplete += path =>
-                    {
-                        _gamePath = path;
-                        ProcessExtractedData();
-                    };
-            }
-
         var maybeSaveFile = _modLoader.GetController<ISaveFile>();
         if (maybeSaveFile != null && maybeSaveFile.TryGetTarget(out _saveFile))
         {
             _saveFile.OnSave += SaveTournamentData;
             _saveFile.OnLoad -= LoadTournamentData;
+        }
+
+        var maybeGame = _modLoader.GetController<IGame>();
+        if (maybeGame != null && maybeGame.TryGetTarget(out _game))
+        {
+            _game.OnWeekChange += WeekChangeCallback;
+            _game.OnMonsterBreedsLoaded.Subscribe(MonsterBreedsLoaded);
         }
     }
 
@@ -127,12 +116,14 @@ public class Mod : ModBase // <= Do not Remove.
     #endregion
 
     /// <summary>
-    ///     Processes data that requires the extraction of the binary first. Can be called two separate ways.
+    ///     Processes data that requires the extraction of the binary first.
+    ///     This will be called after the MonsterBreed.AllBreeds list is populated
     /// </summary>
-    private void ProcessExtractedData()
+    private void MonsterBreedsLoaded(bool unused)
     {
+        // It will be extracted so this will not be null at this point
+        _gamePath = IExtractDataBin.ExtractedPath!;
         tournamentData = new TournamentData(_gamePath, _configuration);
-        // SetupMonsterBreeds();
 
         _LT = new LearningTesting(_iHooks, _gameAddress);
         _LT._tournamentStatBonus = _configuration.StatGrowth > 0
@@ -179,24 +170,13 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
 
-    private void SetupUpdateHook(nint parent)
+    private void WeekChangeCallback(IWeekChange week)
     {
-        _updateHook!.OriginalFunction(parent);
-        var newWeek = false;
-        Memory.Instance.Read(_addressCurrentweek, out uint currentWeek);
-        if (_gameCurrentWeek != currentWeek)
-        {
-            _gameCurrentWeek = currentWeek;
-            newWeek = true;
-        }
-
         // Unfortunately the ordering of these function calls matters so we have to do this shuffling depending on if the game week progressed.
-        if (newWeek) GetUnlockedMonsters(_addressUnlockedmonsters);
+        GetUnlockedMonsters(_addressUnlockedmonsters);
         // LoadGameUpdateTournamentData();
-        if (newWeek) AdvanceWeekUpdateTournamentMonsters(_unlockedmonsters);
+        AdvanceWeekUpdateTournamentMonsters(_unlockedmonsters);
         UpdateMemoryTournamentData(_addressTournamentmonsters);
-
-        Logger.Trace("Hook Game Update", Color.Red);
     }
 
     private void GetUnlockedMonsters(nuint unlockAddress)
@@ -237,27 +217,32 @@ public class Mod : ModBase // <= Do not Remove.
             }
     }
 
-    private void UpdateMemoryTournamentData(nuint tournamentAddress)
+    private void UpdateTournamentMonsterFile()
     {
-        var checkPattern = true;
-        nuint taddr = 0;
-        while (checkPattern)
-        {
-            taddr = (nuint)_memoryScanner.FindPattern("06 00 00 00 00 00 00 00 20 00 00 00 F4 04 00 00", (int)taddr + 1)
-                .Offset;
-
-            if (taddr == 0xffffffff)
-            {
-                checkPattern = false;
-                break;
-            }
-
-            var enemyAddresses = _gameAddress + taddr + 0xA8C;
-            var monsters = tournamentData.GetTournamentMembers(1, 118);
-            for (var i = 1; i <= 118; i++)
-                Memory.Instance.WriteRaw(enemyAddresses + (nuint)(i * 60), tournamentData.Monsters[i - 1].Serialize());
-        }
+        
     }
+
+    // private void UpdateMemoryTournamentData(nuint tournamentAddress)
+    // {
+    //     var checkPattern = true;
+    //     nuint taddr = 0;
+    //     while (checkPattern)
+    //     {
+    //         taddr = (nuint)_memoryScanner.FindPattern("06 00 00 00 00 00 00 00 20 00 00 00 F4 04 00 00", (int)taddr + 1)
+    //             .Offset;
+    //
+    //         if (taddr == 0xffffffff)
+    //         {
+    //             checkPattern = false;
+    //             break;
+    //         }
+    //
+    //         var enemyAddresses = _gameAddress + taddr + 0xA8C;
+    //         var monsters = tournamentData.GetTournamentMembers(1, 118);
+    //         for (var i = 1; i <= 118; i++)
+    //             Memory.Instance.WriteRaw(enemyAddresses + (nuint)(i * 60), monsters[i - 1].Serialize());
+    //     }
+    // }
 
     private void AdvanceWeekUpdateTournamentMonsters(List<MonsterGenus> unlockedmonsters)
     {
