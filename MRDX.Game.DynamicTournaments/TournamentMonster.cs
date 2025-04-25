@@ -1,16 +1,17 @@
-﻿using System.Drawing;
+﻿using System.Collections.ObjectModel;
+using System.Drawing;
 using MRDX.Base.Mod.Interfaces;
 using Config = MRDX.Game.DynamicTournaments.Configuration.Config;
 
 namespace MRDX.Game.DynamicTournaments;
 
-public class TournamentMonster : BattleMonsterData, IBattleMonsterData
+public class TournamentMonster : BattleMonsterData
 {
     private readonly GrowthGroups _growthGroup;
     private readonly byte _growthIntensity;
     private readonly ushort _growthRate;
     private readonly Config.TechInt _trainerIntelligence;
-    private readonly ushort lifetotal;
+    public readonly ushort LifeTotal;
     private byte _growthDef;
     private byte _growthInt;
 
@@ -23,27 +24,29 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
     public MonsterBreed BreedInfo;
 
     private List<byte> growth_options;
-    private ushort lifespan;
+    public ushort Lifespan;
 
     public List<TournamentPool> pools = new();
 
     public EMonsterRanks Rank;
-    public List<IMonsterTechnique> techniques = [];
 
-    public TournamentMonster(Config config, IBattleMonsterData m) : base(m)
+    public TournamentMonster()
+    {
+    }
+
+    public TournamentMonster(List<MonsterBreed> breed, Config config, IBattleMonsterData m) : base(m)
     {
         Logger.Info("Creating monster from game data.", Color.Lime);
-        BreedInfo = MonsterBreed.GetBreedInfo(GenusMain, GenusSub);
+        BreedInfo = breed;
 
         var lifespanmin = config.LifespanMin;
+        // Configuration File
+        LifeTotal = (ushort)(lifespanmin +
+                             TournamentData.LifespanRNG.Next(1 + config.LifespanMax - lifespanmin));
 
-        lifetotal = (ushort)(lifespanmin +
-                             TournamentData.LifespanRNG.Next(1 + config.LifespanMax -
-                                                             lifespanmin)); // Configuration File
-
-        lifespan = lifetotal;
-        lifespan -= (ushort)(4 * (StatTotal /
-                                  500)); // Take an arbitrary amount of life off for starting stats.
+        Lifespan = LifeTotal;
+        // Take an arbitrary amount of life off for starting stats.
+        Lifespan -= (ushort)(4 * (StatTotal / 500));
 
         _growthRate = (ushort)config.GrowthMonthly;
         for (var i = 0; i < 4; i++)
@@ -62,15 +65,15 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
             MonsterGenus.Dragon, MonsterGenus.Centaur, MonsterGenus.Beaclon, MonsterGenus.Henger, MonsterGenus.Wracky,
             MonsterGenus.Durahan, MonsterGenus.Gali, MonsterGenus.Zilla, MonsterGenus.Bajarl, MonsterGenus.Phoenix,
             MonsterGenus.Metalner, MonsterGenus.Jill, MonsterGenus.Joker, MonsterGenus.Undine, MonsterGenus.Mock,
-            MonsterGenus.Unknown1, MonsterGenus.Unknown2, MonsterGenus.Unknown3, MonsterGenus.Unknown4,
-            MonsterGenus.Unknown5, MonsterGenus.Unknown6
+            MonsterGenus.XX, MonsterGenus.XY, MonsterGenus.XZ,
+            MonsterGenus.YX, MonsterGenus.YY, MonsterGenus.YZ
         ]);
 
         bonuses2.AddRange([
             MonsterGenus.Dragon, MonsterGenus.Centaur, MonsterGenus.Beaclon, MonsterGenus.Durahan, MonsterGenus.Zilla,
             MonsterGenus.Phoenix, MonsterGenus.Metalner, MonsterGenus.Joker, MonsterGenus.Undine,
-            MonsterGenus.Unknown1, MonsterGenus.Unknown2, MonsterGenus.Unknown3, MonsterGenus.Unknown4,
-            MonsterGenus.Unknown5, MonsterGenus.Unknown6
+            MonsterGenus.XX, MonsterGenus.XY, MonsterGenus.XZ,
+            MonsterGenus.YX, MonsterGenus.YY, MonsterGenus.YZ
         ]);
 
         if (bonuses.Contains(GenusMain)) _growthRate += 3;
@@ -83,7 +86,7 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
 
         Logger.Info(
             "A new monster has entered the fray: " + m.Name + ", " + m.GenusMain + "/" + m.GenusSub + ", LIFE: " +
-            lifespan + ", GROWTH: " + _growthRate, Color.Lime);
+            Lifespan + ", GROWTH: " + _growthRate, Color.Lime);
 
         _growthGroup = (GrowthGroups)(TournamentData.GrowthRNG.Next() % 6);
         _growthIntensity = (byte)(TournamentData.GrowthRNG.Next() % 6);
@@ -97,21 +100,19 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
         // Read through the techniques uint to add the correct technique IDs. TODO: I should have just done a static list and had an invalid tech slot in the empty ones.
         for (var i = 0; i < 24; i++)
             if (((IBattleMonsterData)this).TechSlot.HasFlag((TechSlots)i))
-                for (var j = 0; j < BreedInfo._techniques.Count; j++)
-                    if (BreedInfo._techniques[j]._id == i)
-                        MonsterAddTechnique(BreedInfo._techniques[j]);
+                foreach (var t in BreedInfo.TechList)
+                    if (t.Slot == (TechSlots)(1 << i))
+                        MonsterAddTechnique(t);
     }
 
-    public TournamentMonster(byte[] rawabd) : base(IBattleMonsterData.FromBytes(rawabd[40..100]))
+    public TournamentMonster(MonsterBreed breed, byte[] rawabd) : base(IBattleMonsterData.FromBytes(rawabd[40..100]))
     {
         Logger.Info("Loading monster from ABD Save File.", Color.Lime);
-        var rawmonster = new byte[60];
-        rawabd[40..100].CopyTo(rawmonster, 0);
 
-        BreedInfo = MonsterBreed.GetBreedInfo(GenusMain, GenusSub);
+        BreedInfo = breed;
 
-        lifetotal = rawabd[0];
-        lifespan = rawabd[2];
+        LifeTotal = rawabd[0];
+        Lifespan = rawabd[2];
         _growthRate = rawabd[4];
         _growthGroup = (GrowthGroups)rawabd[6];
         _growthIntensity = rawabd[7];
@@ -128,7 +129,7 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
         _growthDef = rawabd[18];
         _growthInt = rawabd[19];
 
-        growth_options = new List<byte>();
+        growth_options = [];
         for (var i = 14; i < 19; i++)
         {
             if (rawabd[i] == 0) rawabd[i] = 1;
@@ -138,15 +139,18 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
         _trainerIntelligence = (Config.TechInt)rawabd[20];
 
         // Read through the techniques uint to add the correct technique IDs. TODO: I should have just done a static list and had an invalid tech slot in the empty ones.
-        for (var i = 0; i < 24; i++)
-            if (TechSlot.HasFlag((TechSlots)i))
-                for (var j = 0; j < BreedInfo._techniques.Count; j++)
-                    if (BreedInfo._techniques[j]._id == i)
-                        MonsterAddTechnique(BreedInfo._techniques[j]);
+        // for (var i = 0; i < 24; i++)
+        //     if (TechSlot.HasFlag((TechSlots)i))
+        //         foreach (var t in BreedInfo.TechList)
+        //             if (t.Slot == (TechSlots)(1 << i))
+        //                 MonsterAddTechnique(t);
 
         // DEBUG DEBUG DEBUG
         // for ( var i = 0; i < techniques.Count; i++ ) { TournamentData._mod.DebugLog( 2, monster.name + " has " + techniques[ i ], Color.Orange ); }
     }
+
+    private ReadOnlyCollection<IMonsterTechnique> TechList =>
+        BreedInfo.TechList.FindAll(t => TechSlot.HasFlag(t.Slot)).AsReadOnly();
 
     private void SetupGrowthOptions(Config config)
     {
@@ -249,10 +253,11 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
         // CONFIG: Wildcard chance of a stat being effectively completely randomized with no rhyme or reason. (Approximately 1/50 monsters have a stat altered in this way at 300).
         for (var i = 0; i < gopts.Length; i++)
         {
-            if (Random.Shared.Next(6) == 0) gopts[i] = (byte)(gopts[i] - Random.Shared.Next(1, 6));
+            if (Random.Shared.Next(6) == 0)
+                gopts[i] = (byte)(gopts[i] - Random.Shared.Next(1, 6));
             if (Random.Shared.Next(config.Wildcard) == 0)
             {
-                if (i == 0 || i == 2)
+                if (i is 0 or 2)
                     gopts[i] = (byte)Random.Shared.Next(4, 21);
                 else
                     gopts[i] = (byte)Random.Shared.Next(1, 21);
@@ -276,21 +281,21 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
     public void AdvanceMonth()
     {
         var agegroup = 1;
-        lifespan--;
-        if (lifespan == 0) Alive = false;
+        Lifespan--;
+        if (Lifespan == 0) Alive = false;
 
         // Added an additonal prime grouping. This can result in a situation where a monster gets like, 2-3 months of optimal growth for ultra short life creatures but whatever, that's the price they pay. Longer life is better in this world objectively. Sorry! :(
-        if (lifetotal - lifespan > 9) agegroup++;
-        if (lifetotal - lifespan > 15) agegroup++;
-        if (lifetotal - lifespan > 22) agegroup++;
-        if (lifespan < 16) agegroup--;
-        if (lifespan < 6) agegroup -= 2;
+        if (LifeTotal - Lifespan > 9) agegroup++;
+        if (LifeTotal - Lifespan > 15) agegroup++;
+        if (LifeTotal - Lifespan > 22) agegroup++;
+        if (Lifespan < 16) agegroup--;
+        if (Lifespan < 6) agegroup -= 2;
 
         agegroup *= _growthRate;
 
         Logger.Trace(
             "Monster " + Name + " Advancing Month: [STATS: " + StatTotal + ", GROWTH:" + _growthRate +
-            " CGROW: " + agegroup + ", LIFE: " + lifespan + "]", Color.Yellow);
+            " CGROW: " + agegroup + ", LIFE: " + Lifespan + "]", Color.Yellow);
 
         for (var i = 0; i < agegroup; i++)
         {
@@ -318,126 +323,132 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
         Logger.Trace(
             "Monster " + Name + " Completed Growth: [STATS: " + StatTotal + ", GROWTH:" +
             _growthRate +
-            ", LIFE: " + lifespan + ", ALIVE: " + Alive + "]", Color.Yellow);
+            ", LIFE: " + Lifespan + ", ALIVE: " + Alive + "]", Color.Yellow);
     }
 
     public void LearnTechnique()
     {
         // TODO: Smarter Logic About which tech to get
         Logger.Trace(
-            "Monster " + Name + " attempting to learn technique. They have " + techniques.Count + " | " +
+            "Monster " + Name + " attempting to learn technique. They have " + TechList.Count + " | " +
             TechSlot + " now.", Color.Orange);
 
         var techint = _trainerIntelligence;
-        var tech = BreedInfo._techniques[0];
-        var techvariance = 25;
-        if (techint == Config.TechInt.Minimal)
-            techvariance = 30;
-        else if (techint == Config.TechInt.Average)
-            techvariance = 25;
-        else if (techint == Config.TechInt.Smart)
-            techvariance = 15;
-        else if (techint == Config.TechInt.Genius) techvariance = 10;
+        var tech = BreedInfo.TechList[0];
+        var techvariance = techint switch
+        {
+            Config.TechInt.Minimal => 30,
+            Config.TechInt.Average => 25,
+            Config.TechInt.Smart => 15,
+            Config.TechInt.Genius => 10,
+            _ => 25
+        };
 
-        var weightedLearnPool = new List<int>();
+        var weightedLearnPool = new List<TechSlots>();
 
         var missingRanges = new List<TechRange> { TechRange.Melee, TechRange.Short, TechRange.Medium, TechRange.Long };
-        for (var i = 0; i < techniques.Count; i++) missingRanges.Remove(techniques[i].Range);
+        foreach (var t in TechList)
+            missingRanges.Remove(t.Range);
 
-        for (var i = 0; i < BreedInfo._techniques.Count; i++)
+        foreach (var t in BreedInfo.TechList)
         {
-            tech = BreedInfo._techniques[i];
+            tech = t;
 
-            if (!techniques.Contains(tech))
+            if (TechList.Contains(tech)) continue;
+            var techval = tech.TechValue + Random.Shared.Next() % techvariance;
+
+            if (missingRanges.Contains(tech.Range)) techval += 20;
+            if (techint != Config.TechInt.Minimal)
             {
-                double techval = tech._techValue + Random.Shared.Next() % techvariance;
+                if (tech.Scaling == TechType.Power && Power < Intelligence)
+                    techval = techval * 0.8 * ((float)Power / Intelligence);
 
-                if (missingRanges.Contains(tech._range)) techval += 20;
-                if (techint != Config.TechInt.Minimal)
-                {
-                    if (tech._scaling == TechType.Power && Power < Intelligence)
-                        techval = techval * 0.8 * ((float)Power / Intelligence);
-
-                    else if (tech._scaling == TechType.Intelligence && Intelligence < Power)
-                        techval = techval * 0.8 * ((float)Intelligence / Power);
-                }
-
-                if (tech._errantry == ErrantryType.Basic && techniques.Count <= 4) techval *= 2;
-                if (_growthGroup == GrowthGroups.Power && tech._errantry == ErrantryType.Heavy)
-                    techval *= 2;
-                else if (_growthGroup == GrowthGroups.Intel && tech._errantry == ErrantryType.Skill)
-                    techval *= 2;
-                else if (_growthGroup == GrowthGroups.Wither && tech._errantry == ErrantryType.Withering)
-                    techval *= 2;
-                else if (_growthGroup == GrowthGroups.Speedy && tech._errantry == ErrantryType.Sharp)
-                    techval *= 2;
-
-                if (tech._errantry == ErrantryType.Special)
-                {
-                    if (Rank is EMonsterRanks.S or EMonsterRanks.A or EMonsterRanks.B)
-                        techval *= 2;
-                    else
-                        techval *= 0.2;
-                }
-
-                if (techint == Config.TechInt.Smart || techint == Config.TechInt.Genius)
-                    techval = (int)(techval * 1.1);
-
-                Logger.Debug(techval + " TV: " + tech, Color.Beige);
-                for (var j = 10; j < techval; j++) weightedLearnPool.Add(tech._id);
+                else if (tech.Scaling == TechType.Intelligence && Intelligence < Power)
+                    techval = techval * 0.8 * ((float)Intelligence / Power);
             }
+
+            if (tech.Type == ErrantryType.Basic && TechList.Count <= 4) techval *= 2;
+            switch (_growthGroup)
+            {
+                case GrowthGroups.Power when tech.Type == ErrantryType.Heavy:
+                case GrowthGroups.Intel when tech.Type == ErrantryType.Skill:
+                case GrowthGroups.Wither when tech.Type == ErrantryType.Withering:
+                case GrowthGroups.Speedy when tech.Type == ErrantryType.Sharp:
+                    techval *= 2;
+                    break;
+            }
+
+            if (tech.Type == ErrantryType.Special)
+            {
+                if (Rank is EMonsterRanks.S or EMonsterRanks.A or EMonsterRanks.B)
+                    techval *= 2;
+                else
+                    techval *= 0.2;
+            }
+
+            if (techint is Config.TechInt.Smart or Config.TechInt.Genius)
+                techval = (int)(techval * 1.1);
+
+            Logger.Debug(techval + " TV: " + tech, Color.Beige);
+            for (var j = 10; j < techval; j++)
+                weightedLearnPool.Add(tech.Slot);
         }
 
         if (weightedLearnPool.Count > 0)
         {
             var chosen = weightedLearnPool[Random.Shared.Next() % weightedLearnPool.Count];
-            for (var i = 0; i < BreedInfo._techniques.Count; i++)
-                if (BreedInfo._techniques[i]._id == chosen)
-                    tech = BreedInfo._techniques[i];
+            foreach (var t in BreedInfo.TechList)
+                if (t.Slot == chosen)
+                    tech = t;
 
             MonsterAddTechnique(tech);
             Logger.Info(
-                "Monster " + Name + " learned " + tech + " they have " + techniques.Count + "|" +
+                "Monster " + Name + " learned " + tech + " they have " + TechList.Count + "|" +
                 TechSlot + " now.", Color.Orange);
         }
 
-        if (techint == Config.TechInt.Genius && techniques.Count > 8 &&
-            Random.Shared.Next() % 20 < techniques.Count) UnlearnTechnique();
+        if (techint == Config.TechInt.Genius && TechList.Count > 8 &&
+            Random.Shared.Next() % 20 < TechList.Count) UnlearnTechnique();
     }
 
-    public void UnlearnTechnique()
+    private void UnlearnTechnique()
     {
         Logger.Info("Monster " + Name + " is attempting an unlearn a tech.", Color.Orange);
 
-        var weightedPool = new List<int>();
+        var weightedPool = new List<TechSlots>();
         var minVal = 1000;
-        var tech = techniques[0];
+        var tech = TechList[0];
+
+        var techweights = new double[TechList.Count];
 
         int[] rangeCounts = [0, 0, 0, 0];
-        var techweights = new double[techniques.Count];
+        foreach (var t in TechList)
+            rangeCounts[(int)t.Range] += 1;
 
-        for (var i = 0; i < techniques.Count; i++) rangeCounts[(int)techniques[i].Range] += 1;
-
-        for (var i = 0; i < techniques.Count; i++)
+        for (var i = 0; i < TechList.Count; i++)
         {
-            tech = techniques[i];
+            tech = TechList[i];
             var techval = tech.TechValue;
 
-            if (tech.Scaling == TechType.Power && Power < Intelligence)
-                techval = techval * 0.8 * ((float)Power / Intelligence);
-
-            else if (tech.Scaling == TechType.Intelligence && Intelligence < Power)
-                techval = techval * 0.8 * ((float)Intelligence / Power);
+            techval = tech.Scaling switch
+            {
+                TechType.Power when Power < Intelligence => techval * 0.8 * ((float)Power / Intelligence),
+                TechType.Intelligence when Intelligence < Power => techval * 0.8 * ((float)Intelligence / Power),
+                _ => techval
+            };
 
             if (tech.Type == ErrantryType.Special)
                 techval *= 1.25;
-            else if (_growthGroup == GrowthGroups.Power && tech.Type == ErrantryType.Heavy)
-                techval *= 1.25;
-            else if (_growthGroup == GrowthGroups.Intel && tech.Type == ErrantryType.Skill)
-                techval *= 1.25;
-            else if (_growthGroup == GrowthGroups.Wither && tech.Type == ErrantryType.Withering)
-                techval *= 1.25;
-            else if (_growthGroup == GrowthGroups.Speedy && tech.Type == ErrantryType.Sharp) techval *= 1.25;
+            else
+                switch (_growthGroup)
+                {
+                    case GrowthGroups.Power when tech.Type == ErrantryType.Heavy:
+                    case GrowthGroups.Intel when tech.Type == ErrantryType.Skill:
+                    case GrowthGroups.Wither when tech.Type == ErrantryType.Withering:
+                    case GrowthGroups.Speedy when tech.Type == ErrantryType.Sharp:
+                        techval *= 1.25;
+                        break;
+                }
 
             if (rangeCounts[(int)tech.Range] <= 1) techval += 30;
 
@@ -447,39 +458,37 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
             Logger.Debug(tech.Slot + " has a value of " + techval, Color.Orange);
         }
 
-        for (var i = 0; i < techniques.Count; i++)
+        for (var i = 0; i < TechList.Count; i++)
         {
-            tech = techniques[i];
+            tech = TechList[i];
             var weight = 30 - (techweights[i] - minVal);
-            for (var j = 0; j < weight; j++) weightedPool.Add(tech.Slot);
+            for (var j = 0; j < weight; j++)
+                weightedPool.Add(tech.Slot);
         }
 
-        if (weightedPool.Count > 0)
-        {
-            var chosen = weightedPool[Random.Shared.Next() % weightedPool.Count];
-            for (var i = 0; i < BreedInfo._techniques.Count; i++)
-                if (BreedInfo._techniques[i]._id == chosen)
-                    tech = BreedInfo._techniques[i];
+        if (weightedPool.Count <= 0) return;
 
-            MonsterRemoveTechnique(tech);
-            Logger.Warn(
-                "Monster " + Name + " has unlearned " + tech + " they have " + techniques.Count + " | " +
-                TechSlot + " now.", Color.Orange);
-        }
+        var chosen = weightedPool[Random.Shared.Next(weightedPool.Count)];
+        foreach (var t in BreedInfo.TechList)
+            if (t.Slot == chosen)
+                tech = t;
+
+        MonsterRemoveTechnique(tech);
+        Logger.Warn(
+            "Monster " + Name + " has unlearned " + tech + " they have " + TechList.Count + " | " +
+            TechSlot + " now.", Color.Orange);
     }
 
     public void MonsterAddTechnique(IMonsterTechnique tech)
     {
         // set the bit at this slot
-        TechSlot |= (TechSlots)(1 << tech.Slot);
-        if (!techniques.Contains(tech)) techniques.Add(tech);
+        TechSlot |= tech.Slot;
     }
 
-    public void MonsterRemoveTechnique(IMonsterTechnique tech)
+    private void MonsterRemoveTechnique(IMonsterTechnique tech)
     {
         // clear the bit at this slot
-        TechSlot &= ~(TechSlots)(1 << tech.Slot);
-        techniques.Remove(tech);
+        TechSlot &= ~tech.Slot;
     }
 
     /// <summary>
@@ -500,7 +509,7 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
             }
     }
 
-    public void LearnBattleSpecial()
+    private void LearnBattleSpecial()
     {
         BattleSpecial |= (BattleSpecials)TournamentData.GrowthRNG.Next(13);
     }
@@ -508,7 +517,7 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
     public byte[] ToSaveFile()
     {
         // ABD_TournamentMonster data will consist of 40 new bytes, followed by the standard 60 tracked by the game for Tournament Monsters.
-        // 0-1, Lifetotal
+        // 0-1, LifeTotal
         // 2-3, Current Remaining Lifespan
         // 4-5, Growth Rate Per Months
         // 6, Growth Group (Enum)
@@ -520,8 +529,8 @@ public class TournamentMonster : BattleMonsterData, IBattleMonsterData
 
         var data = new byte[40 + 60];
 
-        data[0] = (byte)lifetotal;
-        data[2] = (byte)lifespan;
+        data[0] = (byte)LifeTotal;
+        data[2] = (byte)Lifespan;
         data[4] = (byte)_growthRate;
         data[6] = (byte)_growthGroup;
         data[7] = _growthIntensity;

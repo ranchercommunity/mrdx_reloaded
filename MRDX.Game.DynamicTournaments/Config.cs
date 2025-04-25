@@ -50,7 +50,7 @@ public class Config : Configurable<Config>
                  "PO/Realistic - A combination of Player Only and Realistic criteria allowing for species to be present.\n" +
                  "Wild West - Any legal species is available from Year 1000.")]
     [DefaultValue(TournamentBreeds.PlayerOnlyRealistic)]
-    public TournamentBreeds _confABD_tournamentBreeds { get; set; } = TournamentBreeds.PlayerOnlyRealistic;
+    public TournamentBreeds EnemyTournamentBreed { get; set; } = TournamentBreeds.PlayerOnlyRealistic;
 
     [Category("Tournament Opponents")]
     [DisplayName("Unique Species")]
@@ -143,7 +143,7 @@ public class Config : Configurable<Config>
         true,
         "\\d{1-24}")]
     [DefaultValue(1)]
-    public int Lifespan { get; set; } = 1;
+    public int LifespanReduction { get; set; } = 1;
 
 
     //[Category("Advanced - Tournament Ranks") ]

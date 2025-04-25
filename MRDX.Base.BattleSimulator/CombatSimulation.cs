@@ -26,8 +26,8 @@ public class CombatSimulation(IBattleMonster left, IBattleMonster right)
         const double d = 12.5;
         const double f = 4;
 
-        int apow = tech.Tech == TechType.Power ? attacker.Power : attacker.Intelligence;
-        int dpow = tech.Tech == TechType.Power ? defender.Power : defender.Intelligence;
+        int apow = tech.Scaling == TechType.Power ? attacker.Power : attacker.Intelligence;
+        int dpow = tech.Scaling == TechType.Power ? defender.Power : defender.Intelligence;
         int ddef = defender.AdjustedDefense;
 
         if (apow == 999) apow = 1000;
@@ -100,7 +100,7 @@ public class CombatSimulation(IBattleMonster left, IBattleMonster right)
         var attacker = user == Attacker.Left ? left : right;
         var defender = user == Attacker.Left ? right : left;
 
-        var c = tech.Sharp;
+        int c = tech.Sharpness;
         if (attacker.Nature < 0) // Bad natured monsters
         {
             c += attacker.Stress / 10;
@@ -125,46 +125,46 @@ public class CombatSimulation(IBattleMonster left, IBattleMonster right)
         return c;
     }
 
-    public static int CalcHitChance(Attacker user, IMonsterTechnique tech)
-    {
-        // Calculate base hit contribution from TEC and guts
-        var atkGutsComponent = Math.Round(atkGuts / (14.0 - Math.Floor(atkRate / 2.0)) * 10000) / 10000;
-        var defGutsComponent = Math.Round(defGuts / (14.0 - Math.Floor(defRate / 2.0)) * 10000) / 10000;
-
-        var c = tec + Math.Floor(atkGutsComponent) - Math.Floor(defGutsComponent);
-
-        if (isDX)
-        {
-            c += Math.Floor(Math.Round((atkSki * 8 - defAdjS * 8 + 5000) * 100) / 10000);
-        }
-        else
-        {
-            var normAtkSki = (int)Math.Floor(Math.Round(atkSki / 50.0 * 10000) / 10000);
-            var normDefSpd = (int)Math.Floor(Math.Round(defAdjS / 50.0 * 10000) / 10000);
-            c += 50 + Math.Floor(Math.Round((normAtkSki - normDefSpd) * 4 * 10000) / 10000);
-        }
-
-        // Count hit modifiers
-        var h = 0;
-        if (defFool) h++; // Foolery
-        if (atkBsp == 3) h++; // Will
-        if (defBsp == 1) h++; // Anger
-        if (defBsp == 7) h--; // Ease
-
-        if (h > 0)
-        {
-            double i = h + 1;
-            c = 100 - Math.Pow(100 - c, i) / Math.Pow(100, h);
-        }
-        else if (h < 0)
-        {
-            c = Math.Pow(c, 2) / 100;
-        }
-
-        // Clamp the hit chance
-        if (c > 99) c = 99;
-        else if (c < 1) c = 1;
-
-        return (int)Math.Floor(c); // You can format it as $"{(int)Math.Floor(c)}%" if needed
-    }
+    // public static int CalcHitChance(Attacker user, IMonsterTechnique tech)
+    // {
+    //     // Calculate base hit contribution from TEC and guts
+    //     var atkGutsComponent = Math.Round(atkGuts / (14.0 - Math.Floor(atkRate / 2.0)) * 10000) / 10000;
+    //     var defGutsComponent = Math.Round(defGuts / (14.0 - Math.Floor(defRate / 2.0)) * 10000) / 10000;
+    //
+    //     var c = tec + Math.Floor(atkGutsComponent) - Math.Floor(defGutsComponent);
+    //
+    //     if (isDX)
+    //     {
+    //         c += Math.Floor(Math.Round((atkSki * 8 - defAdjS * 8 + 5000) * 100) / 10000);
+    //     }
+    //     else
+    //     {
+    //         var normAtkSki = (int)Math.Floor(Math.Round(atkSki / 50.0 * 10000) / 10000);
+    //         var normDefSpd = (int)Math.Floor(Math.Round(defAdjS / 50.0 * 10000) / 10000);
+    //         c += 50 + Math.Floor(Math.Round((normAtkSki - normDefSpd) * 4 * 10000) / 10000);
+    //     }
+    //
+    //     // Count hit modifiers
+    //     var h = 0;
+    //     if (defFool) h++; // Foolery
+    //     if (atkBsp == 3) h++; // Will
+    //     if (defBsp == 1) h++; // Anger
+    //     if (defBsp == 7) h--; // Ease
+    //
+    //     if (h > 0)
+    //     {
+    //         double i = h + 1;
+    //         c = 100 - Math.Pow(100 - c, i) / Math.Pow(100, h);
+    //     }
+    //     else if (h < 0)
+    //     {
+    //         c = Math.Pow(c, 2) / 100;
+    //     }
+    //
+    //     // Clamp the hit chance
+    //     if (c > 99) c = 99;
+    //     else if (c < 1) c = 1;
+    //
+    //     return (int)Math.Floor(c); // You can format it as $"{(int)Math.Floor(c)}%" if needed
+    // }
 }

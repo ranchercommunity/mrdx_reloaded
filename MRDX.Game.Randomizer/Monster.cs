@@ -8,13 +8,13 @@ public class Monster
     // 4 bytes per offset, 24 attacks
 
 
-    public Monster(Dictionary<MonsterGenus, string[,]> monAtks, byte[] atkData, MonsterInfo monsterInfo)
+    public Monster(Dictionary<MonsterGenus, string[,]> monAtks, byte[] atkData, GenusInfo genusInfo)
     {
-        Info = monsterInfo;
-        CreateTechs(monAtks[monsterInfo.Id], atkData);
+        Info = genusInfo;
+        CreateTechs(monAtks[genusInfo.Id], atkData);
     }
 
-    public MonsterInfo Info { get; }
+    public GenusInfo Info { get; }
     public List<MonsterTechnique> Techs { get; } = new();
 
     private void CreateTechs(string[,] atkNames, Span<byte> rawStats)
@@ -32,7 +32,8 @@ public class Monster
                     continue;
 
                 // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
-                Techs.Add(new MonsterTechnique(atkNames[i, j], j, rawStats[offset .. (offset + 0x20)]));
+                Techs.Add(new MonsterTechnique(atkNames[i, j], (TechSlots)(1 << (i * 6 + j)),
+                    rawStats[offset .. (offset + 0x20)]));
             }
         }
     }

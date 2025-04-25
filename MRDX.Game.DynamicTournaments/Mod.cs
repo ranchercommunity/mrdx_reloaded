@@ -25,28 +25,25 @@ public class Mod : ModBase // <= Do not Remove.
     [Function(CallingConventions.Fastcall)]
     public delegate void CheckShrineUnlockRequirementHook(nint parent);
 
-    private readonly nuint _address_currentweek;
-    private readonly nuint _address_tournamentmonsters;
-    private readonly nuint _address_unlockedmonsters;
-
-    private readonly string _gamePath = "";
-    private readonly IHooks _iHooks;
+    private readonly nuint _addressCurrentweek;
+    private readonly nuint _addressTournamentmonsters;
+    private readonly nuint _addressUnlockedmonsters;
+    private readonly nuint _gameAddress;
+    private readonly IHooks? _iHooks;
     private readonly IScanner _memoryScanner;
+    private readonly string _saveDataFolder;
 
-    private readonly WeakReference<IRedirectorController> _redirector;
+    private readonly ISaveFile? _saveFile;
 
-    private readonly SaveFileManager _saveFileManager;
+    private readonly List<MonsterGenus> _unlockedmonsters = [];
+    private uint _gameCurrentWeek;
 
-    private readonly List<MonsterGenus> _unlockedmonsters;
-    private readonly nuint gameAddress;
-    private uint _game_currentWeek;
+    private string? _gamePath;
 
     private LearningTesting _LT;
 
     //private IHook<CheckShrineUnlockRequirementHook>? _shrineUnlockHook;
     //private bool monsterUnlockCheckDefaults = false;
-
-    private IStartupScanner _startupScanner;
 
     private IHook<UpdateGenericState>? _updateHook;
 
@@ -61,42 +58,21 @@ public class Mod : ModBase // <= Do not Remove.
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
-        _saveFileManager = new SaveFileManager(this, _modLoader, _modConfig, _logger, _configuration.Autosaves);
+        _saveDataFolder = Path.Combine(_modLoader.GetDirectoryForModId(_modConfig.ModId), "SaveData");
 
-        _redirector = _modLoader.GetController<IRedirectorController>();
-        _modLoader.GetController<IExtractDataBin>().TryGetTarget(out var extract);
         _modLoader.GetController<IHooks>().TryGetTarget(out _iHooks);
+        _modLoader.GetController<ISaveFile>().TryGetTarget(out _saveFile);
 
         var startupScanner = _modLoader.GetController<IStartupScanner>();
         //var memscanner = _modLoader.GetController<IScanner>();
         //_startupScanner = startupScanner;
 
-        gameAddress = (nuint)Base.Mod.Base.ExeBaseAddress;
+        _gameAddress = (nuint)Base.Mod.Base.ExeBaseAddress;
 
-        _address_unlockedmonsters = gameAddress + 0x3795A2;
-        _address_tournamentmonsters = gameAddress + 0x548D10;
-        _address_currentweek = gameAddress + 0x379444;
+        _addressUnlockedmonsters = _gameAddress + 0x3795A2;
+        _addressTournamentmonsters = _gameAddress + 0x548D10;
+        _addressCurrentweek = _gameAddress + 0x379444;
         //548CD0
-
-        _unlockedmonsters = new List<MonsterGenus>();
-
-        if (extract == null)
-        {
-            _logger.WriteLine($"[{_modConfig.ModId}] Failed to get extract data bin controller.", Color.Red);
-            return;
-        }
-
-        _gamePath = extract.ExtractedPath;
-
-        _redirector.TryGetTarget(out var redirect);
-        if (redirect == null)
-        {
-            _logger.WriteLine($"[{_modConfig.ModId}] Failed to get redirection controller.", Color.Red);
-            return;
-        }
-
-        redirect.Loading += ProcessReloadedFileLoad;
-
 
         if (_iHooks == null)
         {
@@ -118,9 +94,26 @@ public class Mod : ModBase // <= Do not Remove.
         _modLoader.GetController<IScannerFactory>().TryGetTarget(out var sf);
         _memoryScanner = sf.CreateScanner(Process.GetCurrentProcess(), Process.GetCurrentProcess().MainModule);
 
-        HandleExtraction(extract);
+        var maybeExtractor = _modLoader.GetController<IExtractDataBin>();
+        if (maybeExtractor != null && maybeExtractor.TryGetTarget(out var extract))
+            lock (IExtractDataBin.LockMr2)
+            {
+                if (extract.ExtractedPath != null)
+                    _gamePath = extract.ExtractedPath;
+                else
+                    extract.ExtractComplete += path =>
+                    {
+                        _gamePath = path;
+                        ProcessExtractedData();
+                    };
+            }
 
-        //Debugger.Launch();
+        var maybeSaveFile = _modLoader.GetController<ISaveFile>();
+        if (maybeSaveFile != null && maybeSaveFile.TryGetTarget(out _saveFile))
+        {
+            _saveFile.OnSave += SaveTournamentData;
+            _saveFile.OnLoad -= LoadTournamentData;
+        }
     }
 
     #region For Exports, Serialization etc.
@@ -134,100 +127,74 @@ public class Mod : ModBase // <= Do not Remove.
     #endregion
 
     /// <summary>
-    ///     Attempts to perform a file read. If it fails, we assume that the binary has not been extracted and begin the
-    ///     extraction process.
-    ///     If it succeeds, then simply process the extracted data.
-    /// </summary>
-    /// <param name="extract"></param>
-    private void HandleExtraction(IExtractDataBin extract)
-    {
-        try
-        {
-            var fs = File.OpenRead(_gamePath + "\\mf2\\data\\mon\\kapi\\" + "ka_ka_wz.bin");
-            fs.Close();
-            ProcessExtractedData();
-        }
-
-        catch
-        {
-            extract.ExtractComplete += path => { ProcessExtractedData(); };
-        }
-    }
-
-    /// <summary>
     ///     Processes data that requires the extraction of the binary first. Can be called two separate ways.
     /// </summary>
     private void ProcessExtractedData()
     {
-        tournamentData = new TournamentData(this, _logger, _configuration);
-        SetupMonsterBreeds();
-        SetupTournamentParticipantsFromTaikai();
+        tournamentData = new TournamentData(_configuration);
+        // SetupMonsterBreeds();
 
-        _LT = new LearningTesting(_iHooks, gameAddress);
+        _LT = new LearningTesting(_iHooks, _gameAddress);
         _LT._tournamentStatBonus = _configuration.StatGrowth > 0
             ? _configuration.StatGrowth + 1
             : 0;
     }
 
-    private void ProcessReloadedFileLoad(string filename)
+
+    private void SaveTournamentData(ISaveFileEntry savefile)
     {
-        _saveFileManager.SaveDataMonitor(filename);
+        Directory.CreateDirectory(_saveDataFolder);
+
+        var file = Path.Combine(_saveDataFolder, $"dtp_monsters_{savefile.Slot}.bin");
+
+        using var fs = new FileStream(file, FileMode.Create);
+        foreach (var monster in tournamentData.Monsters)
+            fs.Write(monster.ToSaveFile());
+
+        Logger.Info($"{savefile} successfully written.");
     }
 
-    /// <summary>
-    ///     Parses data folders looking for monster texture files. This is how we build our valid breed list for generating
-    ///     tournament monsters.
-    /// </summary>
-    private void SetupMonsterBreeds()
+
+    private void LoadTournamentData(ISaveFileEntry savefile)
     {
-        // MonsterBreed.SetupMonsterBreedList(_gamePath);
-        // TournamentMonster._configuration = _configuration;
-    }
+        var file = Path.Combine(_saveDataFolder, $"dtp_monsters_{savefile.Slot}.bin");
 
-    /// <summary>
-    ///     Loads the taikai_en.flk file and generates the TournamentData from it. Is loaded at startup and when a new save
-    ///     without save data is loaded.
-    /// </summary>
-    private void SetupTournamentParticipantsFromTaikai()
-    {
-        tournamentData.ClearAllData();
+        if (!File.Exists(file)) return;
 
-        var tournamentMonsterFile = _gamePath + "\\mf2\\data\\taikai\\taikai_en.flk";
-        var rawmonster = new byte[60];
+        List<TournamentMonster> monsters = [];
 
-        using var fs = new FileStream(tournamentMonsterFile, FileMode.Open);
-        fs.Position = 0xA8C + 60; // This relies upon nothing earlier in the file being appended. 
-        for (var i = 1; i < 120; i++)
+        var rawabd = new byte[100];
+
+        using var fs = new FileStream(file, FileMode.Open);
+        var remaining = fs.Length / 100;
+        while (remaining > 0)
         {
-            // 0 = Dummy Monster so skip. 119 in the standard file.
-            fs.ReadExactly(rawmonster, 0, 60);
-            TournamentMonster tm = new(rawmonster);
-            tournamentData.AddExistingMonster(tm, i);
+            remaining--;
 
-            // var bytes = "";
-            // for (var z = 0; z < 60; z++) bytes += rawmonster[z] + ",";
-            Logger.Trace("Monster " + i + " Parsed: " + tm, Color.Lime);
+            fs.ReadExactly(rawabd, 0, 100);
+            monsters.Add(new TournamentMonster(rawabd));
         }
 
-        tournamentData._initialized = true;
+        tournamentData.LoadSavedTournamentData(monsters);
     }
+
 
     private void SetupUpdateHook(nint parent)
     {
         _updateHook!.OriginalFunction(parent);
         var newWeek = false;
-        Memory.Instance.Read(_address_currentweek, out uint currentWeek);
-        if (_game_currentWeek != currentWeek)
+        Memory.Instance.Read(_addressCurrentweek, out uint currentWeek);
+        if (_gameCurrentWeek != currentWeek)
         {
-            _game_currentWeek = currentWeek;
+            _gameCurrentWeek = currentWeek;
             newWeek = true;
         }
 
         // Unfortunately the ordering of these function calls matters so we have to do this shuffling depending on if the game week progressed.
-        if (newWeek) GetUnlockedMonsters(_address_unlockedmonsters);
-        LoadGameUpdateTournamentData();
+        if (newWeek) GetUnlockedMonsters(_addressUnlockedmonsters);
+        // LoadGameUpdateTournamentData();
         if (newWeek) AdvanceWeekUpdateTournamentMonsters(_unlockedmonsters);
-        UpdateMemoryTournamentData(_address_tournamentmonsters);
+        UpdateMemoryTournamentData(_addressTournamentmonsters);
 
         Logger.Trace("Hook Game Update", Color.Red);
     }
@@ -237,28 +204,28 @@ public class Mod : ModBase // <= Do not Remove.
         var unlocks = new byte[44];
         _unlockedmonsters.Clear();
 
-        if (_configuration._confABD_tournamentBreeds == Config.E_ConfABD_TournamentBreeds.PlayerOnly)
+        switch (_configuration.EnemyTournamentBreed)
         {
-            unlocks = GetUnlockedMonsters_Player(unlockAddress);
-        }
+            case Config.TournamentBreeds.PlayerOnly:
+                unlocks = GetUnlockedMonsters_Player(unlockAddress);
+                break;
+            case Config.TournamentBreeds.Realistic:
+                unlocks = GetUnlockedMonsters_Realistic();
+                break;
+            case Config.TournamentBreeds.PlayerOnlyRealistic:
+            {
+                unlocks = GetUnlockedMonsters_Realistic();
+                var ulp = GetUnlockedMonsters_Player(unlockAddress);
 
-        else if (_configuration._confABD_tournamentBreeds == Config.E_ConfABD_TournamentBreeds.Realistic)
-        {
-            unlocks = GetUnlockedMonsters_Realistic();
-        }
-
-        else if (_configuration._confABD_tournamentBreeds == Config.E_ConfABD_TournamentBreeds.PlayerOnlyRealistic)
-        {
-            unlocks = GetUnlockedMonsters_Realistic();
-            var ulp = GetUnlockedMonsters_Player(unlockAddress);
-
-            // This uses some special logic for Unique Monsters. I do not respect the player unlock flag here (which is always true). Otherwise, it's just if either case is true they will show up.
-            for (var i = 0; i < 38; i++) unlocks[i] = (byte)(unlocks[i] | ulp[i]);
-        }
-
-        else if (_configuration._confABD_tournamentBreeds == Config.E_ConfABD_TournamentBreeds.WildWest)
-        {
-            for (var i = 0; i < unlocks.Length; i++) unlocks[i] = 0x01;
+                // This uses some special logic for Unique Monsters. I do not respect the player unlock flag here (which is always true). Otherwise, it's just if either case is true they will show up.
+                for (var i = 0; i < 38; i++) unlocks[i] = (byte)(unlocks[i] | ulp[i]);
+                break;
+            }
+            case Config.TournamentBreeds.WildWest:
+            {
+                for (var i = 0; i < unlocks.Length; i++) unlocks[i] = 0x01;
+                break;
+            }
         }
 
 
@@ -270,31 +237,6 @@ public class Mod : ModBase // <= Do not Remove.
             }
     }
 
-    private void LoadGameUpdateTournamentData()
-    {
-        if (_saveFileManager._saveData_gameLoaded)
-        {
-            Logger.Info("Game Load Detected", Color.Orange);
-            var monsters = _saveFileManager.LoadABDTournamentData();
-            if (monsters.Count == 0)
-            {
-                Logger.Trace("No custom tournament data found. Loading taikai_en.", Color.Orange);
-                SetupTournamentParticipantsFromTaikai();
-            }
-            else
-            {
-                Logger.Trace("Found Data for " + monsters.Count + " monsters.", Color.Orange);
-                tournamentData.ClearAllData();
-                foreach (var abdm in monsters) tournamentData.AddExistingMonster(abdm);
-            }
-
-            tournamentData._initialized = true;
-            tournamentData._firstweek = true;
-            Logger.Info("Initialization Complete", Color.Orange);
-        }
-    }
-
-    /// <summary>  </summary>
     private void UpdateMemoryTournamentData(nuint tournamentAddress)
     {
         var checkPattern = true;
@@ -310,17 +252,17 @@ public class Mod : ModBase // <= Do not Remove.
                 break;
             }
 
-            var enemyAddresses = gameAddress + taddr + 0xA8C;
+            var enemyAddresses = _gameAddress + taddr + 0xA8C;
             var monsters = tournamentData.GetTournamentMembers(1, 118);
             for (var i = 1; i <= 118; i++)
-                Memory.Instance.WriteRaw(enemyAddresses + (nuint)(i * 60), monsters[i - 1].monster.raw_bytes);
+                Memory.Instance.WriteRaw(enemyAddresses + (nuint)(i * 60), tournamentData.Monsters[i - 1].Serialize());
         }
     }
 
     private void AdvanceWeekUpdateTournamentMonsters(List<MonsterGenus> unlockedmonsters)
     {
-        Logger.Debug("Advancing to week " + _game_currentWeek, Color.Blue);
-        tournamentData.AdvanceWeek(_game_currentWeek, unlockedmonsters);
+        Logger.Debug("Advancing to week " + _gameCurrentWeek, Color.Blue);
+        tournamentData.AdvanceWeek(_gameCurrentWeek, unlockedmonsters);
     }
 
     /// <summary>
@@ -339,7 +281,7 @@ public class Mod : ModBase // <= Do not Remove.
         scanner.AddMainModuleScan("55 8B EC 53 8B 5D 08 8A C3 24 03 02 C0 56 57 8B F9 BE 01 00 00 00 B1 07", result =>
         {
             var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
-            Memory.Instance.SafeWrite(addr + 0x2f, (ushort)37008);
+            Memory.Instance.SafeWrite(addr + 0x2f, (ushort)0x9090);
         });
     }
 
@@ -356,8 +298,8 @@ public class Mod : ModBase // <= Do not Remove.
             result =>
             {
                 var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
-                Memory.Instance.SafeWrite(addr + 0x13E + 0x2, (byte)_configuration._confDTP_tournament_lifespan);
-                Memory.Instance.SafeWrite(addr + 0x143 + 0x1, (byte)_configuration._confDTP_tournament_lifespan);
+                Memory.Instance.SafeWrite(addr + 0x13E + 0x2, (byte)_configuration.LifespanReduction);
+                Memory.Instance.SafeWrite(addr + 0x143 + 0x1, (byte)_configuration.LifespanReduction);
             });
     }
 
@@ -417,49 +359,49 @@ public class Mod : ModBase // <= Do not Remove.
 
         var unlocks = new byte[44];
         unlocks[(int)MonsterGenus.Pixie] = 1;
-        unlocks[(int)MonsterGenus.Dragon] = (byte)(_game_currentWeek >= 48 * 8 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Centaur] = (byte)(_game_currentWeek >= 48 * 90 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Dragon] = (byte)(_gameCurrentWeek >= 48 * 8 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Centaur] = (byte)(_gameCurrentWeek >= 48 * 90 ? 1 : 0);
         unlocks[(int)MonsterGenus.ColorPandora] = 1;
-        unlocks[(int)MonsterGenus.Beaclon] = (byte)(_game_currentWeek >= 48 * 40 ? 1 : 0); // FIMBA+
-        unlocks[(int)MonsterGenus.Henger] = (byte)(_game_currentWeek >= 48 * 3 ? 1 : 0); // FIMBA
-        unlocks[(int)MonsterGenus.Wracky] = (byte)(_game_currentWeek >= 48 * 60 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Beaclon] = (byte)(_gameCurrentWeek >= 48 * 40 ? 1 : 0); // FIMBA+
+        unlocks[(int)MonsterGenus.Henger] = (byte)(_gameCurrentWeek >= 48 * 3 ? 1 : 0); // FIMBA
+        unlocks[(int)MonsterGenus.Wracky] = (byte)(_gameCurrentWeek >= 48 * 60 ? 1 : 0);
         unlocks[(int)MonsterGenus.Golem] = 1; // They're just large.
         unlocks[(int)MonsterGenus.Zuum] = 1;
-        unlocks[(int)MonsterGenus.Durahan] = (byte)(_game_currentWeek >= 48 * 50 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Durahan] = (byte)(_gameCurrentWeek >= 48 * 50 ? 1 : 0);
         unlocks[(int)MonsterGenus.Arrowhead] = 1;
         unlocks[(int)MonsterGenus.Tiger] = 1;
         unlocks[(int)MonsterGenus.Hopper] = 1;
         unlocks[(int)MonsterGenus.Hare] = 1;
         unlocks[(int)MonsterGenus.Baku] = 1; // They're just large.
-        unlocks[(int)MonsterGenus.Gali] = (byte)(_game_currentWeek >= 48 * 3 ? 1 : 0); // FIMBA
+        unlocks[(int)MonsterGenus.Gali] = (byte)(_gameCurrentWeek >= 48 * 3 ? 1 : 0); // FIMBA
         unlocks[(int)MonsterGenus.Kato] = 1;
-        unlocks[(int)MonsterGenus.Zilla] = (byte)(_game_currentWeek >= 48 * 40 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Bajarl] = (byte)(_game_currentWeek >= 48 * 70 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Mew] = (byte)(_game_currentWeek >= 48 * 3 ? 1 : 0); // FIMBA
-        unlocks[(int)MonsterGenus.Phoenix] = (byte)(_game_currentWeek >= 48 * 15 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Ghost] = (byte)(_game_currentWeek >= 48 * 2 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Metalner] = (byte)(_game_currentWeek >= 48 * 100 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Zilla] = (byte)(_gameCurrentWeek >= 48 * 40 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Bajarl] = (byte)(_gameCurrentWeek >= 48 * 70 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Mew] = (byte)(_gameCurrentWeek >= 48 * 3 ? 1 : 0); // FIMBA
+        unlocks[(int)MonsterGenus.Phoenix] = (byte)(_gameCurrentWeek >= 48 * 15 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Ghost] = (byte)(_gameCurrentWeek >= 48 * 2 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Metalner] = (byte)(_gameCurrentWeek >= 48 * 100 ? 1 : 0);
         unlocks[(int)MonsterGenus.Suezo] = 1;
-        unlocks[(int)MonsterGenus.Jill] = (byte)(_game_currentWeek >= 48 * 48 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Jill] = (byte)(_gameCurrentWeek >= 48 * 48 ? 1 : 0);
         unlocks[(int)MonsterGenus.Mocchi] = 1;
-        unlocks[(int)MonsterGenus.Joker] = (byte)(_game_currentWeek >= 48 * 36 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Joker] = (byte)(_gameCurrentWeek >= 48 * 36 ? 1 : 0);
         unlocks[(int)MonsterGenus.Gaboo] = 1;
         unlocks[(int)MonsterGenus.Jell] = 1;
-        unlocks[(int)MonsterGenus.Undine] = (byte)(_game_currentWeek >= 48 * 40 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Niton] = (byte)(_game_currentWeek >= 48 * 5 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Mock] = (byte)(_game_currentWeek >= 48 * 20 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Ducken] = (byte)(_game_currentWeek >= 48 * 4 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Undine] = (byte)(_gameCurrentWeek >= 48 * 40 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Niton] = (byte)(_gameCurrentWeek >= 48 * 5 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Mock] = (byte)(_gameCurrentWeek >= 48 * 20 ? 1 : 0);
+        unlocks[(int)MonsterGenus.Ducken] = (byte)(_gameCurrentWeek >= 48 * 4 ? 1 : 0);
         unlocks[(int)MonsterGenus.Plant] = 1;
         unlocks[(int)MonsterGenus.Monol] = 1;
         unlocks[(int)MonsterGenus.Ape] = 1;
-        unlocks[(int)MonsterGenus.Worm] = (byte)(_game_currentWeek >= 48 * 3 ? 1 : 0); // FIMBA
+        unlocks[(int)MonsterGenus.Worm] = (byte)(_gameCurrentWeek >= 48 * 3 ? 1 : 0); // FIMBA
         unlocks[(int)MonsterGenus.Naga] = 1;
-        unlocks[(int)MonsterGenus.Unknown1] = (byte)(_game_currentWeek >= 48 * 40 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Unknown2] = (byte)(_game_currentWeek >= 48 * 50 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Unknown3] = (byte)(_game_currentWeek >= 48 * 70 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Unknown4] = (byte)(_game_currentWeek >= 48 * 90 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Unknown5] = (byte)(_game_currentWeek >= 48 * 110 ? 1 : 0);
-        unlocks[(int)MonsterGenus.Unknown6] = (byte)(_game_currentWeek >= 48 * 120 ? 1 : 0);
+        unlocks[(int)MonsterGenus.XX] = (byte)(_gameCurrentWeek >= 48 * 40 ? 1 : 0);
+        unlocks[(int)MonsterGenus.XY] = (byte)(_gameCurrentWeek >= 48 * 50 ? 1 : 0);
+        unlocks[(int)MonsterGenus.XZ] = (byte)(_gameCurrentWeek >= 48 * 70 ? 1 : 0);
+        unlocks[(int)MonsterGenus.YX] = (byte)(_gameCurrentWeek >= 48 * 90 ? 1 : 0);
+        unlocks[(int)MonsterGenus.YY] = (byte)(_gameCurrentWeek >= 48 * 110 ? 1 : 0);
+        unlocks[(int)MonsterGenus.YZ] = (byte)(_gameCurrentWeek >= 48 * 120 ? 1 : 0);
         return unlocks;
     }
 

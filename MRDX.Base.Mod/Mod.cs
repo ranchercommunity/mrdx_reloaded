@@ -100,7 +100,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _modConfig = context.ModConfig;
         _configuration = context.Configuration;
 
-
         var maybeExtractor = _modLoader.GetController<IExtractDataBin>();
         if (maybeExtractor != null && maybeExtractor.TryGetTarget(out var extract))
             lock (IExtractDataBin.LockMr2)
@@ -116,6 +115,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _modLoader.AddOrReplaceController<IController>(_owner, new Controller(context));
         _modLoader.AddOrReplaceController<IGame>(_owner, new Game(context));
         _modLoader.AddOrReplaceController<IGameClient>(_owner, new GameClient());
+        _modLoader.AddOrReplaceController<ISaveFile>(_owner, new SaveFileManager(_modLoader));
 
         var maybeScanner = _modLoader.GetController<IStartupScanner>();
         if (maybeScanner != null && maybeScanner.TryGetTarget(out var scanner)) _startupScanner = scanner;

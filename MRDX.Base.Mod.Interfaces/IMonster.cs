@@ -127,7 +127,7 @@ public static class MonsterHelper
         return (short)Math.Truncate(Math.Asin(natureMod / 100.0f) * 2048 / Math.PI);
     }
 
-    public static void Deconstruct(this MonsterInfo src, out MonsterGenus a0, out string a1, out string a2)
+    public static void Deconstruct(this GenusInfo src, out MonsterGenus a0, out string a1, out string a2)
     {
         a0 = src.Id;
         a1 = src.Name;
@@ -137,7 +137,7 @@ public static class MonsterHelper
 
 public interface IMonster
 {
-    public static readonly MonsterInfo[] AllMonsters =
+    public static readonly GenusInfo[] AllMonsters =
     [
         new() { Id = MonsterGenus.Pixie, Name = "Pixie", ShortName = "kapi" },
         new() { Id = MonsterGenus.Dragon, Name = "Dragon", ShortName = "kbdr" },
@@ -177,12 +177,12 @@ public interface IMonster
         new() { Id = MonsterGenus.Ape, Name = "Ape", ShortName = "mylau" },
         new() { Id = MonsterGenus.Worm, Name = "Worm", ShortName = "mzmus" },
         new() { Id = MonsterGenus.Naga, Name = "Naga", ShortName = "naaga" },
-        new() { Id = MonsterGenus.Unknown1, Name = "Unknown1", ShortName = "unk1" },
-        new() { Id = MonsterGenus.Unknown2, Name = "Unknown2", ShortName = "unk2" },
-        new() { Id = MonsterGenus.Unknown3, Name = "Unknown3", ShortName = "unk3" },
-        new() { Id = MonsterGenus.Unknown4, Name = "Unknown4", ShortName = "unk4" },
-        new() { Id = MonsterGenus.Unknown5, Name = "Unknown5", ShortName = "unk5" },
-        new() { Id = MonsterGenus.Unknown6, Name = "Unknown6", ShortName = "unk6" }
+        new() { Id = MonsterGenus.XX, Name = "Unknown", ShortName = "xx" },
+        new() { Id = MonsterGenus.XY, Name = "Unknown", ShortName = "xy" },
+        new() { Id = MonsterGenus.XZ, Name = "Unknown", ShortName = "xz" },
+        new() { Id = MonsterGenus.YX, Name = "Unknown", ShortName = "yx" },
+        new() { Id = MonsterGenus.YY, Name = "Unknown", ShortName = "yy" },
+        new() { Id = MonsterGenus.YZ, Name = "Unknown", ShortName = "yz" }
     ];
 
     public static readonly MonsterBreed[] AllBreeds =

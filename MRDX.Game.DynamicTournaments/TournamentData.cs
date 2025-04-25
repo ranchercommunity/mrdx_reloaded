@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using MRDX.Base.Mod.Interfaces;
 //using static MRDX.Base.Mod.Interfaces.TournamentData;
 using Config = MRDX.Game.DynamicTournaments.Configuration.Config;
@@ -17,6 +18,7 @@ public enum EMonsterRanks
     E
 }
 
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public enum ETournamentPools
 {
     L,
@@ -48,7 +50,7 @@ public enum ETournamentPools
 
 public class TournamentData
 {
-    public static string[] _random_name_list =
+    public static readonly string[] RandomNameList =
     [
         "Cimasio", "Kyrades", "Ambroros", "Teodeus", "Lazan", "Pegetus", "Perseos", "Asandrou", "Agametrios",
         "Lazion", "Morphosyne", "Gelantinos", "Narkelous", "Taloclus", "Baltsalus", "Hypnaeon", "Atrol", "Alexede",
@@ -87,8 +89,7 @@ public class TournamentData
         "Baretree", "Birchbellow",
         "Calaphyx", "Cawcaws", "Cix", "Cerrusio", "Creator", "Clipse", "Conjus", "Chanceux", "Ciorliath", "Clearwish",
         "David", "Dingus", "Dakadaka", "Dill", "Doodle", "Daydream", "Dreameater", "Diablo", "Diabolos", "Dunker",
-        "Dragonfly",
-        "Eater", "Eo", "Endofall", "Exuberance", "Etresse", "Elan", "Entun", "Earthtender",
+        "Dragonfly", "Eater", "Eo", "Endofall", "Exuberance", "Etresse", "Elan", "Entun", "Earthtender",
         "Fargus", "Fillero", "Ferrus", "Faunus", "Feathers", "Fuzzball", "Foolcaller",
         "Gronkula", "Gimmles", "Golox", "Gargamel", "Gutterman", "Gale", "Gemlashes", "Gotusloop", "Goldenboy",
         "Hardness", "Herman", "Hillox", "Hundredyear", "Hurlante", "Hazel", "Hanzel", "Hatemonger",
@@ -119,22 +120,22 @@ public class TournamentData
 
     private readonly Config _config;
 
+    private readonly Dictionary<ETournamentPools, TournamentPool> _tournamentPools = [];
+    public readonly List<TournamentMonster> Monsters = [];
+
     private uint _currentWeek;
     private bool _firstweek;
 
     private bool _initialized;
-    public List<MonsterGenus> _unlockedTournamentBreeds = new();
-    public List<TournamentMonster> monsters = new();
-
-    public List<byte[]> startingMonsterTemplates = new();
-
-    public Dictionary<ETournamentPools, TournamentPool> tournamentPools = new();
+    private List<MonsterGenus> _unlockedTournamentBreeds = [];
 
     public TournamentData(Config config)
     {
         _config = config;
         foreach (var pool in Enum.GetValues<ETournamentPools>())
-            tournamentPools.Add(pool, new TournamentPool(config, pool));
+            _tournamentPools.Add(pool, new TournamentPool(this, config, pool));
+
+        SetupTournamentParticipantsFromTaikai();
     }
 
     public void AddExistingMonster(IBattleMonsterData m, int id)
@@ -142,21 +143,20 @@ public class TournamentData
         var pool = TournamentPool.PoolFromId(id);
         var abdm = new TournamentMonster(_config, m)
         {
-            Rank = tournamentPools[pool].Info.Rank
+            Rank = _tournamentPools[pool].Info.Rank
         };
 
-        monsters.Add(abdm);
-        tournamentPools[pool].MonsterAdd(abdm);
+        Monsters.Add(abdm);
+        // _tournamentPools[pool].MonsterAdd(abdm);
     }
 
     public void AddExistingMonster(TournamentMonster abdm)
     {
-        monsters.Add(abdm);
-
-        foreach (var pool in tournamentPools.Values)
-        foreach (var monpool in abdm.pools)
-            if ((ETournamentPools)abdm._rawpools[i] == pool.Pool)
-                pool.MonsterAdd(abdm);
+        Monsters.Add(abdm);
+        // foreach (var pool in tournamentPools.Values)
+        // foreach (var monpool in abdm.pools)
+        //     if ((ETournamentPools)abdm._rawpools[i] == pool.Pool)
+        //         pool.MonsterAdd(abdm);
     }
 
     public void AdvanceWeek(uint currentWeek, List<MonsterGenus> unlockedmonsters)
@@ -190,32 +190,79 @@ public class TournamentData
         }
 
         Logger.Debug("Finished Advancing Weeks, Checking Pools", Color.Yellow);
-        foreach (var pool in tournamentPools.Values)
-        {
-            while (pool.Monsters.Count < pool._minimumSize) pool.GenerateNewValidMonster(_unlockedTournamentBreeds);
+        foreach (var pool in _tournamentPools.Values)
+            while (Monsters.Count(m => m.pools.Contains(pool)) < pool.Info.Size)
+                Monsters.Add(pool.GenerateNewValidMonster(_unlockedTournamentBreeds));
+        // Shuffle Monsters - TODO: This should happen weekly.
+        // var ml = pool.Monsters.ToArray();
+        // Random.Shared.Shuffle(ml);
+        _firstweek = false;
+    }
 
-            // Shuffle Monsters - TODO: This should happen weekly.
-            var ml = pool.Monsters.ToArray();
-            Random.Shared.Shuffle(ml);
-            pool.Monsters = new List<TournamentMonster>(ml);
+    public void LoadSavedTournamentData(List<TournamentMonster> monsters)
+    {
+        // if (!_saveFileManager.SaveDataGameLoaded) return;
+        // Logger.Info("Game Load Detected", Color.Orange);
+        // var monsters = _saveFileManager.LoadTournamentData();
+        if (monsters.Count == 0)
+        {
+            Logger.Trace("No custom tournament data found. Loading taikai_en.", Color.Orange);
+            SetupTournamentParticipantsFromTaikai();
+        }
+        else
+        {
+            Logger.Trace("Found Data for " + monsters.Count + " monsters.", Color.Orange);
+            ClearAllData();
+            foreach (var abdm in monsters)
+                AddExistingMonster(abdm);
         }
 
-        _firstweek = false;
+        _initialized = true;
+        _firstweek = true;
+        Logger.Info("Initialization Complete", Color.Orange);
+    }
+
+    /// <summary>
+    ///     Loads the taikai_en.flk file and generates the TournamentData from it. Is loaded at startup and when a new save
+    ///     without save data is loaded.
+    /// </summary>
+    private void SetupTournamentParticipantsFromTaikai()
+    {
+        ClearAllData();
+
+        var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
+        var rawmonster = new byte[60];
+
+        using var fs = new FileStream(tournamentMonsterFile, FileMode.Open);
+        fs.Position = 0xA8C + 60; // This relies upon nothing earlier in the file being appended. 
+        for (var i = 1; i < 120; i++)
+        {
+            // 0 = Dummy Monster so skip. 119 in the standard file.
+            fs.ReadExactly(rawmonster, 0, 60);
+            TournamentMonster tm = new(rawmonster);
+            AddExistingMonster(tm, i);
+
+            // var bytes = "";
+            // for (var z = 0; z < 60; z++) bytes += rawmonster[z] + ",";
+            Logger.Trace("Monster " + i + " Parsed: " + tm, Color.Lime);
+        }
+
+        _initialized = true;
     }
 
     public void AdvanceMonth()
     {
         Logger.Debug("Advancing month from TournamentData", Color.Blue);
-        for (var i = monsters.Count - 1; i >= 0; i--)
+        for (var i = Monsters.Count - 1; i >= 0; i--)
         {
-            var m = monsters[i];
+            var m = Monsters[i];
 
             m.AdvanceMonth();
             if (!m.Alive)
             {
                 Logger.Info(m.Name + " has died. Rest in peace.", Color.Blue);
-                for (var j = m.pools.Count() - 1; j >= 0; j--) m.pools[j].MonsterRemove(m);
-                monsters.Remove(m);
+                // for (var j = m.pools.Count() - 1; j >= 0; j--) m.pools[j].MonsterRemove(m);
+                Monsters.Remove(m);
             }
 
             // TODO CONFIG TECHNIQUE RATE
@@ -225,51 +272,51 @@ public class TournamentData
 
     private void AdvanceTournamentPromotions()
     {
-        tournamentPools[ETournamentPools.M].MonstersPromoteToNewPool(tournamentPools[ETournamentPools.L]);
-        tournamentPools[ETournamentPools.S].MonstersPromoteToNewPool(tournamentPools[ETournamentPools.M]);
-        tournamentPools[ETournamentPools.A].MonstersPromoteToNewPool(tournamentPools[ETournamentPools.S]);
-        tournamentPools[ETournamentPools.B].MonstersPromoteToNewPool(tournamentPools[ETournamentPools.A]);
-        tournamentPools[ETournamentPools.C].MonstersPromoteToNewPool(tournamentPools[ETournamentPools.B]);
-        tournamentPools[ETournamentPools.D].MonstersPromoteToNewPool(tournamentPools[ETournamentPools.C]);
-        tournamentPools[ETournamentPools.E].MonstersPromoteToNewPool(tournamentPools[ETournamentPools.D]);
+        _tournamentPools[ETournamentPools.M].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.L]);
+        _tournamentPools[ETournamentPools.S].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.M]);
+        _tournamentPools[ETournamentPools.A].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.S]);
+        _tournamentPools[ETournamentPools.B].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.A]);
+        _tournamentPools[ETournamentPools.C].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.B]);
+        _tournamentPools[ETournamentPools.D].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.C]);
+        _tournamentPools[ETournamentPools.E].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.D]);
     }
 
     public List<TournamentMonster> GetTournamentMembers(int start, int end)
     {
         var participants = new List<TournamentMonster>();
 
-        tournamentPools[ETournamentPools.S].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.A].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.B].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.C].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.D].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.E].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.S].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.A].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.B].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.C].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.D].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.E].AddTournamentParticipants(participants);
 
         // Edge Case to Handle the ONE SLOT that is skipped For Moo.
-        participants.Add(tournamentPools[ETournamentPools.S].Monsters[0]);
+        participants.Add(_tournamentPools[ETournamentPools.S].Monsters[0]);
 
-        tournamentPools[ETournamentPools.L].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.M].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.L].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.M].AddTournamentParticipants(participants);
 
-        tournamentPools[ETournamentPools.A_Phoenix].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.B_Dragon].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.A_DEdge].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.A_Phoenix].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.B_Dragon].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.A_DEdge].AddTournamentParticipants(participants);
 
-        tournamentPools[ETournamentPools.F_Hero].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.F_Heel].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.F_Elder].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.F_Hero].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.F_Heel].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.F_Elder].AddTournamentParticipants(participants);
 
-        tournamentPools[ETournamentPools.S_FIMBA].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.A_FIMBA].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.B_FIMBA].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.C_FIMBA].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.D_FIMBA].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.S_FIMBA].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.A_FIMBA].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.B_FIMBA].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.C_FIMBA].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.D_FIMBA].AddTournamentParticipants(participants);
 
-        tournamentPools[ETournamentPools.S_FIMBA2].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.A_FIMBA2].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.B_FIMBA2].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.C_FIMBA2].AddTournamentParticipants(participants);
-        tournamentPools[ETournamentPools.D_FIMBA2].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.S_FIMBA2].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.A_FIMBA2].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.B_FIMBA2].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.C_FIMBA2].AddTournamentParticipants(participants);
+        _tournamentPools[ETournamentPools.D_FIMBA2].AddTournamentParticipants(participants);
 
         return participants;
     }
@@ -278,7 +325,7 @@ public class TournamentData
     {
         _initialized = false;
 
-        monsters.Clear();
-        foreach (var pool in tournamentPools.Values) pool.Monsters.Clear();
+        Monsters.Clear();
+        // foreach (var pool in _tournamentPools.Values) pool.Monsters.Clear();
     }
 }

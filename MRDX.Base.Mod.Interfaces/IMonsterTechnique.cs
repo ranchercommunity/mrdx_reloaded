@@ -10,7 +10,15 @@ public interface IMonsterTechnique
 
     // Slot is not a real value on the monster tech data, but rather the position in the attack
     // list where it belongs. This way we can build the actual tech list easier.
-    int Slot { get; set; }
+    // int Slot { get; set; }
+    //
+    // int Id
+    // {
+    //     get => (int)Range * 6 + Slot;
+    //     set => Slot = value / 6; Range = value % 6;
+    // }
+
+    TechSlots Slot { get; set; }
 
     byte[] JpnName { get; set; }
     string Name { get; set; }

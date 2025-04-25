@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace MRDX.Base.Mod.Interfaces;
 
@@ -27,7 +26,14 @@ public interface IGame
     /// </summary>
     public delegate void MonsterChange(IMonsterChange change);
 
+    /// <summary>
+    ///     Event that is fired when the week changes
+    /// </summary>
+    public delegate void WeekChange(IMonsterChange change);
+
     public IMonster Monster { get; set; }
+
+    public event WeekChange OnWeekChange;
 
     public event MonsterChange OnMonsterChanged;
 
@@ -36,14 +42,14 @@ public interface IGame
     /// </summary>
     public event GameSceneChange OnGameSceneChanged;
 
-    public Task<Dictionary<string, IList<IMonsterTechnique>>> LoadMonsterAttackData();
-    public Task SaveMonsterAttackData(Dictionary<string, List<IMonsterTechnique>> monsters);
+    public MonsterBreed GetBreed(MonsterGenus main, MonsterGenus sub);
+
+    public Task LoadMonsterBreeds();
+    public Task SaveMonsterTechData(string redirectPath);
 }
 
-public interface ISaveFile
+public interface IWeekChange
 {
-    IMonster CurrentMonster { get; set; }
-    IList<IMonster> Freezer { get; init; }
 }
 
 public interface IMonsterChange
@@ -63,4 +69,25 @@ public interface IMonsterModChange : IMonsterChange
 
 public interface IMonsterCompleteChange : IMonsterChange
 {
+}
+
+public interface ISaveFileEntry
+{
+    string Filename { get; set; }
+    string Slot { get; set; }
+    bool IsAutoSave { get; set; }
+}
+
+public interface ISaveFile
+{
+    public delegate void Load(ISaveFileEntry file);
+
+    public delegate void Save(ISaveFileEntry file);
+
+    public event Load OnLoad;
+
+    public event Save OnSave;
+
+    // IMonster CurrentMonster { get; set; }
+    // IList<IMonster> Freezer { get; init; }
 }

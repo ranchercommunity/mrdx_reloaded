@@ -70,7 +70,7 @@ public class Randomizer
         Logger?.WriteLine($"[MRDX Randomizer] creating directory {RedirectPath}");
         Directory.CreateDirectory(RedirectPath);
 
-        await SaveAttacks();
+        // await SaveAttacks();
     }
 
     public void DataExtractComplete(string? path)
@@ -154,23 +154,23 @@ public class Randomizer
             _ => throw new NotImplementedException()
         };
 
-        foreach (var (_, mon) in Monsters)
-        foreach (var tech in mon.Techs)
-            shuffleStrategy(tech);
+        // foreach (var (_, mon) in Monsters)
+        // foreach (var tech in mon.Techs)
+        //     shuffleStrategy(tech);
     }
 
     private void ShuffleTechType()
     {
-        foreach (var (_, mon) in Monsters)
-        foreach (var tech in mon.Techs)
-            tech.Scaling = (TechType)Rng.Next(0, 1);
+        // foreach (var (_, mon) in Monsters)
+        // foreach (var tech in mon.Techs)
+        //     tech.Scaling = (TechType)Rng.Next(0, 1);
     }
 
     private async Task Randomize()
     {
         try
         {
-            await Load();
+            // await Load();
             // if (Config.TechSlots) TechSlots();
             if (Config.TechStats != ShuffleMode.Vanilla) ShuffleTechStats(Config.TechStats);
             if (Config.TechType) ShuffleTechType();

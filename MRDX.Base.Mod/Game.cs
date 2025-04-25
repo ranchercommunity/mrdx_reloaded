@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using MRDX.Base.Mod.Interfaces;
+﻿using MRDX.Base.Mod.Interfaces;
 using MRDX.Base.Mod.Template;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Memory.Sources;
@@ -11,22 +10,22 @@ namespace MRDX.Base.Mod;
 public class Game : BaseObject<Game>, IGame
 {
     private static readonly byte[] NO_OFFSET = BitConverter.GetBytes(0xffffffff);
-    private readonly ILogger _logger;
     private readonly IModConfig _modConfig;
     private readonly WeakReference<IRedirectorController> _redirector;
 
     private MonsterCache _cache = new();
     private IHook<FrameStart>? _hook;
 
+    public List<MonsterBreed> MonsterBreeds = [];
+
     public Game(ModContext context)
     {
-        _logger = context.Logger;
         _modConfig = context.ModConfig;
         context.ModLoader.GetController<IHooks>().TryGetTarget(out var hooks);
         _redirector = context.ModLoader.GetController<IRedirectorController>();
         if (hooks == null)
         {
-            _logger.WriteLine($"[{_modConfig.ModId}] Could not get hook controller.", Color.Red);
+            Logger.Error("Could not get hook controller.");
             return;
         }
 
@@ -36,41 +35,25 @@ public class Game : BaseObject<Game>, IGame
     [BaseOffset(BaseGame.Mr2, Region.Us, 0x97A0C)]
     public IMonster Monster { get; set; } = new Monster(Get() + BaseObject<Monster>.BaseOffset());
 
+    public event IGame.WeekChange? OnWeekChange;
+
     public event IGame.MonsterChange? OnMonsterChanged;
 
 #pragma warning disable 0067
     public event IGame.GameSceneChange? OnGameSceneChanged;
 #pragma warning restore 0067
-
-    public async Task<Dictionary<string, IList<IMonsterTechnique>>> LoadMonsterAttackData()
+    public async Task SaveMonsterTechData(string redirectPath)
     {
         if (Mod.DataPath == null)
         {
-            _logger.WriteLine($"[{_modConfig.ModId}] Extraction isn't complete before loading attack data.");
-            return [];
+            Logger.Warn("Extraction isn't complete before saving attack data.");
+            return;
         }
 
-        var techData = new Dictionary<string, IList<IMonsterTechnique>>();
-        var atkNameTable = LoadAtkNames();
-        for (var i = 0; i < (int)MonsterGenus.Count; i++)
-        {
-            var (id, display, name) = IMonster.AllMonsters[i];
-            var atkfilename = $"{name[..2]}_{name[..2]}_wz.bin";
-            var atkpath = Path.Combine(Mod.DataPath, "mf2", "data", "mon", name, atkfilename);
-            var data = await File.ReadAllBytesAsync(atkpath);
-            var techs = CreateTechs(atkNameTable[id], data);
-            techData[display] = techs;
-        }
-
-        return techData;
-    }
-
-    public async Task SaveMonsterAttackData(Dictionary<string, List<IMonsterTechnique>> monsters)
-    {
         _redirector.TryGetTarget(out var redirector);
         if (redirector == null)
         {
-            Logger.Error("[MRDX Randomizer] Failed to get redirection controller.");
+            Logger.Error("Failed to get redirection controller.");
             return;
         }
 
@@ -90,16 +73,13 @@ public class Game : BaseObject<Game>, IGame
             var atkNameOffset = NameSize * genus + HeaderSize * (int)MonsterGenus.Count;
 
             // Write the attack name and header to the temp array so we can write it out later
-            var monsterTechs = monsters[display];
+            var monsterTechs = MonsterBreeds
+                .Find(b => b.Main == b.Sub && b.Main == mon.Id)!.TechList;
 
-            // Convert the techs into a slot ordered array to make it easier to access it.
-            var techs = new IMonsterTechnique?[4, 6];
-            foreach (var tech in monsterTechs) techs[(int)tech.Range, tech.Slot] = tech;
             // Build a header for the attacks 
-            for (var i = 0; i < (int)TechRange.Count; ++i)
-            for (var j = 0; j < 6; ++j)
+            for (var i = 0; i < 24; ++i)
             {
-                var tech = techs[i, j];
+                var tech = monsterTechs.Find(t => t.Slot.HasFlag((TechSlots)(1 << i)));
                 if (tech == null)
                 {
                     NO_OFFSET.CopyTo(atkData, headerOffset);
@@ -115,8 +95,8 @@ public class Game : BaseObject<Game>, IGame
 
             // Write the attack data out to a file to redirect.
             var atkfilename = $"{name[..2]}_{name[..2]}_wz.bin";
-            var srcpath = Path.Combine(DataPath, "mf2", "data", "mon", name, atkfilename);
-            var dstpath = Path.Combine(RedirectPath, atkfilename);
+            var srcpath = Path.Combine(Mod.DataPath, "mf2", "data", "mon", name, atkfilename);
+            var dstpath = Path.Combine(redirectPath, atkfilename);
 
             Logger.Debug($"Monster {display} creating file for attacks {dstpath}");
             var atkfile = IMonsterTechnique.SerializeAttackFileData(monsterTechs);
@@ -126,19 +106,77 @@ public class Game : BaseObject<Game>, IGame
 
             Logger.Debug($"Monster {display} updating battle data {dstpath}");
             var flkfilename = $"{name[..2]}_{name[..2]}_b.flk";
-            var flksrcpath = Path.Combine(DataPath, "mf2", "data", "mon", "btl_con", flkfilename);
-            var flkdstpath = Path.Combine(RedirectPath, flkfilename);
-            var flk = MonsterFlkFile[display];
+            var flksrcpath = Path.Combine(Mod.DataPath, "mf2", "data", "mon", "btl_con", flkfilename);
+            var flkdstpath = Path.Combine(redirectPath, flkfilename);
+            var flk = await File.ReadAllBytesAsync(flksrcpath);
             atkfile.CopyTo(flk, 0);
             await File.WriteAllBytesAsync(flkdstpath, flk);
             Logger.Debug($"Redirecting {flksrcpath} to {flkdstpath}");
             redirector.AddRedirect(flksrcpath, flkdstpath);
         }
 
-        // Now write the attack data back to the exe
+        // Now write the attack name data back to the exe
         // TODO actually get the attack name table working
         // _memory.Write((nuint)(Base.Mod.Base.ExeBaseAddress + ATK_HEADER_OFFSET.ToUInt32()), atkData);
         Logger.Debug("Finished Saving atk data");
+    }
+
+    public MonsterBreed GetBreed(MonsterGenus main, MonsterGenus sub)
+    {
+        return MonsterBreeds.Find(m => m.Main == main && m.Sub == sub)!;
+    }
+
+    public async Task LoadMonsterBreeds()
+    {
+        if (Mod.DataPath == null)
+        {
+            Logger.Warn("Extraction isn't complete before loading attack data.");
+            return;
+        }
+
+        var newBreeds = new List<MonsterBreed>
+        {
+            Capacity = 400
+        };
+        var atkNameTable = LoadAtkNames();
+        foreach (var info in IMonster.AllMonsters)
+        {
+            if (info.Name.StartsWith("Unknown")) continue;
+
+            var shortname = info.ShortName[..2];
+            var breedFolder = @$"{Mod.DataPath}\mf2\data\mon\{info.ShortName}\";
+            var textureFiles = Directory.EnumerateFiles(breedFolder, "??_??.tex");
+            var techniqueFile = Path.Combine(breedFolder, $"{shortname}_{shortname}_wz.bin");
+
+            // Build a singular tech list. This will be the same for every breed until I do the right now and actually check errantry (no thanks :( )
+            var data = await File.ReadAllBytesAsync(techniqueFile);
+
+            Logger.Debug($"loading technique list for ${info.Name}");
+            var techs = CreateTechs(atkNameTable[info.Id], data);
+
+            // Enumerate through each species tex file and generate the final breeds.
+            foreach (var filename in textureFiles)
+            {
+                var mainIdentifier = filename[^9..2];
+                var subIdentifier = filename[^6..2];
+                var breedIdentifier = $"{mainIdentifier}_{subIdentifier}";
+
+                // Compares Sub Information to Known Monsters - Have to do some shenanigans to take care of the unknown ??? species in the database.
+                var subInfo = IMonster.AllMonsters.First(s =>
+                    s.ShortName[..2].Equals(subIdentifier, StringComparison.InvariantCultureIgnoreCase));
+
+                newBreeds.Add(new MonsterBreed
+                {
+                    Main = info.Id,
+                    Sub = subInfo.Id,
+                    Name = string.Empty,
+                    BreedIdentifier = breedIdentifier,
+                    TechList = techs
+                });
+            }
+        }
+
+        MonsterBreeds = newBreeds;
     }
 
 
@@ -148,7 +186,7 @@ public class Game : BaseObject<Game>, IGame
         CheckForSceneChange();
         if (_hook == null)
         {
-            _logger.WriteLine($"[{_modConfig.ModId}] Function hook for frame start is null.", Color.Red);
+            Logger.Error("Function hook for frame start is null.");
             return 0;
         }
 
@@ -173,7 +211,7 @@ public class Game : BaseObject<Game>, IGame
         // _logger.WriteLine($"[MRDX.Base.Mod] Monster changed: {flags}");
         if (Monster is not Monster mon)
         {
-            _logger.WriteLine($"[{_modConfig.ModId}] Monster in UpdateMonster is not a Monster.", Color.Red);
+            Logger.Error("Monster in UpdateMonster is not a Monster.");
             return;
         }
 
@@ -193,7 +231,7 @@ public class Game : BaseObject<Game>, IGame
     {
     }
 
-    private Dictionary<MonsterGenus, string[,]> LoadAtkNames()
+    private static Dictionary<MonsterGenus, string[,]> LoadAtkNames()
     {
         const nuint ATK_HEADER_OFFSET = 0x340870;
         const nuint ATK_NAME_OFFSET = 0x3416B0;
@@ -225,7 +263,7 @@ public class Game : BaseObject<Game>, IGame
         return atkList;
     }
 
-    private List<IMonsterTechnique> CreateTechs(string[,] atkNames, Span<byte> rawStats)
+    private static List<IMonsterTechnique> CreateTechs(string[,] atkNames, Span<byte> rawStats)
     {
         var techs = new List<IMonsterTechnique>
         {
@@ -237,14 +275,17 @@ public class Game : BaseObject<Game>, IGame
             for (var j = 0; j < 6; ++j)
             {
                 var slot = (i * 6 + j) * 4;
-                // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack tech {tech} slot {slot}");
+                Logger.Trace($"new attack tech {tech} slot {slot}");
                 var offset = BitConverter.ToInt32(rawStats[slot .. (slot + 4)]);
                 if (offset < 0)
-                    // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] skipping negative offset {offset}");
+                {
+                    Logger.Trace($"skipping negative offset {offset}");
                     continue;
+                }
 
-                // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
-                techs.Add(new MonsterTechnique(atkNames[i, j], j, rawStats[offset .. (offset + 0x20)]));
+                Logger.Trace($"new attack offset {offset}");
+                techs.Add(new MonsterTechnique(atkNames[i, j], (TechSlots)(1 << (i * 6 + j)),
+                    rawStats[offset .. (offset + 0x20)]));
             }
         }
 
