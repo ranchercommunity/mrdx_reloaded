@@ -131,7 +131,7 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private void ProcessExtractedData()
     {
-        tournamentData = new TournamentData(_configuration);
+        tournamentData = new TournamentData(_gamePath, _configuration);
         // SetupMonsterBreeds();
 
         _LT = new LearningTesting(_iHooks, _gameAddress);
@@ -161,7 +161,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         if (!File.Exists(file)) return;
 
-        List<TournamentMonster> monsters = [];
+        List<byte[]> monstersRaw = [];
 
         var rawabd = new byte[100];
 
@@ -172,10 +172,10 @@ public class Mod : ModBase // <= Do not Remove.
             remaining--;
 
             fs.ReadExactly(rawabd, 0, 100);
-            monsters.Add(new TournamentMonster(rawabd));
+            monstersRaw.Add(rawabd);
         }
 
-        tournamentData.LoadSavedTournamentData(monsters);
+        tournamentData.LoadSavedTournamentData(monstersRaw);
     }
 
 

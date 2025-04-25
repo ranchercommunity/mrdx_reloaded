@@ -11,22 +11,22 @@ public class TournamentMonster : BattleMonsterData
     private readonly byte _growthIntensity;
     private readonly ushort _growthRate;
     private readonly Config.TechInt _trainerIntelligence;
+    public readonly MonsterBreed BreedInfo;
     public readonly ushort LifeTotal;
     private byte _growthDef;
     private byte _growthInt;
 
     private byte _growthLif;
+
+    private List<byte> _growthOptions;
     private byte _growthPow;
     private byte _growthSki;
     private byte _growthSpd;
 
     public bool Alive = true;
-    public MonsterBreed BreedInfo;
-
-    private List<byte> growth_options;
     public ushort Lifespan;
 
-    public List<TournamentPool> pools = new();
+    public List<TournamentPool> Pools = [];
 
     public EMonsterRanks Rank;
 
@@ -34,7 +34,7 @@ public class TournamentMonster : BattleMonsterData
     {
     }
 
-    public TournamentMonster(List<MonsterBreed> breed, Config config, IBattleMonsterData m) : base(m)
+    public TournamentMonster(Config config, IBattleMonsterData m) : base(m)
     {
         Logger.Info("Creating monster from game data.", Color.Lime);
         BreedInfo = breed;
@@ -105,15 +105,16 @@ public class TournamentMonster : BattleMonsterData
                         MonsterAddTechnique(t);
     }
 
-    public TournamentMonster(MonsterBreed breed, byte[] rawabd) : base(IBattleMonsterData.FromBytes(rawabd[40..100]))
+    public TournamentMonster(Dictionary<ETournamentPools, TournamentPool> pools, byte[] rawabd) : base(
+        IBattleMonsterData.FromBytes(rawabd[40..100]))
     {
         Logger.Info("Loading monster from ABD Save File.", Color.Lime);
 
         BreedInfo = breed;
 
-        LifeTotal = rawabd[0];
-        Lifespan = rawabd[2];
-        _growthRate = rawabd[4];
+        LifeTotal = BitConverter.ToUInt16(rawabd, 0);
+        Lifespan = BitConverter.ToUInt16(rawabd, 2);
+        _growthRate = BitConverter.ToUInt16(rawabd, 4);
         _growthGroup = (GrowthGroups)rawabd[6];
         _growthIntensity = rawabd[7];
 
@@ -121,6 +122,8 @@ public class TournamentMonster : BattleMonsterData
 
         var rawpools = new byte[4];
         rawabd[10..14].CopyTo(rawpools, 0);
+        foreach (var pool in rawpools)
+            Pools.Add(pools[(ETournamentPools)pool]);
 
         _growthLif = rawabd[14];
         _growthPow = rawabd[15];
@@ -129,11 +132,11 @@ public class TournamentMonster : BattleMonsterData
         _growthDef = rawabd[18];
         _growthInt = rawabd[19];
 
-        growth_options = [];
+        _growthOptions = [];
         for (var i = 14; i < 19; i++)
         {
             if (rawabd[i] == 0) rawabd[i] = 1;
-            for (var j = 0; j < rawabd[i]; j++) growth_options.Add((byte)(i - 14));
+            for (var j = 0; j < rawabd[i]; j++) _growthOptions.Add((byte)(i - 14));
         }
 
         _trainerIntelligence = (Config.TechInt)rawabd[20];
@@ -156,7 +159,7 @@ public class TournamentMonster : BattleMonsterData
     {
         // Life, Pow, Skill, Speed, Def, Int
 
-        growth_options = new List<byte>();
+        _growthOptions = new List<byte>();
         byte[] gopts = [0];
 
         if (_growthGroup == GrowthGroups.Balanced)
@@ -275,7 +278,7 @@ public class TournamentMonster : BattleMonsterData
 
         for (var i = 0; i < gopts.Length; i++)
         for (var j = 0; j < gopts[i]; j++)
-            growth_options.Add((byte)i);
+            _growthOptions.Add((byte)i);
     }
 
     public void AdvanceMonth()
@@ -299,7 +302,7 @@ public class TournamentMonster : BattleMonsterData
 
         for (var i = 0; i < agegroup; i++)
         {
-            var stat = growth_options[TournamentData.GrowthRNG.Next() % growth_options.Count()];
+            var stat = _growthOptions[TournamentData.GrowthRNG.Next(_growthOptions.Count)];
 
             if (stat == 0 && Life <= 999)
                 Life++;
@@ -528,10 +531,9 @@ public class TournamentMonster : BattleMonsterData
         // 20, Trainer Intelligence
 
         var data = new byte[40 + 60];
-
-        data[0] = (byte)LifeTotal;
-        data[2] = (byte)Lifespan;
-        data[4] = (byte)_growthRate;
+        BitConverter.GetBytes(LifeTotal).CopyTo(data, 0);
+        BitConverter.GetBytes(Lifespan).CopyTo(data, 2);
+        BitConverter.GetBytes(_growthRate).CopyTo(data, 4);
         data[6] = (byte)_growthGroup;
         data[7] = _growthIntensity;
         data[8] = (byte)Rank;
@@ -540,8 +542,8 @@ public class TournamentMonster : BattleMonsterData
         data[11] = 0xFF;
         data[12] = 0xFF;
         data[13] = 0xFF;
-        for (var i = 0; i < pools.Count && i < 4; i++)
-            data[10 + i] = (byte)pools[i].Pool;
+        for (var i = 0; i < Pools.Count && i < 4; i++)
+            data[10 + i] = (byte)Pools[i].Pool;
 
         data[14] = _growthLif;
         data[15] = _growthPow;
@@ -552,6 +554,7 @@ public class TournamentMonster : BattleMonsterData
 
         data[20] = (byte)_trainerIntelligence;
 
+        // Now copy the raw monster data to the last 60 bytes
         Serialize().CopyTo(data, 40);
         return data;
     }

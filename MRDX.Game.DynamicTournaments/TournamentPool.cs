@@ -83,32 +83,24 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         MonsterGenus.YX, MonsterGenus.YY, MonsterGenus.YZ
     ];
 
-    private readonly TournamentData _tournamentData = tournament;
-
     public readonly TournamentInfo Info = Tourneys[pool];
 
     public readonly ETournamentPools Pool = pool;
 
-    // public List<TournamentMonster> Monsters = new();
+    private Range<int> RankRange => Info.Rank switch
+    {
+        EMonsterRanks.L => (conf.RankM4, conf.RankM4),
+        EMonsterRanks.M => (conf.RankS, conf.RankM4),
+        EMonsterRanks.S => (conf.RankA, conf.RankS),
+        EMonsterRanks.A => (conf.RankB, conf.RankA),
+        EMonsterRanks.B => (conf.RankC, conf.RankB),
+        EMonsterRanks.C => (conf.RankD, conf.RankC),
+        EMonsterRanks.D => (conf.RankE, conf.RankD),
+        EMonsterRanks.E => (conf.RankZ, conf.RankE)
+    };
 
-    // public void MonsterAdd(TournamentMonster m)
-    // {
-    //     if (Monsters.Contains(m)) return;
-    //     Monsters.Add(m);
-    //     m.pools.Add(this);
-    // }
-    //
-    // public void MonsterRemove(TournamentMonster m)
-    // {
-    //     if (!Monsters.Contains(m)) return;
-    //     Monsters.Remove(m);
-    //     m.pools.Remove(this);
-    // }
-
-    // private Range<int> StatRangeFromConf()
-    // {
-    //     switch
-    // }
+    private int StatStart => Math.Clamp(Info.StatOffset.Min + RankRange.Min, 1, 9999);
+    private int StatEnd => Math.Clamp(Info.StatOffset.Max + RankRange.Max, 1, 9999);
 
     /// <summary>
     ///     This function promotes two sets of monsters.
@@ -121,24 +113,22 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         Logger.Info("Promoting monsters from " + Info.Name + " to " + newPool.Info.Name, Color.LightBlue);
         var stattotal = 0;
         // Find all monsters in this pool
-        var monsters = _tournamentData.Monsters
-            .FindAll(m => m.pools.Select(p => p.Pool).Contains(Pool));
+        var monsters = tournament.Monsters
+            .FindAll(m => m.Pools.Select(p => p.Pool).Contains(Pool));
         var promoted = monsters[0];
 
-        var (stat_start, stat_end) = Math.Clamp(Info.StatOffset.Max + conf.), 1, 9999);
-
         foreach (var mon in monsters)
-            stattotal += Math.Max(mon.StatTotal - -100, 1);
+            stattotal += Math.Max(mon.StatTotal - (StatEnd - 100), 1);
 
         if (stattotal > 50)
         {
             stattotal = Random.Shared.Next(stattotal);
-            for (var i = 0; i < monsters.Count; i++)
+            foreach (var monster in monsters)
             {
-                var mvalue = Math.Max(monsters[i].StatTotal - (stat_end - 100), 1);
-                ;
+                var mvalue = Math.Max(monster.StatTotal - (StatEnd - 100), 1);
+
                 stattotal -= mvalue;
-                promoted = monsters[i];
+                promoted = monster;
                 if (stattotal <= 0) break;
             }
 
@@ -150,19 +140,16 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         }
 
         for (var i = monsters.Count - 1; i >= 0; i--)
-            if (monsters[i].StatTotal - 100 > stat_end)
+            if (monsters[i].StatTotal - 100 > StatEnd)
                 MonsterPromoteToNewPool(monsters[i], newPool);
     }
 
-    // private void MonsterPromoteToNewPool(TournamentMonster monster, TournamentPool newPool)
-    // {
-    //     monster.LearnTechnique();
-    //     monster.Rank = newPool.Rank;
-    //
-    //     MonsterRemove(monster);
-    //     newPool.MonsterAdd(monster);
-    //     Logger.Info(monster.monster.name + " promoted.", Color.LightBlue);
-    // }
+    private void MonsterPromoteToNewPool(TournamentMonster monster, TournamentPool newPool)
+    {
+        monster.LearnTechnique();
+        monster.Rank = newPool.Info.Rank;
+        Logger.Info($"{monster.Name} promoted.", Color.LightBlue);
+    }
 
     public TournamentMonster GenerateNewValidMonster(List<MonsterGenus> available)
     {
@@ -219,7 +206,8 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
             Spoil = (byte)Random.Shared.Next(25),
             ArenaSpeed = (byte)Random.Shared.Next(4), // TODO: Where does this come from?
             GutsRate = (byte)Random.Shared.Next(7, 21), // 7 - 20?
-            BattleSpecial = (BattleSpecials)Random.Shared.Next(4)
+            BattleSpecial = (BattleSpecials)Random.Shared.Next(4),
+            Pools = [this]
         };
         Logger.Trace("TP: Breed " + nm.GenusMain + " " + nm.GenusMain, Color.AliceBlue);
 
@@ -245,11 +233,11 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         // Logger.Trace("TP: Basics Setup " + nm.techs.Count, Color.AliceBlue);
 
         // This is significantly messing with growth rates across the board. Going to manually set the lifespan afterwards based upon the rank.
-        while (nm.StatTotal < stat_start)
+        while (nm.StatTotal < StatStart)
             nm.AdvanceMonth();
         Logger.Trace("TP: Stats Generated", Color.AliceBlue);
 
-        for (var i = 0; i < tournament_tier; i++)
+        for (var i = 0; i < Info.Tier; i++)
             nm.LearnTechnique();
         Logger.Trace("TP: Techs", Color.AliceBlue);
 
@@ -268,7 +256,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         };
         nm.Alive = true;
 
-        nm.PromoteToRank(_monsterRank);
+        nm.PromoteToRank(Info.Rank);
 
         Logger.Debug("TP: Complete", Color.AliceBlue);
         return nm;
@@ -287,9 +275,9 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
     ///     Adds the tournament participants to the provided list. This is a random selection of [_minimumSize] monsters.
     /// </summary>
     /// <param name="participants"></param>
-    public void AddTournamentParticipants(List<TournamentMonster> participants)
-    {
-        for (var i = 0; i < Info.Size; i++)
-            participants.Add(Monsters[i]);
-    }
+    // public void AddTournamentParticipants(List<TournamentMonster> participants)
+    // {
+    //     for (var i = 0; i < Info.Size; i++)
+    //         participants.Add(Monsters[i]);
+    // }
 }
