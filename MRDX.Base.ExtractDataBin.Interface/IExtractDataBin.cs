@@ -43,7 +43,8 @@ public class OneTimeEvent<T>
             _subscribers.Clear(); // Optional: allow only one-time notification
         }
 
-        foreach (var subscriber in toInvoke) subscriber?.Invoke(args);
+        foreach (var subscriber in toInvoke)
+            subscriber?.Invoke(args);
     }
 
     public void Subscribe(Action<T?> callback)
@@ -60,7 +61,8 @@ public class OneTimeEvent<T>
                 argsCopy = _eventArgs;
         }
 
-        if (alreadyFired) callback?.Invoke(argsCopy);
+        if (alreadyFired)
+            callback?.Invoke(argsCopy);
     }
 
     public void Unsubscribe(Action<T?> callback)

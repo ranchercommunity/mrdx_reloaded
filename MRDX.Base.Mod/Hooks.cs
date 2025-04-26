@@ -36,8 +36,7 @@ public class Hooks : IHooks
             var signature = Utils.GetSignature<T>(Base.Game, Base.Region);
             scanner.AddMainModuleScan(signature, result =>
             {
-                _logger.WriteLine(
-                    $"[{_modConfig.ModId}] Created hook for {hookFunc} @ {Base.ExeBaseAddress + result.Offset}");
+                Logger.Debug($"Created hook for {hookFunc} @ {Base.ExeBaseAddress + result.Offset}");
                 promise.SetResult(_hooks.CreateHook(hookFunc, Base.ExeBaseAddress + result.Offset));
             });
         }

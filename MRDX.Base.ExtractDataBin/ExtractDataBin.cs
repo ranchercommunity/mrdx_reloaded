@@ -55,7 +55,8 @@ public class ExtractDataBin : IExtractDataBin
     public string? ExtractMr1()
     {
         _logger.WriteLine($"[{_modConfig.ModId}] Lock acquired. Extracting MR1 data.bin");
-        var tokenPath = Path.Combine(_extractedPath!, "extraction_complete.txt");
+        _extractedPath = Path.Combine(_exepath ?? "/", _mr1RelExtractPath);
+        var tokenPath = Path.Combine(_extractedPath, "extraction_complete.txt");
         if (!File.Exists(tokenPath))
         {
             Extract(_mr1RelExtractPath, _mr1RelZipPath);
@@ -63,7 +64,6 @@ public class ExtractDataBin : IExtractDataBin
         else
         {
             // Immediately call any callbacks that are waiting on extraction
-            _extractedPath = Path.Combine(_exepath ?? "/", _mr1RelExtractPath);
             IExtractDataBin.ExtractedPath = _extractedPath;
             _extractComplete.Fire(_extractedPath);
         }
@@ -76,7 +76,8 @@ public class ExtractDataBin : IExtractDataBin
     public string? ExtractMr2()
     {
         _logger.WriteLine($"[{_modConfig.ModId}] Lock acquired. Extracting MR2 data.bin");
-        var tokenPath = Path.Combine(_extractedPath!, "extraction_complete.txt");
+        _extractedPath = Path.Combine(_exepath ?? "/", _mr2RelExtractPath);
+        var tokenPath = Path.Combine(_extractedPath, "extraction_complete.txt");
         if (!File.Exists(tokenPath))
         {
             Extract(_mr2RelExtractPath, _mr2RelZipPath);
@@ -84,7 +85,7 @@ public class ExtractDataBin : IExtractDataBin
         else
         {
             // Immediately call any callbacks that are waiting on extraction
-            _extractedPath = Path.Combine(_exepath ?? "/", _mr2RelExtractPath);
+            _logger.WriteLine($"[{_modConfig.ModId}] Finished extracting MR2 data.bin, nothing to do");
             IExtractDataBin.ExtractedPath = _extractedPath;
             _extractComplete.Fire(_extractedPath);
         }

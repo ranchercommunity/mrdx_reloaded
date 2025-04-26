@@ -23,11 +23,11 @@
   "IsUniversalMod": false,
   "ModDependencies": [
     "reloaded.sharedlib.hooks",
-    "Reloaded.Memory.SigScan.ReloadedII"
-  ],
-  "OptionalDependencies": [
+    "reloaded.universal.redirector",
+    "Reloaded.Memory.SigScan.ReloadedII",
     "MRDX.Base.ExtractDataBin"
   ],
+  "OptionalDependencies": [],
   "SupportedAppId": [
     "mf.exe",
     "mf2.exe"

@@ -96,18 +96,20 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     public Mod(ModContext context)
     {
+        // Debugger.Launch();
         _modLoader = context.ModLoader;
         _hooks = context.Hooks;
         _logger = context.Logger;
         _owner = context.Owner;
         _modConfig = context.ModConfig;
         _configuration = context.Configuration;
+        Logger.LoggerInternal = _logger;
 
-        _game = new Game(context);
-
+        // Order is somewhat important here as some other controllers will use the Hooks
         var hooks = new Hooks(context);
         _modLoader.AddOrReplaceController<IHooks>(_owner, hooks);
         _modLoader.AddOrReplaceController<IController>(_owner, new Controller(context));
+        _game = new Game(context);
         _modLoader.AddOrReplaceController(_owner, _game);
         _modLoader.AddOrReplaceController<IGameClient>(_owner, new GameClient());
         _modLoader.AddOrReplaceController<ISaveFile>(_owner, new SaveFileManager(_modLoader));
@@ -158,20 +160,25 @@ public class Mod : ModBase, IExports // <= Do not Remove.
     private void ExtractionComplete(string? path)
     {
         DataPath = path;
-        LoadMonsterBreeds().ContinueWith(t => { _game.OnMonsterBreedsLoaded.Fire(true); });
+        LoadMonsterBreeds()
+            .ContinueWith(t =>
+            {
+                Logger.Debug("Firing monster breed loaded one off event");
+                _game.OnMonsterBreedsLoaded.Fire(true);
+            });
     }
 
     private void FixMonsterBreedPluralization(PatternScanResult result, int addrOffset)
     {
         if (!result.Found)
         {
-            _logger.WriteLine("[MRDX.Base] Unable to find pointer to pluralized text!");
+            Logger.Warn("Unable to find pointer to pluralized text!");
             return;
         }
 
         var pointer = (nuint)(Base.ExeBaseAddress + result.Offset + addrOffset);
         _memory.Read(pointer, out nuint addr);
-        _logger.WriteLine($"[MRDX.Base] Patching Pluralization at {addr:x}");
+        Logger.Info($"Patching Pluralization at {addr:x}");
         // each name is a fixed chunk of 13 letters (ushort) + 1 bytes (0xff)
         for (var i = 0; i < PluralNames.Count; ++i)
         {
@@ -184,11 +191,12 @@ public class Mod : ModBase, IExports // <= Do not Remove.
             _memory.SafeWrite(straddr, unpluralized);
         }
 
-        _logger.WriteLine($"[MRDX.Base] Patching Pluralization at {addr:x} Complete");
+        Logger.Info($"Patching Pluralization at {addr:x} Complete");
     }
 
     private static async Task LoadMonsterBreeds()
     {
+        Logger.Info("Loading monster breeds");
         var newBreeds = new List<MonsterBreed>
         {
             Capacity = 400
@@ -204,26 +212,42 @@ public class Mod : ModBase, IExports // <= Do not Remove.
             var techniqueFile = Path.Combine(breedFolder, $"{shortname}_{shortname}_wz.bin");
 
             // Build a singular tech list. This will be the same for every breed until I do the right now and actually check errantry (no thanks :( )
+            Logger.Trace($"loading technique list from {techniqueFile}");
             var data = await File.ReadAllBytesAsync(techniqueFile);
 
-            Logger.Debug($"loading technique list for ${info.Name}");
+            Logger.Debug($"Creating technique list for {info.Name}");
             var techs = CreateTechs(atkNameTable[info.Id], data);
+            Logger.Trace($"tech loading complete for {info.Name}");
 
             // Enumerate through each species tex file and generate the final breeds.
             foreach (var filename in textureFiles)
             {
-                var mainIdentifier = filename[^9..2];
-                var subIdentifier = filename[^6..2];
+                Logger.Trace($"checking texture files by the name of {filename}");
+                var mainIdentifier = filename[^9..^7];
+                var subIdentifier = filename[^6..^4];
                 var breedIdentifier = $"{mainIdentifier}_{subIdentifier}";
+                Logger.Trace($"creating new breed {breedIdentifier}");
 
                 // Compares Sub Information to Known Monsters - Have to do some shenanigans to take care of the unknown ??? species in the database.
-                var subInfo = IMonster.AllMonsters.First(s =>
-                    s.ShortName[..2].Equals(subIdentifier, StringComparison.InvariantCultureIgnoreCase));
+                var sub = MonsterGenus.Garbage;
+                foreach (var mon in IMonster.AllMonsters)
+                    if (mon.ShortName[..2].Equals(subIdentifier, StringComparison.OrdinalIgnoreCase))
+                    {
+                        sub = mon.Id;
+                        break;
+                    }
 
+                if (sub == MonsterGenus.Garbage)
+                {
+                    Logger.Trace($"Can't handle garbage unknown breed {breedIdentifier}");
+                    continue;
+                }
+
+                Logger.Trace($"found subinfo: {sub}");
                 newBreeds.Add(new MonsterBreed
                 {
                     Main = info.Id,
-                    Sub = subInfo.Id,
+                    Sub = sub,
                     Name = string.Empty,
                     BreedIdentifier = breedIdentifier,
                     TechList = techs
@@ -231,6 +255,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
             }
         }
 
+        Logger.Info("Finished loading all breeds");
         MonsterBreed.AllBreeds = newBreeds;
     }
 

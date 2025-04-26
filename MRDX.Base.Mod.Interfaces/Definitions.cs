@@ -236,7 +236,8 @@ public enum MonsterGenus : byte
     XZ = 40, // Unknown 3
     YX = 41, // Unknown 4
     YY = 42, // Unknown 5
-    YZ = 43 // Unknown 6
+    YZ = 43, // Unknown 6,
+    Garbage = 0xff
 }
 
 public enum Form : sbyte
@@ -345,6 +346,7 @@ public record MonsterBreed
 
     public static MonsterBreed? GetBreed(MonsterGenus main, MonsterGenus sub)
     {
+        Logger.Trace($"Get Breed: {main}, sub: {sub}");
         return AllBreeds.Find(m => m.Main == main && m.Sub == sub);
     }
 }

@@ -58,12 +58,17 @@ public class SaveFileManager : ISaveFile
             _saveDataReadCount++;
 
             if (_saveDataReadCount >= 4)
+            {
+                Logger.Debug("Setting save game loaded to true");
                 _saveDataGameLoaded = true;
+            }
         }
         else if (filename.Contains("psdata001.bin"))
         {
             if (_saveDataReadCount <= 3) return;
-            OnSave?.Invoke(new SaveFileEntry(filename, _saveDataSlot, filename.Contains("614")));
+            var saveslot = new SaveFileEntry(filename, _saveDataSlot, filename.Contains("614"));
+            Logger.Debug($"Calling OnSave callback for {saveslot}");
+            OnSave?.Invoke(saveslot);
             _saveDataGameLoaded = false;
         }
         else
@@ -77,7 +82,9 @@ public class SaveFileManager : ISaveFile
     {
         _updateHook!.OriginalFunction(parent);
         if (!_saveDataGameLoaded) return;
-        OnLoad?.Invoke(new SaveFileEntry(_filename, _saveDataSlot, _saveDataSlot.Contains("614")));
+        var saveslot = new SaveFileEntry(_filename, _saveDataSlot, _saveDataSlot.Contains("614"));
+        Logger.Debug($"Calling OnLoad callback for {saveslot}");
+        OnLoad?.Invoke(saveslot);
         _saveDataReadCount = 0;
         _saveDataGameLoaded = false;
     }

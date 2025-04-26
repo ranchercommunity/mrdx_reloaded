@@ -96,7 +96,8 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         EMonsterRanks.B => (conf.RankC, conf.RankB),
         EMonsterRanks.C => (conf.RankD, conf.RankC),
         EMonsterRanks.D => (conf.RankE, conf.RankD),
-        EMonsterRanks.E => (conf.RankZ, conf.RankE)
+        EMonsterRanks.E => (conf.RankZ, conf.RankE),
+        _ => throw new ArgumentOutOfRangeException()
     };
 
     private int StatStart => Math.Clamp(Info.StatOffset.Min + RankRange.Min, 1, 9999);
@@ -115,6 +116,12 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         // Find all monsters in this pool
         var monsters = tournament.Monsters
             .FindAll(m => m.Pools.Select(p => p.Pool).Contains(Pool));
+        if (monsters.Count == 0)
+        {
+            Logger.Debug($"Pool {Pool} is empty! nothing to promote");
+            return;
+        }
+
         var promoted = monsters[0];
 
         foreach (var mon in monsters)
@@ -136,7 +143,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         }
         else
         {
-            Logger.Info("Tournament Stat Totals dangeorusly low. Growth rates may be too low.", Color.Yellow);
+            Logger.Warn("Tournament Stat Totals dangeorusly low. Growth rates may be too low.");
         }
 
         for (var i = monsters.Count - 1; i >= 0; i--)
@@ -158,7 +165,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         var mainRestrictions = RestrictMainBreeds.GetValueOrDefault(Pool) ?? [];
         var subRestrictions = RestrictSubBreeds.GetValueOrDefault(Pool) ?? [];
 
-        var allBreeds = new List<MonsterBreed>(IMonster.AllBreeds);
+        var allBreeds = new List<MonsterBreed>(MonsterBreed.AllBreeds);
         Utils.Shuffle(Random.Shared, allBreeds);
         var breed = allBreeds[0];
         foreach (var b in allBreeds)
@@ -189,8 +196,8 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
 
     private TournamentMonster GenerateNewValidMonster(MonsterBreed breed)
     {
-        Logger.Debug("TP: Generating", Color.AliceBlue);
-        var nm = new TournamentMonster
+        Logger.Debug("TP: Generating ", Color.AliceBlue);
+        var monData = new BattleMonsterData
         {
             GenusMain = breed.Main,
             GenusSub = breed.Sub,
@@ -206,15 +213,14 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
             Spoil = (byte)Random.Shared.Next(25),
             ArenaSpeed = (byte)Random.Shared.Next(4), // TODO: Where does this come from?
             GutsRate = (byte)Random.Shared.Next(7, 21), // 7 - 20?
-            BattleSpecial = (BattleSpecials)Random.Shared.Next(4),
-            Pools = [this]
+            BattleSpecial = (BattleSpecials)Random.Shared.Next(4)
         };
+        var nm = new TournamentMonster(conf, monData);
         Logger.Trace("TP: Breed " + nm.GenusMain + " " + nm.GenusMain, Color.AliceBlue);
 
         // Attempt to assign three basics, weighted generally towards worse basic techs with variance.
         if (nm.BreedInfo.TechList[0].Type == ErrantryType.Basic)
             nm.MonsterAddTechnique(nm.BreedInfo.TechList[0]);
-        // nm.techniques.Add(nm.BreedInfo._techniques[0]);
         for (var tc = 0; tc < 3; tc++)
         {
             var tech = nm.BreedInfo.TechList[0];
@@ -259,6 +265,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         nm.PromoteToRank(Info.Rank);
 
         Logger.Debug("TP: Complete", Color.AliceBlue);
+        nm.Pools.Add(this);
         return nm;
     }
 
@@ -270,14 +277,4 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
             .First(kvpair => kvpair.Value.Id.Min <= id && id < kvpair.Value.Id.Max)
             .Key;
     }
-
-    /// <summary>
-    ///     Adds the tournament participants to the provided list. This is a random selection of [_minimumSize] monsters.
-    /// </summary>
-    /// <param name="participants"></param>
-    // public void AddTournamentParticipants(List<TournamentMonster> participants)
-    // {
-    //     for (var i = 0; i < Info.Size; i++)
-    //         participants.Add(Monsters[i]);
-    // }
 }

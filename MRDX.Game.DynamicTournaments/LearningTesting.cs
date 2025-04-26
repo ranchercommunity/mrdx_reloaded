@@ -94,9 +94,12 @@ namespace MRDX.Game.DynamicTournaments
         public bool _tournamentEntered;
         public int _tournamentStatBonus = 5; // A Number between 0 and X, 0-X is added to the stat gains.
 
-        public LearningTesting(IHooks? hooks, nuint gameAddress)
+        public LearningTesting(IHooks? hooks)
         {
-            _address_game = gameAddress;
+            var thisProcess = Process.GetCurrentProcess();
+            var module = thisProcess.MainModule!;
+            var exeBaseAddress = module.BaseAddress.ToInt64();
+            _address_game = (nuint)exeBaseAddress;
             _address_currentweek = _address_game + 0x379444;
             _address_monsterdata = _address_game + 0x37667C;
 

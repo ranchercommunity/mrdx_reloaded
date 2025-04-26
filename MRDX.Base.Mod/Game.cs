@@ -39,6 +39,11 @@ public class Game : BaseObject<Game>, IGame
         set => Write(value);
     }
 
+    [BaseOffset(BaseGame.Mr2, Region.Us, 0x3795A2)]
+    public List<MonsterGenus> UnlockedMonsters => ReadArray<byte>(44).ToArray()
+        .Select((m, i) => m != 0 ? (MonsterGenus)i : MonsterGenus.Garbage)
+        .Where(m => m != MonsterGenus.Garbage).ToList();
+
     [BaseOffset(BaseGame.Mr2, Region.Us, 0x97A0C)]
     public IMonster Monster { get; set; } = new Monster(Get() + BaseObject<Monster>.BaseOffset());
 

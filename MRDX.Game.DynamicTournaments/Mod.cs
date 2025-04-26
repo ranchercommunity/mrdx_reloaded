@@ -4,50 +4,31 @@ using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.Mod.Interfaces;
 using MRDX.Game.DynamicTournaments.Template;
 using Reloaded.Hooks.Definitions;
-using Reloaded.Hooks.Definitions.X86;
-using Reloaded.Memory.Sigscan.Definitions;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Universal.Redirector.Interfaces;
 using Config = MRDX.Game.DynamicTournaments.Configuration.Config;
 
-//using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
-
-//using static MRDX.Base.Mod.Interfaces.TournamentData;
-//using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
-
 namespace MRDX.Game.DynamicTournaments;
 
 public class Mod : ModBase // <= Do not Remove.
 {
-    [HookDef(BaseGame.Mr2, Region.Us, "55 8B EC 53 8B 5D 08 8A C3 24 03 02 C0 56 57 8B F9 BE 01 00 00 00 B1 07")]
-    [Function(CallingConventions.Fastcall)]
-    public delegate void CheckShrineUnlockRequirementHook(nint parent);
-
-    private readonly nuint _addressTournamentmonsters;
-    private readonly nuint _addressUnlockedmonsters;
     private readonly IGame? _game;
-    private readonly nuint _gameAddress;
+
     private readonly IHooks? _iHooks;
-    private readonly IScanner _memoryScanner;
+    private readonly WeakReference<IRedirectorController>? _redirector;
     private readonly string _saveDataFolder;
 
     private readonly ISaveFile? _saveFile;
 
-    private readonly List<MonsterGenus> _unlockedmonsters = [];
     private uint _gameCurrentWeek;
 
     private string? _gamePath;
 
-    private LearningTesting _LT;
+    private LearningTesting _lt;
 
-    //private IHook<CheckShrineUnlockRequirementHook>? _shrineUnlockHook;
-    //private bool monsterUnlockCheckDefaults = false;
-
-    private IHook<UpdateGenericState>? _updateHook;
-
-    public TournamentData tournamentData;
+    private TournamentData? _tournamentData;
 
     public Mod(ModContext context)
     {
@@ -59,9 +40,11 @@ public class Mod : ModBase // <= Do not Remove.
         _modConfig = context.ModConfig;
 
         _saveDataFolder = Path.Combine(_modLoader.GetDirectoryForModId(_modConfig.ModId), "SaveData");
+        Directory.CreateDirectory(_saveDataFolder);
 
         _modLoader.GetController<IHooks>().TryGetTarget(out _iHooks);
         _modLoader.GetController<ISaveFile>().TryGetTarget(out _saveFile);
+        _redirector = _modLoader.GetController<IRedirectorController>();
 
         var startupScanner = _modLoader.GetController<IStartupScanner>();
         //var memscanner = _modLoader.GetController<IScanner>();
@@ -87,14 +70,11 @@ public class Mod : ModBase // <= Do not Remove.
             AlterCode_TournamentLifespanIndex(scanner);
         }
 
-        _modLoader.GetController<IScannerFactory>().TryGetTarget(out var sf);
-        _memoryScanner = sf.CreateScanner(Process.GetCurrentProcess(), Process.GetCurrentProcess().MainModule);
-
         var maybeSaveFile = _modLoader.GetController<ISaveFile>();
         if (maybeSaveFile != null && maybeSaveFile.TryGetTarget(out _saveFile))
         {
             _saveFile.OnSave += SaveTournamentData;
-            _saveFile.OnLoad -= LoadTournamentData;
+            _saveFile.OnLoad += LoadTournamentData;
         }
 
         var maybeGame = _modLoader.GetController<IGame>();
@@ -121,12 +101,25 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private void MonsterBreedsLoaded(bool unused)
     {
+        Logger.Info("Beginning launch of Dynamic Tournaments");
         // It will be extracted so this will not be null at this point
         _gamePath = IExtractDataBin.ExtractedPath!;
-        tournamentData = new TournamentData(_gamePath, _configuration);
+        Logger.Trace("Making new tournament data");
+        _tournamentData = new TournamentData(_gamePath, _configuration);
 
-        _LT = new LearningTesting(_iHooks, _gameAddress);
-        _LT._tournamentStatBonus = _configuration.StatGrowth > 0
+        _tournamentData.SetupTournamentParticipantsFromTaikai();
+
+        var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
+        var enemyFileRedirected = $@"{_saveDataFolder}\taikai_en.flk";
+
+        if (_redirector != null && _redirector.TryGetTarget(out var redirect))
+            redirect.AddRedirect(tournamentMonsterFile, enemyFileRedirected);
+        else
+            Logger.Error("Could not find redirector! Can't setup enemy monster data.");
+
+        Logger.Trace("Setting up learning testing callback");
+        _lt = new LearningTesting(_iHooks);
+        _lt._tournamentStatBonus = _configuration.StatGrowth > 0
             ? _configuration.StatGrowth + 1
             : 0;
     }
@@ -135,11 +128,10 @@ public class Mod : ModBase // <= Do not Remove.
     private void SaveTournamentData(ISaveFileEntry savefile)
     {
         Directory.CreateDirectory(_saveDataFolder);
-
         var file = Path.Combine(_saveDataFolder, $"dtp_monsters_{savefile.Slot}.bin");
 
         using var fs = new FileStream(file, FileMode.Create);
-        foreach (var monster in tournamentData.Monsters)
+        foreach (var monster in _tournamentData!.Monsters)
             fs.Write(monster.ToSaveFile());
 
         Logger.Info($"{savefile} successfully written.");
@@ -148,106 +140,108 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void LoadTournamentData(ISaveFileEntry savefile)
     {
+        if (_tournamentData == null)
+        {
+            Logger.Warn("Attempted to load an invalid tournament data before we finished loading.");
+            return;
+        }
+
         var file = Path.Combine(_saveDataFolder, $"dtp_monsters_{savefile.Slot}.bin");
 
         if (!File.Exists(file)) return;
 
-        List<byte[]> monstersRaw = [];
-
-        var rawabd = new byte[100];
-
-        using var fs = new FileStream(file, FileMode.Open);
-        var remaining = fs.Length / 100;
-        while (remaining > 0)
+        try
         {
-            remaining--;
+            List<byte[]> monstersRaw = [];
 
-            fs.ReadExactly(rawabd, 0, 100);
-            monstersRaw.Add(rawabd);
+            var rawabd = new byte[100];
+
+            using var fs = new FileStream(file, FileMode.Open);
+            var remaining = fs.Length / 100;
+            while (remaining > 0)
+            {
+                remaining--;
+
+                fs.ReadExactly(rawabd, 0, 100);
+                monstersRaw.Add(rawabd);
+            }
+
+            _tournamentData.LoadSavedTournamentData(monstersRaw);
         }
-
-        tournamentData.LoadSavedTournamentData(monstersRaw);
+        catch (Exception e)
+        {
+            // Failed to load the extra monsters from the savefile, so load them from the default enemy file
+            Logger.Info($"Failed to load savefile due to the following error (this may be harmless?): ${e.Message}");
+            _tournamentData.SetupTournamentParticipantsFromTaikai();
+        }
     }
 
 
     private void WeekChangeCallback(IWeekChange week)
     {
+        if (_tournamentData == null)
+            // Can't change weeks before we've finished loading!
+            return;
+
+        _gameCurrentWeek = week.NewWeek;
         // Unfortunately the ordering of these function calls matters so we have to do this shuffling depending on if the game week progressed.
-        GetUnlockedMonsters(_addressUnlockedmonsters);
-        // LoadGameUpdateTournamentData();
-        AdvanceWeekUpdateTournamentMonsters(_unlockedmonsters);
-        UpdateMemoryTournamentData(_addressTournamentmonsters);
+        var unlockedmonsters = GetUnlockedMonsters();
+        AdvanceWeekUpdateTournamentMonsters(unlockedmonsters);
+        UpdateTournamentMonsterFile();
     }
 
-    private void GetUnlockedMonsters(nuint unlockAddress)
+    private List<MonsterGenus> GetUnlockedMonsters()
     {
-        var unlocks = new byte[44];
-        _unlockedmonsters.Clear();
-
+        List<MonsterGenus> monsters;
         switch (_configuration.EnemyTournamentBreed)
         {
+            default:
             case Config.TournamentBreeds.PlayerOnly:
-                unlocks = GetUnlockedMonsters_Player(unlockAddress);
+                monsters = _game!.UnlockedMonsters;
                 break;
             case Config.TournamentBreeds.Realistic:
-                unlocks = GetUnlockedMonsters_Realistic();
+                monsters = GetUnlockedMonsters_Realistic();
                 break;
             case Config.TournamentBreeds.PlayerOnlyRealistic:
             {
-                unlocks = GetUnlockedMonsters_Realistic();
-                var ulp = GetUnlockedMonsters_Player(unlockAddress);
+                // This uses some special logic for Unique Monsters.
+                // I do not respect the player unlock flag here (which is always true).
+                // Otherwise, it's just if either case is true they will show up.
+                var skip = Enumerable.Range((int)MonsterGenus.XX, 6)
+                    .Select(i => (MonsterGenus)i);
 
-                // This uses some special logic for Unique Monsters. I do not respect the player unlock flag here (which is always true). Otherwise, it's just if either case is true they will show up.
-                for (var i = 0; i < 38; i++) unlocks[i] = (byte)(unlocks[i] | ulp[i]);
+                var set = new HashSet<MonsterGenus>();
+                set.UnionWith(GetUnlockedMonsters_Realistic());
+                set.UnionWith(_game!.UnlockedMonsters.Except(skip));
+                monsters = set.ToList();
                 break;
             }
             case Config.TournamentBreeds.WildWest:
             {
-                for (var i = 0; i < unlocks.Length; i++) unlocks[i] = 0x01;
+                monsters = Enumerable.Range(0, (int)MonsterGenus.YZ + 1).Select(i => (MonsterGenus)i).ToList();
                 break;
             }
         }
 
-
-        for (var i = 0; i < unlocks.Length; i++)
-            if (unlocks[i] == 0x01)
-            {
-                _unlockedmonsters.Add((MonsterGenus)i);
-                Logger.Trace("Unlocked Monster Check: " + i, Color.Pink);
-            }
+        return monsters;
     }
 
     private void UpdateTournamentMonsterFile()
     {
-        
-    }
+        if (_tournamentData == null || _tournamentData.Monsters.Count < 118)
+        {
+            Logger.Warn(
+                "Cannot update tournament monsters file because we haven't finished generating all monsters yet.");
+            return;
+        }
 
-    // private void UpdateMemoryTournamentData(nuint tournamentAddress)
-    // {
-    //     var checkPattern = true;
-    //     nuint taddr = 0;
-    //     while (checkPattern)
-    //     {
-    //         taddr = (nuint)_memoryScanner.FindPattern("06 00 00 00 00 00 00 00 20 00 00 00 F4 04 00 00", (int)taddr + 1)
-    //             .Offset;
-    //
-    //         if (taddr == 0xffffffff)
-    //         {
-    //             checkPattern = false;
-    //             break;
-    //         }
-    //
-    //         var enemyAddresses = _gameAddress + taddr + 0xA8C;
-    //         var monsters = tournamentData.GetTournamentMembers(1, 118);
-    //         for (var i = 1; i <= 118; i++)
-    //             Memory.Instance.WriteRaw(enemyAddresses + (nuint)(i * 60), monsters[i - 1].Serialize());
-    //     }
-    // }
+        _tournamentData.WriteTournamentParticipantsToTaikai(_saveDataFolder);
+    }
 
     private void AdvanceWeekUpdateTournamentMonsters(List<MonsterGenus> unlockedmonsters)
     {
         Logger.Debug("Advancing to week " + _gameCurrentWeek, Color.Blue);
-        tournamentData.AdvanceWeek(_gameCurrentWeek, unlockedmonsters);
+        _tournamentData.AdvanceWeek(_gameCurrentWeek, unlockedmonsters);
     }
 
     /// <summary>
@@ -263,9 +257,13 @@ public class Mod : ModBase // <= Do not Remove.
     /// <param name="scanner"></param>
     private void AlterCode_CheckShrineUnlockRequirements(IStartupScanner scanner)
     {
+        // TODO move this whole function to the base mod
+        var thisProcess = Process.GetCurrentProcess();
+        var module = thisProcess.MainModule!;
+        var exeBaseAddress = module.BaseAddress.ToInt64();
         scanner.AddMainModuleScan("55 8B EC 53 8B 5D 08 8A C3 24 03 02 C0 56 57 8B F9 BE 01 00 00 00 B1 07", result =>
         {
-            var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
+            var addr = (nuint)(exeBaseAddress + result.Offset);
             Memory.Instance.SafeWrite(addr + 0x2f, (ushort)0x9090);
         });
     }
@@ -279,10 +277,14 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void AlterCode_TournamentLifespanIndex(IStartupScanner scanner)
     {
+        // TODO move this whole function to the base mod
+        var thisProcess = Process.GetCurrentProcess();
+        var module = thisProcess.MainModule!;
+        var exeBaseAddress = module.BaseAddress.ToInt64();
         scanner.AddMainModuleScan("55 8B EC 81 EC D0 00 00 00 A1 ?? ?? ?? ?? 33 C5 89 45 ?? A1 ?? ?? ?? ?? 53",
             result =>
             {
-                var addr = (nuint)(Base.Mod.Base.ExeBaseAddress + result.Offset);
+                var addr = (nuint)(exeBaseAddress + result.Offset);
                 Memory.Instance.SafeWrite(addr + 0x13E + 0x2, (byte)_configuration.LifespanReduction);
                 Memory.Instance.SafeWrite(addr + 0x143 + 0x1, (byte)_configuration.LifespanReduction);
             });
@@ -333,7 +335,7 @@ public class Mod : ModBase // <= Do not Remove.
         return punlock;
     }
 
-    private byte[] GetUnlockedMonsters_Realistic()
+    private List<MonsterGenus> GetUnlockedMonsters_Realistic()
     {
         // Most of these are psuedo random. Improvements that could be made are:
         // Phoenix - Unlock when the first Expedition is completed.
@@ -387,7 +389,9 @@ public class Mod : ModBase // <= Do not Remove.
         unlocks[(int)MonsterGenus.YX] = (byte)(_gameCurrentWeek >= 48 * 90 ? 1 : 0);
         unlocks[(int)MonsterGenus.YY] = (byte)(_gameCurrentWeek >= 48 * 110 ? 1 : 0);
         unlocks[(int)MonsterGenus.YZ] = (byte)(_gameCurrentWeek >= 48 * 120 ? 1 : 0);
-        return unlocks;
+        return unlocks.ToArray()
+            .Select((m, i) => m != 0 ? (MonsterGenus)i : MonsterGenus.Garbage)
+            .Where(m => m != MonsterGenus.Garbage).ToList();
     }
 
     #endregion

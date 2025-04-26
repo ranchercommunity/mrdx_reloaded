@@ -134,31 +134,23 @@ public class TournamentData
     {
         _config = config;
         _gamePath = gamePath;
+        Logger.Trace("Creating new tourney pools");
         foreach (var pool in Enum.GetValues<ETournamentPools>())
             _tournamentPools.Add(pool, new TournamentPool(this, config, pool));
-
-        SetupTournamentParticipantsFromTaikai();
     }
 
-    private void AddExistingMonster(IBattleMonsterData m, int id)
+    private TournamentMonster AddExistingMonster(IBattleMonsterData m, int id)
     {
         var pool = TournamentPool.PoolFromId(id);
+        Logger.Trace($"Creating new monster for pool {pool}");
         var abdm = new TournamentMonster(_config, m)
         {
             Rank = _tournamentPools[pool].Info.Rank
         };
+        abdm.Pools.Add(_tournamentPools[pool]);
 
         Monsters.Add(abdm);
-        // _tournamentPools[pool].MonsterAdd(abdm);
-    }
-
-    private void AddExistingMonster(TournamentMonster abdm)
-    {
-        Monsters.Add(abdm);
-        // foreach (var pool in tournamentPools.Values)
-        // foreach (var monpool in abdm.pools)
-        //     if ((ETournamentPools)abdm._rawpools[i] == pool.Pool)
-        //         pool.MonsterAdd(abdm);
+        return abdm;
     }
 
     public void AdvanceWeek(uint currentWeek, List<MonsterGenus> unlockedmonsters)
@@ -196,30 +188,19 @@ public class TournamentData
             while (Monsters.Count(m => m.Pools.Contains(pool)) < pool.Info.Size)
                 Monsters.Add(pool.GenerateNewValidMonster(_unlockedTournamentBreeds));
         // Shuffle Monsters - TODO: This should happen weekly.
-        // var ml = pool.Monsters.ToArray();
-        // Random.Shared.Shuffle(ml);
+        Utils.Shuffle(Random.Shared, Monsters);
         _firstweek = false;
     }
 
     public void LoadSavedTournamentData(List<byte[]> monstersRaw)
     {
         var monsters = new List<TournamentMonster>();
-        foreach (var raw in monstersRaw) monsters.Add(new TournamentMonster(_tournamentPools, raw));
-        // if (!_saveFileManager.SaveDataGameLoaded) return;
-        // Logger.Info("Game Load Detected", Color.Orange);
-        // var monsters = _saveFileManager.LoadTournamentData();
-        if (monsters.Count == 0)
-        {
-            Logger.Trace("No custom tournament data found. Loading taikai_en.", Color.Orange);
-            SetupTournamentParticipantsFromTaikai();
-        }
-        else
-        {
-            Logger.Trace("Found Data for " + monsters.Count + " monsters.", Color.Orange);
-            ClearAllData();
-            foreach (var abdm in monsters)
-                AddExistingMonster(abdm);
-        }
+        foreach (var raw in monstersRaw)
+            monsters.Add(new TournamentMonster(_tournamentPools, raw));
+        Logger.Trace("Found Data for " + monsters.Count + " monsters.", Color.Orange);
+        ClearAllData();
+        foreach (var abdm in monsters)
+            Monsters.Add(abdm);
 
         _initialized = true;
         _firstweek = true;
@@ -230,31 +211,60 @@ public class TournamentData
     ///     Loads the taikai_en.flk file and generates the TournamentData from it. Is loaded at startup and when a new save
     ///     without save data is loaded.
     /// </summary>
-    private void SetupTournamentParticipantsFromTaikai()
+    public void SetupTournamentParticipantsFromTaikai()
     {
+        Logger.Trace("Setting up tourney data from basic enemy file");
         ClearAllData();
 
         var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
-        var rawmonster = new byte[60];
+        // var rawmonster = new byte[60];
 
-        using var fs = new FileStream(tournamentMonsterFile, FileMode.Open);
-        fs.Position = 0xA8C + 60; // This relies upon nothing earlier in the file being appended. 
-        for (var i = 1; i < 120; i++)
+        Logger.Trace($"Loading default tourney monster file ${tournamentMonsterFile}");
+        var raw = File.ReadAllBytes(tournamentMonsterFile);
+        // using var fs = new FileStream(tournamentMonsterFile, FileMode.Open);
+        // fs.Position = 0xA8C + 60; // This relies upon nothing earlier in the file being appended.
+        var baseFilePos = 0xA8C + 60;
+        for (var i = 1; i < 119; i++)
         {
             // 0 = Dummy Monster so skip. 119 in the standard file.
-            fs.ReadExactly(rawmonster, 0, 60);
-            TournamentMonster tm = new(_tournamentPools, rawmonster);
-            AddExistingMonster(tm, i);
+            // raw.ReadExactly(rawmonster, 0, 60);
+            // TournamentMonster tm = new(_config, );
+            var start = baseFilePos + i * 60;
+            var end = start + 60;
+            var tm = AddExistingMonster(IBattleMonsterData.FromBytes(raw[start..end]), i);
+            Logger.Trace("Monster " + i + " Parsed: " + tm, Color.Lime);
 
             // var bytes = "";
             // for (var z = 0; z < 60; z++) bytes += rawmonster[z] + ",";
-            Logger.Trace("Monster " + i + " Parsed: " + tm, Color.Lime);
         }
 
         _initialized = true;
     }
-    
-    private void SaveTournamentParticipantsToTaikai()
+
+    public void WriteTournamentParticipantsToTaikai(string redirectPath)
+    {
+        var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
+
+        var enemyFileRedirected = $@"{redirectPath}\taikai_en.flk";
+
+        if (!File.Exists(enemyFileRedirected))
+        {
+            var data = File.ReadAllBytes(tournamentMonsterFile);
+            File.WriteAllBytes(enemyFileRedirected, data);
+        }
+
+        var monsters = GetTournamentMembers(1, 118);
+        var rawbytes = new List<byte>
+        {
+            Capacity = 60 * 119
+        };
+        foreach (var m in monsters)
+            rawbytes.AddRange(m.Serialize());
+
+        using var writer = new FileStream(enemyFileRedirected, FileMode.Open, FileAccess.Write);
+        writer.Seek(0xA8C + 60, SeekOrigin.Begin);
+        writer.Write(rawbytes.ToArray());
+    }
 
     private void AdvanceMonth()
     {
@@ -267,8 +277,8 @@ public class TournamentData
             if (!m.Alive)
             {
                 Logger.Info(m.Name + " has died. Rest in peace.", Color.Blue);
-                // for (var j = m.pools.Count() - 1; j >= 0; j--) m.pools[j].MonsterRemove(m);
                 Monsters.Remove(m);
+                continue;
             }
 
             // TODO CONFIG TECHNIQUE RATE
@@ -304,11 +314,10 @@ public class TournamentData
         return participants;
     }
 
-    public void ClearAllData()
+    private void ClearAllData()
     {
         _initialized = false;
 
         Monsters.Clear();
-        // foreach (var pool in _tournamentPools.Values) pool.Monsters.Clear();
     }
 }

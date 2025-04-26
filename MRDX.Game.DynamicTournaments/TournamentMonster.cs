@@ -11,7 +11,6 @@ public class TournamentMonster : BattleMonsterData
     private readonly byte _growthIntensity;
     private readonly ushort _growthRate;
     private readonly Config.TechInt _trainerIntelligence;
-    public readonly MonsterBreed BreedInfo;
     public readonly ushort LifeTotal;
     private byte _growthDef;
     private byte _growthInt;
@@ -24,15 +23,12 @@ public class TournamentMonster : BattleMonsterData
     private byte _growthSpd;
 
     public bool Alive = true;
+    public MonsterBreed BreedInfo;
     public ushort Lifespan;
 
     public List<TournamentPool> Pools = [];
 
     public EMonsterRanks Rank;
-
-    public TournamentMonster()
-    {
-    }
 
     public TournamentMonster(Config config, IBattleMonsterData m) : base(m)
     {
@@ -96,13 +92,6 @@ public class TournamentMonster : BattleMonsterData
         _trainerIntelligence = config.TechIntelligence;
         if (Random.Shared.Next(10) == 0)
             _trainerIntelligence = (Config.TechInt)Random.Shared.Next(4);
-
-        // Read through the techniques uint to add the correct technique IDs. TODO: I should have just done a static list and had an invalid tech slot in the empty ones.
-        for (var i = 0; i < 24; i++)
-            if (((IBattleMonsterData)this).TechSlot.HasFlag((TechSlots)i))
-                foreach (var t in BreedInfo.TechList)
-                    if (t.Slot == (TechSlots)(1 << i))
-                        MonsterAddTechnique(t);
     }
 
     public TournamentMonster(Dictionary<ETournamentPools, TournamentPool> pools, byte[] rawabd) : base(
@@ -140,14 +129,6 @@ public class TournamentMonster : BattleMonsterData
         }
 
         _trainerIntelligence = (Config.TechInt)rawabd[20];
-
-        // Read through the techniques uint to add the correct technique IDs. TODO: I should have just done a static list and had an invalid tech slot in the empty ones.
-        // for (var i = 0; i < 24; i++)
-        //     if (TechSlot.HasFlag((TechSlots)i))
-        //         foreach (var t in BreedInfo.TechList)
-        //             if (t.Slot == (TechSlots)(1 << i))
-        //                 MonsterAddTechnique(t);
-
         // DEBUG DEBUG DEBUG
         // for ( var i = 0; i < techniques.Count; i++ ) { TournamentData._mod.DebugLog( 2, monster.name + " has " + techniques[ i ], Color.Orange ); }
     }
@@ -406,8 +387,7 @@ public class TournamentMonster : BattleMonsterData
 
             MonsterAddTechnique(tech);
             Logger.Info(
-                "Monster " + Name + " learned " + tech + " they have " + TechList.Count + "|" +
-                TechSlot + " now.", Color.Orange);
+                $"Monster {Name} learned {tech.Name} they have {TechList.Count} | {TechSlot} now.", Color.Orange);
         }
 
         if (techint == Config.TechInt.Genius && TechList.Count > 8 &&
@@ -477,8 +457,8 @@ public class TournamentMonster : BattleMonsterData
                 tech = t;
 
         MonsterRemoveTechnique(tech);
-        Logger.Warn(
-            "Monster " + Name + " has unlearned " + tech + " they have " + TechList.Count + " | " +
+        Logger.Info(
+            "Monster " + Name + " has unlearned " + tech.Name + " they have " + TechList.Count + " | " +
             TechSlot + " now.", Color.Orange);
     }
 

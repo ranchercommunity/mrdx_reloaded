@@ -1,4 +1,6 @@
-﻿namespace MRDX.Base.Mod.Interfaces;
+﻿using System.Collections.Generic;
+
+namespace MRDX.Base.Mod.Interfaces;
 
 public enum GameScene
 {
@@ -32,6 +34,8 @@ public interface IGame
     public IMonster Monster { get; set; }
 
     public Utils.OneTimeEvent<bool> OnMonsterBreedsLoaded { get; }
+
+    public List<MonsterGenus> UnlockedMonsters { get; }
 
     public event WeekChange OnWeekChange;
 
