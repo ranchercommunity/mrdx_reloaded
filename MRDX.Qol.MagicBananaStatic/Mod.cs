@@ -72,14 +72,14 @@ public class Mod : ModBase // <= Do not Remove.
     private nuint _address_currentweek;
     private nuint _address_monsterdata;
 
-    public bool _snapshotUpdate = true;
+    private bool _snapshotUpdate = true;
 
-    public byte _itemGiveHookCount = 0;
-    public byte _itemIdGiven = 0;
-    public byte _itemOriginalIdGiven = 0;
-    public bool _itemGivenSuccess = false;
+    private byte _itemGiveHookCount = 0;
+    private byte _itemIdGiven = 0;
+    private byte _itemOriginalIdGiven = 0;
+    private bool _itemGivenSuccess = false;
 
-    public bool _itemHandleMagicBananas = false;
+    private bool _itemHandleMagicBananas = false;
 
     private readonly string? _modPath;
     private readonly string? _dataPath;
@@ -130,13 +130,12 @@ public class Mod : ModBase // <= Do not Remove.
             _redirector.AddRedirect( _dataPath + @"\mf2\data\obj\msg_farm_en.obj", _modPath + @$"\ManualRedirector\Resources\data\mf2\data\obj\str-msg_farm_en.obj" );
         }
 
-        if ( _configuration._config_bananaType == Config.EConfBananaType.Mixed ) {
+        else if ( _configuration._config_bananaType == Config.EConfBananaType.Mixed ) {
             _redirector.AddRedirect( _dataPath + @"\mf2\data\item\itm\item_1c.itm", _modPath + @$"\ManualRedirector\Resources\data\mf2\data\item\itm\mix-item_1c.itm" );
             _redirector.AddRedirect( _dataPath + @"\mf2\data\obj\msg_farm_en.obj", _modPath + @$"\ManualRedirector\Resources\data\mf2\data\obj\mix-msg_farm_en.obj" );
         }
 
-        if ( _configuration._config_bananaType == Config.EConfBananaType.Fatigue ) {
-            _logger.WriteLine( _dataPath + @"\mf2\data\item\itm\item_1c.itm" + " TO " + _modPath + @$"\ManualRedirector\Resources\data\mf2\data\item\itm\fat-item_1c.itm", Color.Yellow );
+        else if ( _configuration._config_bananaType == Config.EConfBananaType.Fatigue ) {
             _redirector.AddRedirect( _dataPath + @"\mf2\data\item\itm\item_1c.itm", _modPath + @$"\ManualRedirector\Resources\data\mf2\data\item\itm\fat-item_1c.itm" );
             _redirector.AddRedirect( _dataPath + @"\mf2\data\obj\msg_farm_en.obj", _modPath + @$"\ManualRedirector\Resources\data\mf2\data\obj\fat-msg_farm_en.obj" );
         }
@@ -209,9 +208,7 @@ public class Mod : ModBase // <= Do not Remove.
             _monsterCurrent.LoyalFear = (byte)      Math.Clamp( _monsterSnapshot.LoyalFear + 10, 0, 100 );
             _monsterCurrent.FormRaw = (sbyte)       Math.Clamp( _monsterSnapshot.FormRaw - 1, -100, 100 );
         }
-
-
-
+        
         else if ( _configuration._config_bananaType == Config.EConfBananaType.Mixed ) {
             _monsterCurrent.Fatigue = (byte)        Math.Clamp( _monsterSnapshot.Fatigue - 15, 0, byte.MaxValue );
             _monsterCurrent.Stress = (sbyte)        Math.Clamp( _monsterSnapshot.Stress - 5, 0, sbyte.MaxValue );
