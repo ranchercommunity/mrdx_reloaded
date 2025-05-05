@@ -80,8 +80,8 @@ public class Mod : ModBase // <= Do not Remove.
             return;
         }
 
-        hooks.AddHook<PlayFmv>(PlayFmvHook).ContinueWith(result => _playFmvHook = result.Result?.Activate());
-        hooks.AddHook<StopFmv>(StopFmvHook).ContinueWith(result => _stopFmvHook = result.Result?.Activate());
+        hooks.AddHook<PlayFmv>(PlayFmvHook).ContinueWith(result => _playFmvHook = result.Result);
+        hooks.AddHook<StopFmv>(StopFmvHook).ContinueWith(result => _stopFmvHook = result.Result);
 
         var deviceEnumerator = new MMDeviceEnumerator(Guid.NewGuid());
         var device = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);

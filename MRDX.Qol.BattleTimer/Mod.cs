@@ -65,9 +65,9 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         hooks.AddHook<SetupCCtrlBattle>(SetupCCtrlBattleHook)
-            .ContinueWith(result => _battleHook = result.Result.Activate());
+            .ContinueWith(result => _battleHook = result.Result);
         hooks.AddHook<DecrementBattleTimer>(DecrementBattleTimerHook)
-            .ContinueWith(result => _timerHook = result.Result.Activate());
+            .ContinueWith(result => _timerHook = result.Result);
     }
 
     #region For Exports, Serialization etc.
