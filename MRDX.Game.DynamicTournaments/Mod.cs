@@ -53,6 +53,9 @@ public class Mod : ModBase // <= Do not Remove.
         // _addressCurrentweek = _gameAddress + 0x379444;
         //548CD0
 
+        //Debugger.Launch();
+        Logger.SetLogLevel( _configuration.LogLevel );
+
         if (iHooks == null)
         {
             _logger.WriteLine($"[{_modConfig.ModId}] Could not get hook controller.", Color.Red);
@@ -80,6 +83,7 @@ public class Mod : ModBase // <= Do not Remove.
             _game.OnMonsterBreedsLoaded.Subscribe(MonsterBreedsLoaded);
         }
 
+        
         Logger.Trace("Setting up learning testing callback");
 
         var maybeHooks = _modLoader.GetController<IHooks>();
@@ -91,7 +95,7 @@ public class Mod : ModBase // <= Do not Remove.
                     : 0
             };
 
-        Debugger.Launch();
+
     }
 
     #region For Exports, Serialization etc.
@@ -168,16 +172,17 @@ public class Mod : ModBase // <= Do not Remove.
         {
             List<byte[]> monstersRaw = [];
 
-            var rawabd = new byte[100];
+            
 
             using var fs = new FileStream(file, FileMode.Open);
             var remaining = fs.Length / 100;
             while (remaining > 0)
             {
+                var rawdtpmonster = new byte[ 100 ];
                 remaining--;
 
-                fs.ReadExactly(rawabd, 0, 100);
-                monstersRaw.Add(rawabd);
+                fs.ReadExactly( rawdtpmonster, 0, 100);
+                monstersRaw.Add( rawdtpmonster );
             }
 
             _tournamentData.LoadSavedTournamentData(monstersRaw);

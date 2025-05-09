@@ -34,7 +34,7 @@ public static class Logger
 
     public static void SetLogLevel(LogLevel level)
     {
-        LogLevels[Assembly.GetCallingAssembly().FullName ?? ""] = level;
+        LogLevels[Assembly.GetCallingAssembly().GetName().Name ?? ""] = level;
     }
 
     public static void Error(string message, Color? color = null)
@@ -44,7 +44,7 @@ public static class Logger
 
     public static void Warn(string message, Color? color = null)
     {
-        Write(LogLevel.Warning, Assembly.GetCallingAssembly().GetName().Name ?? "", message, Color.Yellow);
+        Write(LogLevel.Warning, Assembly.GetCallingAssembly().GetName().Name ?? "", message, color ?? Color.Yellow);
     }
 
     public static void Info(string message, Color? color = null)

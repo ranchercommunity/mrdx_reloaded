@@ -197,7 +197,7 @@ public class TournamentData
         var monsters = new List<TournamentMonster>();
         foreach (var raw in monstersRaw)
             monsters.Add(new TournamentMonster(_tournamentPools, raw));
-        Logger.Trace("Found Data for " + monsters.Count + " monsters.", Color.Orange);
+        Logger.Info("Loaded Data for " + monsters.Count + " monsters.", Color.Orange);
         ClearAllData();
         foreach (var dtpmonster in monsters)
             Monsters.Add(dtpmonster);
