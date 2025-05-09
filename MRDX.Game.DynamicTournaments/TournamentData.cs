@@ -143,14 +143,14 @@ public class TournamentData
     {
         var pool = TournamentPool.PoolFromId(id);
         Logger.Trace($"Creating new monster for pool {pool}");
-        var abdm = new TournamentMonster(_config, m)
+        var dtpmonster = new TournamentMonster(_config, m)
         {
             Rank = _tournamentPools[pool].Info.Rank
         };
-        abdm.Pools.Add(_tournamentPools[pool]);
+        dtpmonster.Pools.Add(_tournamentPools[pool]);
 
-        Monsters.Add(abdm);
-        return abdm;
+        Monsters.Add(dtpmonster);
+        return dtpmonster;
     }
 
     public void AdvanceWeek(uint currentWeek, List<MonsterGenus> unlockedmonsters)
@@ -199,8 +199,8 @@ public class TournamentData
             monsters.Add(new TournamentMonster(_tournamentPools, raw));
         Logger.Trace("Found Data for " + monsters.Count + " monsters.", Color.Orange);
         ClearAllData();
-        foreach (var abdm in monsters)
-            Monsters.Add(abdm);
+        foreach (var dtpmonster in monsters)
+            Monsters.Add(dtpmonster);
 
         _initialized = true;
         _firstweek = true;

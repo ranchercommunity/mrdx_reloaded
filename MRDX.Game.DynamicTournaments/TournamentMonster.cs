@@ -94,44 +94,44 @@ public class TournamentMonster : BattleMonsterData
             _trainerIntelligence = (Config.TechInt)Random.Shared.Next(4);
     }
 
-    public TournamentMonster(Dictionary<ETournamentPools, TournamentPool> pools, byte[] rawabd) : base(
-        IBattleMonsterData.FromBytes(rawabd[40..100]))
+    public TournamentMonster(Dictionary<ETournamentPools, TournamentPool> pools, byte[] rawdtpmonster) : base(
+        IBattleMonsterData.FromBytes(rawdtpmonster[40..100]))
     {
-        Logger.Info("Loading monster from ABD Save File.", Color.Lime);
+        Logger.Debug("Loading monster from DTP Save File.", Color.Lime);
 
         BreedInfo = MonsterBreed.GetBreed(GenusMain, GenusSub)!;
 
-        LifeTotal = BitConverter.ToUInt16(rawabd, 0);
-        Lifespan = BitConverter.ToUInt16(rawabd, 2);
-        _growthRate = BitConverter.ToUInt16(rawabd, 4);
-        _growthGroup = (GrowthGroups)rawabd[6];
-        _growthIntensity = rawabd[7];
+        LifeTotal = BitConverter.ToUInt16(rawdtpmonster, 0);
+        Lifespan = BitConverter.ToUInt16(rawdtpmonster, 2);
+        _growthRate = BitConverter.ToUInt16(rawdtpmonster, 4);
+        _growthGroup = (GrowthGroups)rawdtpmonster[6];
+        _growthIntensity = rawdtpmonster[7];
 
-        Rank = (EMonsterRanks)rawabd[8];
+        Rank = (EMonsterRanks)rawdtpmonster[8];
 
         var rawpools = new byte[4];
-        rawabd[10..14].CopyTo(rawpools, 0);
+        rawdtpmonster[10..14].CopyTo(rawpools, 0);
         foreach ( var pool in rawpools ) {
             if ( pool != 0xFF ) {
                 Pools.Add( pools[ (ETournamentPools) pool ] );
             }
         }
 
-        _growthLif = rawabd[14];
-        _growthPow = rawabd[15];
-        _growthSki = rawabd[16];
-        _growthSpd = rawabd[17];
-        _growthDef = rawabd[18];
-        _growthInt = rawabd[19];
+        _growthLif = rawdtpmonster[14];
+        _growthPow = rawdtpmonster[15];
+        _growthSki = rawdtpmonster[16];
+        _growthSpd = rawdtpmonster[17];
+        _growthDef = rawdtpmonster[18];
+        _growthInt = rawdtpmonster[19];
 
         _growthOptions = [];
         for (var i = 14; i < 19; i++)
         {
-            if (rawabd[i] == 0) rawabd[i] = 1;
-            for (var j = 0; j < rawabd[i]; j++) _growthOptions.Add((byte)(i - 14));
+            if (rawdtpmonster[i] == 0) rawdtpmonster[i] = 1;
+            for (var j = 0; j < rawdtpmonster[i]; j++) _growthOptions.Add((byte)(i - 14));
         }
 
-        _trainerIntelligence = (Config.TechInt)rawabd[20];
+        _trainerIntelligence = (Config.TechInt)rawdtpmonster[20];
         // DEBUG DEBUG DEBUG
         // for ( var i = 0; i < techniques.Count; i++ ) { TournamentData._mod.DebugLog( 2, monster.name + " has " + techniques[ i ], Color.Orange ); }
     }
@@ -196,14 +196,16 @@ public class TournamentMonster : BattleMonsterData
             gopts = [5, 3, 4, 3, 5, 3];
 
             if (_growthIntensity == 1)
-                gopts = [7, 3, 5, 4, 6, 3];
+                gopts = [7, 4, 5, 4, 6, 4];
             else if (_growthIntensity == 2)
-                gopts = [10, 4, 8, 5, 11, 4];
+                gopts = [10, 8, 8, 5, 11, 2];
             else if (_growthIntensity == 3)
-                gopts = [12, 4, 10, 6, 13, 4];
+                gopts = [12, 2, 10, 6, 13, 10];
             else if (_growthIntensity == 4)
-                gopts = [10, 4, 8, 10, 10, 4];
-            else if (_growthIntensity == 5) gopts = [12, 4, 10, 13, 13, 4];
+                gopts = [10, 2, 8, 10, 10, 8];
+            else if (_growthIntensity == 5) gopts = [12, 10, 10, 13, 13, 2];
+
+
         }
 
         else if (_growthGroup == GrowthGroups.Wither)
@@ -261,8 +263,8 @@ public class TournamentMonster : BattleMonsterData
         _growthInt = gopts[5];
 
         for (var i = 0; i < gopts.Length; i++)
-        for (var j = 0; j < gopts[i]; j++)
-            _growthOptions.Add((byte)i);
+            for (var j = 0; j < gopts[i]; j++)
+                _growthOptions.Add((byte)i);
     }
 
     public void AdvanceMonth()
@@ -502,7 +504,7 @@ public class TournamentMonster : BattleMonsterData
 
     public byte[] ToSaveFile()
     {
-        // ABD_TournamentMonster data will consist of 40 new bytes, followed by the standard 60 tracked by the game for Tournament Monsters.
+        // TournamentMonster data will consist of 40 new bytes, followed by the standard 60 tracked by the game for Tournament Monsters.
         // 0-1, LifeTotal
         // 2-3, Current Remaining Lifespan
         // 4-5, Growth Rate Per Months
