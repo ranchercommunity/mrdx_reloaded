@@ -213,14 +213,15 @@ public class TournamentMonster : BattleMonsterData
             gopts = [4, 3, 6, 5, 2, 4];
 
             if (_growthIntensity == 1)
-                gopts = [5, 3, 9, 7, 2, 5];
+                gopts = [5, 5, 9, 7, 2, 5];
             else if (_growthIntensity == 2)
-                gopts = [6, 4, 13, 8, 2, 5];
+                gopts = [6, 2, 13, 8, 2, 5];
             else if (_growthIntensity == 3)
-                gopts = [9, 4, 15, 9, 3, 5];
+                gopts = [9, 2, 15, 9, 3, 8];
             else if (_growthIntensity == 4)
-                gopts = [6, 4, 13, 8, 2, 5];
-            else if (_growthIntensity == 5) gopts = [9, 4, 15, 9, 3, 5];
+                gopts = [6, 5, 13, 8, 2, 2];
+            else if (_growthIntensity == 5) 
+                gopts = [9, 8, 15, 9, 3, 2];
         }
 
         else if (_growthGroup == GrowthGroups.Speedy)
@@ -232,7 +233,7 @@ public class TournamentMonster : BattleMonsterData
             else if (_growthIntensity == 2)
                 gopts = [6, 4, 7, 10, 2, 4];
             else if (_growthIntensity == 3)
-                gopts = [7, 5, 10, 14, 2, 4];
+                gopts = [7, 7, 10, 14, 2, 2];
             else if (_growthIntensity == 4)
                 gopts = [8, 2, 10, 13, 2, 8];
             else if (_growthIntensity == 5) gopts = [7, 8, 10, 13, 4, 2];
