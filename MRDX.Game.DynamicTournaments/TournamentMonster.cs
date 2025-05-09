@@ -111,8 +111,11 @@ public class TournamentMonster : BattleMonsterData
 
         var rawpools = new byte[4];
         rawabd[10..14].CopyTo(rawpools, 0);
-        foreach (var pool in rawpools)
-            Pools.Add(pools[(ETournamentPools)pool]);
+        foreach ( var pool in rawpools ) {
+            if ( pool != 0xFF ) {
+                Pools.Add( pools[ (ETournamentPools) pool ] );
+            }
+        }
 
         _growthLif = rawabd[14];
         _growthPow = rawabd[15];
