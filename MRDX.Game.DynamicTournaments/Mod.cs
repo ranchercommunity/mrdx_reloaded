@@ -19,7 +19,7 @@ public class Mod : ModBase // <= Do not Remove.
     private readonly LearningTesting? _lt;
 
     private readonly WeakReference<IRedirectorController>? _redirector;
-    private readonly string _saveDataFolder;
+    private string _saveDataFolder;
 
     private uint _gameCurrentWeek;
 
@@ -90,6 +90,8 @@ public class Mod : ModBase // <= Do not Remove.
                     ? _configuration.StatGrowth + 1
                     : 0
             };
+
+        Debugger.Launch();
     }
 
     #region For Exports, Serialization etc.
@@ -135,14 +137,17 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void SaveTournamentData(ISaveFileEntry savefile)
     {
-        Directory.CreateDirectory(_saveDataFolder);
-        var file = Path.Combine(_saveDataFolder, $"dtp_monsters_{savefile.Slot}.bin");
+        if ( _configuration.Autosaves || !savefile.IsAutoSave ) {
+            _saveDataFolder = Path.GetDirectoryName( savefile.Filename );
+            //Directory.CreateDirectory( _saveDataFolder );
+            var file = Path.Combine( _saveDataFolder, $"dtp_monsters_{savefile.Slot}.bin" );
 
-        using var fs = new FileStream(file, FileMode.Create);
-        foreach (var monster in _tournamentData!.Monsters)
-            fs.Write(monster.ToSaveFile());
+            using var fs = new FileStream( file, FileMode.Create );
+            foreach ( var monster in _tournamentData!.Monsters )
+                fs.Write( monster.ToSaveFile() );
 
-        Logger.Info($"{savefile} successfully written.");
+            Logger.Info( $"{file} successfully written." );
+        }
     }
 
 
@@ -154,6 +159,7 @@ public class Mod : ModBase // <= Do not Remove.
             return;
         }
 
+        _saveDataFolder = Path.GetDirectoryName( savefile.Filename );
         var file = Path.Combine(_saveDataFolder, $"dtp_monsters_{savefile.Slot}.bin");
 
         if (!File.Exists(file)) return;
@@ -179,7 +185,7 @@ public class Mod : ModBase // <= Do not Remove.
         catch (Exception e)
         {
             // Failed to load the extra monsters from the savefile, so load them from the default enemy file
-            Logger.Info($"Failed to load savefile due to the following error (this may be harmless?): ${e.Message}");
+            Logger.Info($"Failed to load savefile ${file} due to the following error (this may be harmless?): ${e.Message}");
             _tournamentData.SetupTournamentParticipantsFromTaikai();
         }
     }

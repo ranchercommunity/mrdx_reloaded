@@ -43,10 +43,11 @@ public class SaveFileManager : ISaveFile
     /// </summary>
     private void SaveDataMonitor(string filename)
     {
-        _filename = filename;
+        
         // && (!filename.Contains("614") || SaveDataAutosavesEnabled)
         if (filename.Contains("BISLPS-"))
         {
+            _filename = filename;
             var newSlot = filename[^2..];
 
             if (_saveDataSlot != newSlot)
@@ -66,7 +67,7 @@ public class SaveFileManager : ISaveFile
         else if (filename.Contains("psdata001.bin"))
         {
             if (_saveDataReadCount <= 3) return;
-            var saveslot = new SaveFileEntry(filename, _saveDataSlot, filename.Contains("614"));
+            var saveslot = new SaveFileEntry(_filename, _saveDataSlot, filename.Contains("614"));
             Logger.Debug($"Calling OnSave callback for {saveslot}");
             OnSave?.Invoke(saveslot);
             _saveDataGameLoaded = false;
