@@ -9,6 +9,7 @@ namespace MRDX.Base.Mod;
 
 public class Hooks : IHooks
 {
+    // private static readonly Lock HookLock = new();
     private readonly IReloadedHooks? _hooks;
     private readonly ILogger _logger;
     private readonly IModConfig _modConfig;
@@ -36,13 +37,22 @@ public class Hooks : IHooks
             var signature = Utils.GetSignature<T>(Base.Game, Base.Region);
             scanner.AddMainModuleScan(signature, result =>
             {
+                if (_hooks == null)
+                {
+                    Logger.Error("Hooks not initialized");
+                    return;
+                }
+
                 Logger.Debug($"Created hook for {hookFunc} @ {Base.ExeBaseAddress + result.Offset}");
-                promise.SetResult(_hooks.CreateHook(hookFunc, Base.ExeBaseAddress + result.Offset));
+                // lock (HookLock)
+                // {
+                promise.SetResult(_hooks!.CreateHook(hookFunc, Base.ExeBaseAddress + result.Offset).Activate());
+                // }
             });
         }
         else
         {
-            _logger.WriteLine($"[{_modConfig.ModId}] Error: Failed to get scanner!");
+            _logger.WriteLine("Failed to get scanner!");
             promise.SetCanceled();
         }
 
@@ -54,7 +64,7 @@ public class Hooks : IHooks
         var promise = new TaskCompletionSource<T>();
         if (_hooks == null)
         {
-            _logger.WriteLine($"[{_modConfig.ModId}] Reloaded Hooks is null.");
+            _logger.WriteLine("Reloaded Hooks is null.");
             promise.SetCanceled();
             return promise.Task;
         }

@@ -72,13 +72,13 @@ public class Mod : ModBase // <= Do not Remove.
 
         hooks.CreateWrapper<DrawIntWithHorizontalSpacing>().ContinueWith(res => { _drawInt = res.Result; });
         hooks.AddHook<DrawMonsterCardHitChanceValue>(MonsterHitChanceRawNum)
-            .ContinueWith(result => _hitChanceHook = result.Result.Activate());
+            .ContinueWith(result => _hitChanceHook = result.Result);
         hooks.AddHook<DrawMonsterCardForceValue>(MonsterForceRawNum)
-            .ContinueWith(result => _forceHook = result.Result.Activate());
+            .ContinueWith(result => _forceHook = result.Result);
         hooks.AddHook<DrawMonsterCardSharpnessValue>(MonsterSharpnessRawNum)
-            .ContinueWith(result => _sharpnessHook = result.Result.Activate());
+            .ContinueWith(result => _sharpnessHook = result.Result);
         hooks.AddHook<DrawMonsterCardWitheringValue>(MonsterWitheringRawNum)
-            .ContinueWith(result => _witheringHook = result.Result.Activate());
+            .ContinueWith(result => _witheringHook = result.Result);
     }
 
     #region For Exports, Serialization etc.

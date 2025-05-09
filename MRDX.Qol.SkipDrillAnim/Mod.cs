@@ -68,10 +68,10 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         hooks.AddHook<IsTrainingDone>(ShouldSkipTraining)
-            .ContinueWith(result => _drillhook = result.Result.Activate());
+            .ContinueWith(result => _drillhook = result.Result);
 
         hooks.AddHook<InitializeRuins2dData>(ShouldSkipItemFind)
-            .ContinueWith(result => { _itemhook = result.Result.Activate(); });
+            .ContinueWith(result => { _itemhook = result.Result; });
 
         hooks.CreateWrapper<CheckIfMonsterGrabbedAnItem>().ContinueWith(result => _itemfunc = result.Result);
     }

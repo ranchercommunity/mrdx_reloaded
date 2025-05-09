@@ -19,7 +19,12 @@ public delegate void H_ItemUsed(int p1, uint p2, uint p3);
 
 public class Mod : ModBase // <= Do not Remove.
 {
+    private readonly IHooks _iHooks;
     private readonly string? _modPath;
+
+    private readonly IMonster _monsterCurrent;
+
+    private readonly IRedirectorController _redirector;
     private nuint _address_currentweek;
 
     private nuint _address_game;
@@ -29,19 +34,13 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<UpdateGenericState>? _hook_genericUpdate;
     private IHook<H_ItemUsed> _hook_itemUsed;
 
-    private readonly IHooks _iHooks;
-
     public byte _itemGiveHookCount;
     public bool _itemGivenSuccess;
 
     public bool _itemHandleMagicBananas;
     public byte _itemIdGiven = 0;
     public byte _itemOriginalIdGiven;
-
-    private readonly IMonster _monsterCurrent;
     private IMonster _monsterSnapshot;
-
-    private readonly IRedirectorController _redirector;
 
     public bool _snapshotUpdate = true;
 
@@ -90,9 +89,9 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         _iHooks.AddHook<UpdateGenericState>(SetupHookGenericUpdate)
-            .ContinueWith(result => _hook_genericUpdate = result.Result.Activate());
+            .ContinueWith(result => _hook_genericUpdate = result.Result);
         _iHooks.AddHook<H_ItemUsed>(SetupHookItemUsed)
-            .ContinueWith(result => _hook_itemUsed = result.Result.Activate());
+            .ContinueWith(result => _hook_itemUsed = result.Result);
 
         _monsterCurrent = iGame.Monster;
         iGame.OnMonsterChanged += MonsterChanged;

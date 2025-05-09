@@ -29,7 +29,7 @@ public class Game : BaseObject<Game>, IGame
             return;
         }
 
-        hooks.AddHook<FrameStart>(FrameStartImpl).ContinueWith(result => _hook = result.Result.Activate());
+        hooks.AddHook<FrameStart>(FrameStartImpl).ContinueWith(result => _hook = result.Result);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us, 0x379444)]

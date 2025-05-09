@@ -61,7 +61,6 @@ namespace MRDX.Game.DynamicTournaments
 
         private readonly nuint _address_game;
         private readonly nuint _address_monsterdata;
-        private readonly IHooks? _hooks;
 
 
         private uint _currentWeek;
@@ -94,7 +93,7 @@ namespace MRDX.Game.DynamicTournaments
         public bool _tournamentEntered;
         public int _tournamentStatBonus = 5; // A Number between 0 and X, 0-X is added to the stat gains.
 
-        public LearningTesting(IHooks? hooks)
+        public LearningTesting(IHooks hooks)
         {
             var thisProcess = Process.GetCurrentProcess();
             var module = thisProcess.MainModule!;
@@ -103,40 +102,39 @@ namespace MRDX.Game.DynamicTournaments
             _address_currentweek = _address_game + 0x379444;
             _address_monsterdata = _address_game + 0x37667C;
 
-            _hooks = hooks;
 
-            _hooks.AddHook<UpdateGenericState>(SetupGenericUpdateHook)
-                .ContinueWith(result => _hookGenericUpdate = result.Result.Activate());
+            hooks.AddHook<UpdateGenericState>(SetupGenericUpdateHook)
+                .ContinueWith(result => _hookGenericUpdate = result.Result);
 
-            _hooks.AddHook<SetupCCtrlBattle>(SetupCCtrlBattleHook)
-                .ContinueWith(result => _hookBattle = result.Result.Activate());
+            hooks.AddHook<SetupCCtrlBattle>(SetupCCtrlBattleHook)
+                .ContinueWith(result => _hookBattle = result.Result);
 
 
-            _hooks.AddHook<LH_StatGain_Lif>(SetupLHStatGainLifHook)
-                .ContinueWith(result => _statGainLif = result.Result.Activate());
+            hooks.AddHook<LH_StatGain_Lif>(SetupLHStatGainLifHook)
+                .ContinueWith(result => _statGainLif = result.Result);
 
-            _hooks.AddHook<LH_StatGain_Pow>(SetupLHStatGainPowHook)
-                .ContinueWith(result => _statGainPow = result.Result.Activate());
+            hooks.AddHook<LH_StatGain_Pow>(SetupLHStatGainPowHook)
+                .ContinueWith(result => _statGainPow = result.Result);
 
-            _hooks.AddHook<LH_StatGain_Def>(SetupLHStatGainDefHook)
-                .ContinueWith(result => _statGainDef = result.Result.Activate());
+            hooks.AddHook<LH_StatGain_Def>(SetupLHStatGainDefHook)
+                .ContinueWith(result => _statGainDef = result.Result);
 
-            _hooks.AddHook<LH_StatGain_Ski>(SetupLHStatGainSkiHook)
-                .ContinueWith(result => _statGainSki = result.Result.Activate());
+            hooks.AddHook<LH_StatGain_Ski>(SetupLHStatGainSkiHook)
+                .ContinueWith(result => _statGainSki = result.Result);
 
-            _hooks.AddHook<LH_StatGain_Spd>(SetupLHStatGainSpdHook)
-                .ContinueWith(result => _statGainSpd = result.Result.Activate());
+            hooks.AddHook<LH_StatGain_Spd>(SetupLHStatGainSpdHook)
+                .ContinueWith(result => _statGainSpd = result.Result);
 
-            _hooks.AddHook<LH_StatGain_Int>(SetupLHStatGainIntHook)
-                .ContinueWith(result => _statGainInt = result.Result.Activate());
+            hooks.AddHook<LH_StatGain_Int>(SetupLHStatGainIntHook)
+                .ContinueWith(result => _statGainInt = result.Result);
 
             //_hooks.AddHook<LH_TournamentComplete>( SetupLHTournamentComplete ).ContinueWith( result => _LHTournamentComplete = result.Result.Activate() );
 
             /*_hooks.AddHook<LH_DrillPerform_ChangeStats>( SetupLHDPCS )
                 .ContinueWith( result => _LHDPCS = result.Result.Activate() );*/
 
-            _hooks.AddHook<LH_ErrantryStatGains>(SetupHookErrantryStatGains)
-                .ContinueWith(result => _hook_errantryStatGains = result.Result.Activate());
+            hooks.AddHook<LH_ErrantryStatGains>(SetupHookErrantryStatGains)
+                .ContinueWith(result => _hook_errantryStatGains = result.Result);
         }
 
         /// <summary>

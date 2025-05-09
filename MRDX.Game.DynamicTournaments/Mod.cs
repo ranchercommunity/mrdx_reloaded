@@ -16,17 +16,14 @@ public class Mod : ModBase // <= Do not Remove.
 {
     private readonly IGame? _game;
 
-    private readonly IHooks? _iHooks;
+    private readonly LearningTesting? _lt;
+
     private readonly WeakReference<IRedirectorController>? _redirector;
     private readonly string _saveDataFolder;
-
-    private readonly ISaveFile? _saveFile;
 
     private uint _gameCurrentWeek;
 
     private string? _gamePath;
-
-    private LearningTesting _lt;
 
     private TournamentData? _tournamentData;
 
@@ -42,8 +39,7 @@ public class Mod : ModBase // <= Do not Remove.
         _saveDataFolder = Path.Combine(_modLoader.GetDirectoryForModId(_modConfig.ModId), "SaveData");
         Directory.CreateDirectory(_saveDataFolder);
 
-        _modLoader.GetController<IHooks>().TryGetTarget(out _iHooks);
-        _modLoader.GetController<ISaveFile>().TryGetTarget(out _saveFile);
+        var iHooks = _modLoader.GetController<IHooks>();
         _redirector = _modLoader.GetController<IRedirectorController>();
 
         var startupScanner = _modLoader.GetController<IStartupScanner>();
@@ -57,7 +53,7 @@ public class Mod : ModBase // <= Do not Remove.
         // _addressCurrentweek = _gameAddress + 0x379444;
         //548CD0
 
-        if (_iHooks == null)
+        if (iHooks == null)
         {
             _logger.WriteLine($"[{_modConfig.ModId}] Could not get hook controller.", Color.Red);
             return;
@@ -71,10 +67,10 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         var maybeSaveFile = _modLoader.GetController<ISaveFile>();
-        if (maybeSaveFile != null && maybeSaveFile.TryGetTarget(out _saveFile))
+        if (maybeSaveFile != null && maybeSaveFile.TryGetTarget(out var saveFile))
         {
-            _saveFile.OnSave += SaveTournamentData;
-            _saveFile.OnLoad += LoadTournamentData;
+            saveFile.OnSave += SaveTournamentData;
+            saveFile.OnLoad += LoadTournamentData;
         }
 
         var maybeGame = _modLoader.GetController<IGame>();
@@ -83,6 +79,17 @@ public class Mod : ModBase // <= Do not Remove.
             _game.OnWeekChange += WeekChangeCallback;
             _game.OnMonsterBreedsLoaded.Subscribe(MonsterBreedsLoaded);
         }
+
+        Logger.Trace("Setting up learning testing callback");
+
+        var maybeHooks = _modLoader.GetController<IHooks>();
+        if (maybeHooks != null && maybeHooks.TryGetTarget(out var hooks))
+            _lt = new LearningTesting(hooks)
+            {
+                _tournamentStatBonus = _configuration.StatGrowth > 0
+                    ? _configuration.StatGrowth + 1
+                    : 0
+            };
     }
 
     #region For Exports, Serialization etc.
@@ -107,21 +114,22 @@ public class Mod : ModBase // <= Do not Remove.
         Logger.Trace("Making new tournament data");
         _tournamentData = new TournamentData(_gamePath, _configuration);
 
-        _tournamentData.SetupTournamentParticipantsFromTaikai();
-
-        var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
-        var enemyFileRedirected = $@"{_saveDataFolder}\taikai_en.flk";
 
         if (_redirector != null && _redirector.TryGetTarget(out var redirect))
-            redirect.AddRedirect(tournamentMonsterFile, enemyFileRedirected);
-        else
-            Logger.Error("Could not find redirector! Can't setup enemy monster data.");
+        {
+            // Temporarily disable the redirector so we can get the basic monster data
+            redirect.Disable();
+            _tournamentData.SetupTournamentParticipantsFromTaikai();
+            redirect.Enable();
 
-        Logger.Trace("Setting up learning testing callback");
-        _lt = new LearningTesting(_iHooks);
-        _lt._tournamentStatBonus = _configuration.StatGrowth > 0
-            ? _configuration.StatGrowth + 1
-            : 0;
+            var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
+            var enemyFileRedirected = $@"{_saveDataFolder}\taikai_en.flk";
+            redirect.AddRedirect(tournamentMonsterFile, enemyFileRedirected);
+        }
+        else
+        {
+            Logger.Error("Could not find redirector! Can't setup enemy monster data.");
+        }
     }
 
 

@@ -20,7 +20,7 @@ public class Controller : IController
         _logger = context.Logger;
         context.ModLoader.GetController<IHooks>().TryGetTarget(out var hooks);
         hooks?.AddHook<RegisterUserInput>(ProcessControllerEvents)
-            .ContinueWith(result => _hook = result.Result?.Activate());
+            .ContinueWith(result => _hook = result.Result);
     }
 
     public IInput Current => _input;

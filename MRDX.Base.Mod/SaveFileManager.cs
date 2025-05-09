@@ -27,7 +27,7 @@ public class SaveFileManager : ISaveFile
         loader.GetController<IHooks>().TryGetTarget(out var hooks);
         if (hooks != null)
             hooks.AddHook<UpdateGenericState>(CheckForSaveLoad)
-                .ContinueWith(result => _updateHook = result.Result.Activate());
+                .ContinueWith(result => _updateHook = result.Result);
         else
             Logger.Error("Failed to get hooks to watch for loading files.");
     }

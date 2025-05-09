@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using Reloaded.Mod.Interfaces;
@@ -27,7 +26,8 @@ public static class Logger
         get => _logger;
         set
         {
-            GlobalLogLevel = Debugger.IsAttached ? LogLevel.Trace : LogLevel.Info;
+            // GlobalLogLevel = Debugger.IsAttached ? LogLevel.Trace : LogLevel.Info;
+            GlobalLogLevel = LogLevel.Info;
             _logger = value;
         }
     }
