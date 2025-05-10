@@ -45,7 +45,8 @@ public enum ETournamentPools
     B_FIMBA2,
     C_FIMBA2,
     D_FIMBA2,
-    X_MOO, L_FIMBA,
+    X_MOO, 
+    //L_FIMBA,
 }
 
 public enum EMonsterRegion {

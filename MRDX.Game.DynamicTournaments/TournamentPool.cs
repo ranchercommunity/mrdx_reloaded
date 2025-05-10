@@ -51,7 +51,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         { ETournamentPools.B_FIMBA2, new TournamentInfo("B FIMBA2", EMonsterRanks.B, 5, (108, 111), (200, 0)) },
         { ETournamentPools.C_FIMBA2, new TournamentInfo("C FIMBA2", EMonsterRanks.C, 4, (112, 115), (100, 0)) },
         { ETournamentPools.D_FIMBA2, new TournamentInfo("D FIMBA2", EMonsterRanks.D, 2, (116, 118), (100, 0)) },
-        { ETournamentPools.L_FIMBA, new TournamentInfo("L FIMBA", EMonsterRanks.L, 1, (80,80), (0, 0)) }
+        //{ ETournamentPools.L_FIMBA, new TournamentInfo("L FIMBA", EMonsterRanks.L, 1, (80,80), (0, 0)) }
     };
 
     private static readonly Dictionary<ETournamentPools, TournamentRuleset> Tournaments = new Dictionary<ETournamentPools, TournamentRuleset>() {
@@ -93,7 +93,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
                 MonsterGenus.Mock, MonsterGenus.Wracky], [],
             3, EMonsterRegion.IMA) },
 
-        { ETournamentPools.L_FIMBA, new TournamentRuleset("L FIMBA", [EMonsterRanks.L], [], [], 1, EMonsterRegion.IMA) },
+        //{ ETournamentPools.L_FIMBA, new TournamentRuleset("L FIMBA", [EMonsterRanks.L], [], [], 1, EMonsterRegion.IMA) },
         { ETournamentPools.S_FIMBA, new TournamentRuleset("S FIMBA", [EMonsterRanks.S], [], [], 1, EMonsterRegion.FIMBA) },
         { ETournamentPools.A_FIMBA, new TournamentRuleset("A FIMBA", [EMonsterRanks.A], [], [], 1, EMonsterRegion.FIMBA) },
         { ETournamentPools.B_FIMBA, new TournamentRuleset("B FIMBA", [EMonsterRanks.B], [], [], 1, EMonsterRegion.FIMBA) },
