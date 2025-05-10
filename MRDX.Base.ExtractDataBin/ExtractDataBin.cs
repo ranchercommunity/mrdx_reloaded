@@ -13,9 +13,8 @@ namespace MRDX.Base.ExtractDataBin;
 
 public class ExtractDataBin : IExtractDataBin
 {
-    private static readonly object LockMr1 = new();
-    private static readonly object LockMr2 = new();
     private readonly string? _exepath;
+    private readonly OneTimeEvent<string> _extractComplete;
 
     private readonly ILogger _logger;
     private readonly IModConfig _modConfig;
@@ -37,6 +36,7 @@ public class ExtractDataBin : IExtractDataBin
 
     public ExtractDataBin(ModContext context)
     {
+        _extractComplete = new OneTimeEvent<string>();
         _modConfig = context.ModConfig;
         _logger = context.Logger;
         _redirector = context.ModLoader.GetController<IRedirectorController>();
@@ -48,57 +48,51 @@ public class ExtractDataBin : IExtractDataBin
         }
 
         _exepath = Path.GetDirectoryName(mainModule.FileName);
-        _extractedPath = Path.Combine(_exepath ?? "/",
-            context.ModLoader.GetAppConfig().AppId == "mf2.exe"
-                ? _mr2RelExtractPath
-                : _mr1RelExtractPath);
     }
 
-    string? IExtractDataBin.ExtractedPath => _extractedPath;
+    OneTimeEvent<string> IExtractDataBin.ExtractComplete => _extractComplete;
 
     public string? ExtractMr1()
     {
-        lock (LockMr1)
+        _logger.WriteLine($"[{_modConfig.ModId}] Lock acquired. Extracting MR1 data.bin");
+        _extractedPath = Path.Combine(_exepath ?? "/", _mr1RelExtractPath);
+        var tokenPath = Path.Combine(_extractedPath, "extraction_complete.txt");
+        if (!File.Exists(tokenPath))
         {
-            _logger.WriteLine($"[{_modConfig.ModId}] Lock acquired. Extracting MR1 data.bin");
-            var tokenPath = Path.Combine(_extractedPath!, "extraction_complete.txt");
-            if (!File.Exists(tokenPath))
-                Extract(_mr1RelExtractPath, _mr1RelZipPath);
-            // if (_extractedPath != null)
-            // {
-            //     _logger.WriteLine(
-            //         $"[{_modConfig.ModId}] Renaming data.bin to data.bin.backup to prevent the game from trying to read from it.");
-            //     File.Move(_mr1RelZipPath, _mr1RelZipPathRenamed);
-            // }
-            using var token = File.CreateText(tokenPath);
-
-            return _extractedPath;
+            Extract(_mr1RelExtractPath, _mr1RelZipPath);
         }
+        else
+        {
+            // Immediately call any callbacks that are waiting on extraction
+            IExtractDataBin.ExtractedPath = _extractedPath;
+            _extractComplete.Fire(_extractedPath);
+        }
+
+        using var token = File.CreateText(tokenPath);
+
+        return _extractedPath;
     }
 
     public string? ExtractMr2()
     {
-        lock (LockMr2)
+        _logger.WriteLine($"[{_modConfig.ModId}] Lock acquired. Extracting MR2 data.bin");
+        _extractedPath = Path.Combine(_exepath ?? "/", _mr2RelExtractPath);
+        var tokenPath = Path.Combine(_extractedPath, "extraction_complete.txt");
+        if (!File.Exists(tokenPath))
         {
-            _logger.WriteLine($"[{_modConfig.ModId}] Lock acquired. Extracting MR2 data.bin");
-            var tokenPath = Path.Combine(_extractedPath!, "extraction_complete.txt");
-            if (!File.Exists(tokenPath))
-                Extract(_mr2RelExtractPath, _mr2RelZipPath);
-
-            // We shouldn't need to rename the data.bin file anymore
-            // if (_extractedPath != null)
-            // {
-            //     _logger.WriteLine(
-            //         $"[{_modConfig.ModId}] Renaming data.bin to data.bin.backup to prevent the game from trying to read from it.");
-            //     File.Move(_mr2RelZipPath, _mr2RelZipPathRenamed);
-            // }
-            using var token = File.CreateText(tokenPath);
-
-            return _extractedPath;
+            Extract(_mr2RelExtractPath, _mr2RelZipPath);
         }
-    }
+        else
+        {
+            // Immediately call any callbacks that are waiting on extraction
+            _logger.WriteLine($"[{_modConfig.ModId}] Finished extracting MR2 data.bin, nothing to do");
+            IExtractDataBin.ExtractedPath = _extractedPath;
+            _extractComplete.Fire(_extractedPath);
+        }
 
-    public event OnExtractComplete? ExtractComplete;
+        using var token = File.CreateText(tokenPath);
+        return _extractedPath;
+    }
 
     private void Extract(string relExtractPath, string relZipPath)
     {
@@ -166,7 +160,8 @@ public class ExtractDataBin : IExtractDataBin
                     redirector.Enable();
                 }
 
-                ExtractComplete?.Invoke(_extractedPath);
+                IExtractDataBin.ExtractedPath = _extractedPath;
+                _extractComplete.Fire(_extractedPath);
             };
             zip.ExtractArchiveAsync(extPath).Wait();
         }

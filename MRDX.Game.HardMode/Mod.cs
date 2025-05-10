@@ -167,8 +167,6 @@ public class Mod : ModBase // <= Do not Remove.
         }
     };
 
-    private readonly string? _dataBinPath;
-
     /// <summary>
     ///     Provides access to the Reloaded.Hooks API.
     /// </summary>
@@ -204,6 +202,8 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private Config _configuration;
 
+    private string _dataBinPath;
+
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -230,9 +230,12 @@ public class Mod : ModBase // <= Do not Remove.
             return;
         }
 
-        _dataBinPath = extract.ExtractedPath;
-        SetupRedirectToLifespan();
-        UpdateErrantryMonsterStats();
+        extract.ExtractComplete.Subscribe(path =>
+        {
+            _dataBinPath = path!;
+            SetupRedirectToLifespan();
+            UpdateErrantryMonsterStats();
+        });
     }
 
     #region For Exports, Serialization etc.
@@ -247,7 +250,6 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void UpdateErrantryMonsterStats()
     {
-        // Debugger.Launch();
         foreach (var (offset, enemy) in Enemies)
         {
             var p = new ErrantryEnemyMonster(0x31b540 + offset);
@@ -263,7 +265,7 @@ public class Mod : ModBase // <= Do not Remove.
             if (enemy.Nature != null) p.Nature = enemy.Nature.GetValueOrDefault();
             if (enemy.Spoil != null) p.Spoil = enemy.Spoil.GetValueOrDefault();
             if (enemy.Fear != null) p.Fear = enemy.Fear.GetValueOrDefault();
-            if (enemy.Attacks != null) p.Attacks = enemy.Attacks;
+            if (enemy.Attacks != null) p.Techs = enemy.Attacks;
             if (enemy.ArenaSpeed != null) p.ArenaSpeed = enemy.ArenaSpeed.GetValueOrDefault();
             if (enemy.GutsRate != null) p.GutsRate = enemy.GutsRate.GetValueOrDefault();
             if (enemy.BattleSpecial != null) p.BattleSpecial = enemy.BattleSpecial.GetValueOrDefault();

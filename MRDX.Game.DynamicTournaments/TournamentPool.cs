@@ -1,278 +1,345 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using MRDX.Base.Mod.Interfaces;
+using MRDX.Game.DynamicTournaments.Configuration;
 
-namespace MRDX.Game.DynamicTournaments
+namespace MRDX.Game.DynamicTournaments;
+
+public readonly record struct TournamentInfo(
+    string Name,
+    EMonsterRanks Rank,
+    int Tier,
+    Range<int> Id,
+    Range<int> StatOffset)
 {
-    public class TournamentPool {
-        public TournamentData tournamentData;
-        public EMonsterRanks _monsterRank;
-        public ETournamentPools _tournamentPool;
+    public int Size => ( ( Id.Max + 1 ) - Id.Min );
+}
 
-        public string _name = "Pool";
-        public int _minimumSize = 0;
-        public int _indexStart = 0;
-        public int _indexEnd = 0;
+public readonly record struct TournamentRuleset (
+    string Name,
+    EMonsterRanks[] Ranks,
+    MonsterGenus[] MainBreeds,
+    MonsterGenus[] SubBreeds,
+    int MinParticipants,
+    EMonsterRegion MonsterRegion ) { }
 
-        public int stat_start = 0;
-        public int stat_end = 0;
+public class TournamentPool(TournamentData tournament, Config conf, ETournamentPools pool)
+{
+    private static readonly Dictionary<ETournamentPools, TournamentInfo> Tourneys = new()
+    {
+        { ETournamentPools.S, new TournamentInfo("S Rank", EMonsterRanks.S, 6, (1, 8), (0, 0)) },
+        { ETournamentPools.A, new TournamentInfo("A Rank", EMonsterRanks.A, 5, (9, 16), (0, 0)) },
+        { ETournamentPools.B, new TournamentInfo("B Rank", EMonsterRanks.B, 4, (17, 26), (0, 0)) },
+        { ETournamentPools.C, new TournamentInfo("C Rank", EMonsterRanks.C, 2, (27, 36), (0, 0)) },
+        { ETournamentPools.D, new TournamentInfo("D Rank", EMonsterRanks.D, 1, (37, 44), (0, 0)) },
+        { ETournamentPools.E, new TournamentInfo("E Rank", EMonsterRanks.E, 0, (45, 50), (0, 0)) },
+        { ETournamentPools.X_MOO, new TournamentInfo("L - Moo", EMonsterRanks.L, 9, (51, 51), (250, 9999)) },
+        { ETournamentPools.L, new TournamentInfo("Legend", EMonsterRanks.L, 9, (52, 53), (0, 9999)) },
+        { ETournamentPools.M, new TournamentInfo("Major 4", EMonsterRanks.M, 7, (54, 61), (0, 0)) },
+        { ETournamentPools.A_Phoenix, new TournamentInfo("A - Phoenix", EMonsterRanks.A, 6, (62, 64), (0, 0)) },
+        { ETournamentPools.A_DEdge, new TournamentInfo("A - Double Edge", EMonsterRanks.A, 6, (66, 66), (0, 0)) },
+        { ETournamentPools.B_Dragon, new TournamentInfo("B - Dragon Tusk", EMonsterRanks.B, 5, (65, 65), (0, 0)) },
+        { ETournamentPools.F_Hero, new TournamentInfo("F - Hero", EMonsterRanks.A, 7, (67, 71), (0, 9999)) },
+        { ETournamentPools.F_Heel, new TournamentInfo("F - Heel", EMonsterRanks.A, 7, (72, 76), (0, 9999)) },
+        { ETournamentPools.F_Elder, new TournamentInfo("F - Elder", EMonsterRanks.A, 8, (77, 79), (0, 9999)) },
+        { ETournamentPools.S_FIMBA, new TournamentInfo("S FIMBA", EMonsterRanks.S, 8, (80, 83), (200, 0)) },
+        { ETournamentPools.A_FIMBA, new TournamentInfo("A FIMBA", EMonsterRanks.A, 6, (84, 87), (200, 0)) },
+        { ETournamentPools.B_FIMBA, new TournamentInfo("B FIMBA", EMonsterRanks.B, 5, (88, 91), (200, 0)) },
+        { ETournamentPools.C_FIMBA, new TournamentInfo("C FIMBA", EMonsterRanks.C, 4, (92, 95), (100, 0)) },
+        { ETournamentPools.D_FIMBA, new TournamentInfo("D FIMBA", EMonsterRanks.D, 2, (96, 99), (100, 0)) },
+        { ETournamentPools.S_FIMBA2, new TournamentInfo("S FIMBA2", EMonsterRanks.S, 8, (100, 103), (200, 0)) },
+        { ETournamentPools.A_FIMBA2, new TournamentInfo("A FIMBA2", EMonsterRanks.A, 6, (104, 107), (200, 0)) },
+        { ETournamentPools.B_FIMBA2, new TournamentInfo("B FIMBA2", EMonsterRanks.B, 5, (108, 111), (200, 0)) },
+        { ETournamentPools.C_FIMBA2, new TournamentInfo("C FIMBA2", EMonsterRanks.C, 4, (112, 115), (100, 0)) },
+        { ETournamentPools.D_FIMBA2, new TournamentInfo("D FIMBA2", EMonsterRanks.D, 2, (116, 118), (100, 0)) },
+        //{ ETournamentPools.L_FIMBA, new TournamentInfo("L FIMBA", EMonsterRanks.L, 1, (80,80), (0, 0)) }
+    };
 
-        public int tournament_tier = 0; // Used for adding techniques and specials to new monsters generated for this tournament
+    private static readonly Dictionary<ETournamentPools, TournamentRuleset> Tournaments = new Dictionary<ETournamentPools, TournamentRuleset>() {
+        { ETournamentPools.L, new TournamentRuleset("Legend", [EMonsterRanks.L], [], [], 1, EMonsterRegion.IMA) },
+        { ETournamentPools.M, new TournamentRuleset("Major 4",[EMonsterRanks.M], [], [], 6, EMonsterRegion.IMA) },
+        { ETournamentPools.S, new TournamentRuleset("S Rank", [EMonsterRanks.S], [], [], 8, EMonsterRegion.IMA) },
+        { ETournamentPools.A, new TournamentRuleset("A Rank", [EMonsterRanks.A], [], [], 8, EMonsterRegion.IMA) },
+        { ETournamentPools.B, new TournamentRuleset("B Rank", [EMonsterRanks.B], [], [], 10, EMonsterRegion.IMA) },
+        { ETournamentPools.C, new TournamentRuleset("C Rank", [EMonsterRanks.C], [], [], 10, EMonsterRegion.IMA) },
+        { ETournamentPools.D, new TournamentRuleset("D Rank", [EMonsterRanks.D], [], [], 8, EMonsterRegion.IMA) },
+        { ETournamentPools.E, new TournamentRuleset("E Rank", [EMonsterRanks.E], [], [], 6, EMonsterRegion.IMA) },
 
-        public List<ABD_TournamentMonster> monsters = new List<ABD_TournamentMonster>();
 
-        public TournamentPool ( TournamentData data, EMonsterRanks rank, ETournamentPools pool, string name, int size, int istart, int iend, int sstart, int send, int tier ) {
-            tournamentData = data;
-            _monsterRank = rank;
-            _tournamentPool = pool;
+        { ETournamentPools.A_Phoenix, new TournamentRuleset("A - Phoenix", [EMonsterRanks.A],
+            [MonsterGenus.Phoenix], [MonsterGenus.Phoenix],
+            3, EMonsterRegion.IMA) },
 
-            _name = name;
-            _minimumSize = size;
-            _indexStart = istart;
-            _indexEnd = iend;
+        { ETournamentPools.A_DEdge, new TournamentRuleset("A - Double Edge", [EMonsterRanks.A],
+            [MonsterGenus.Durahan], [], 1, EMonsterRegion.IMA) },
 
-            stat_start = sstart;
-            stat_end = send;
+        { ETournamentPools.B_Dragon, new TournamentRuleset("B - Dragon Tusk", [EMonsterRanks.B],
+            [MonsterGenus.Dragon], [], 1, EMonsterRegion.IMA) },
 
-            tournament_tier = tier;
+        { ETournamentPools.F_Hero, new TournamentRuleset("F - Hero", [EMonsterRanks.B, EMonsterRanks.A],
+            [   MonsterGenus.Baku, MonsterGenus.Centaur, MonsterGenus.ColorPandora,
+                MonsterGenus.Ducken, MonsterGenus.Gali, MonsterGenus.Hare, MonsterGenus.Henger,
+                MonsterGenus.Mocchi, MonsterGenus.Niton, MonsterGenus.Tiger, MonsterGenus.Undine], [],
+            5, EMonsterRegion.IMA) },
+
+        { ETournamentPools.F_Heel, new TournamentRuleset("F - Heel", [EMonsterRanks.B, EMonsterRanks.A],
+            [   MonsterGenus.Ape, MonsterGenus.Dragon, MonsterGenus.Joker, MonsterGenus.Kato,
+                MonsterGenus.Monol, MonsterGenus.Naga, MonsterGenus.Pixie, MonsterGenus.Suezo, MonsterGenus.Wracky], [],
+            5, EMonsterRegion.IMA) },
+
+
+        { ETournamentPools.F_Elder, new TournamentRuleset("F - Elder", [EMonsterRanks.A],
+            [   MonsterGenus.Plant, MonsterGenus.Mew, MonsterGenus.Ape,
+                MonsterGenus.Arrowhead, MonsterGenus.Durahan, MonsterGenus.ColorPandora,
+                MonsterGenus.Mock, MonsterGenus.Wracky], [],
+            3, EMonsterRegion.IMA) },
+
+        //{ ETournamentPools.L_FIMBA, new TournamentRuleset("L FIMBA", [EMonsterRanks.L], [], [], 1, EMonsterRegion.IMA) },
+        { ETournamentPools.S_FIMBA, new TournamentRuleset("S FIMBA", [EMonsterRanks.S], [], [], 1, EMonsterRegion.FIMBA) },
+        { ETournamentPools.A_FIMBA, new TournamentRuleset("A FIMBA", [EMonsterRanks.A], [], [], 1, EMonsterRegion.FIMBA) },
+        { ETournamentPools.B_FIMBA, new TournamentRuleset("B FIMBA", [EMonsterRanks.B], [], [], 1, EMonsterRegion.FIMBA) },
+        { ETournamentPools.C_FIMBA, new TournamentRuleset("C FIMBA", [EMonsterRanks.C], [], [], 1, EMonsterRegion.FIMBA) },
+        { ETournamentPools.D_FIMBA, new TournamentRuleset("D FIMBA", [EMonsterRanks.D], [], [], 1, EMonsterRegion.FIMBA) },
+    };
+
+    private static readonly Dictionary<ETournamentPools, MonsterGenus[]> RestrictMainBreeds = new()
+    {
+        { ETournamentPools.A_Phoenix, [MonsterGenus.Phoenix] },
+        { ETournamentPools.B_Dragon, [MonsterGenus.Dragon] },
+        { ETournamentPools.A_DEdge, [MonsterGenus.Durahan] },
+        {
+            ETournamentPools.F_Elder, [
+                MonsterGenus.Plant, MonsterGenus.Mew, MonsterGenus.Ape,
+                MonsterGenus.Arrowhead, MonsterGenus.Durahan, MonsterGenus.ColorPandora,
+                MonsterGenus.Mock, MonsterGenus.Wracky
+            ]
+        },
+        {
+            ETournamentPools.F_Hero, [
+                MonsterGenus.Baku, MonsterGenus.Centaur, MonsterGenus.ColorPandora,
+                MonsterGenus.Ducken, MonsterGenus.Gali, MonsterGenus.Hare, MonsterGenus.Henger,
+                MonsterGenus.Mocchi, MonsterGenus.Niton, MonsterGenus.Tiger, MonsterGenus.Undine
+            ]
+        },
+        {
+            ETournamentPools.F_Heel, [
+                MonsterGenus.Ape, MonsterGenus.Dragon, MonsterGenus.Joker, MonsterGenus.Kato,
+                MonsterGenus.Monol, MonsterGenus.Naga, MonsterGenus.Pixie, MonsterGenus.Suezo, MonsterGenus.Wracky
+            ]
+        }
+    };
+
+    private static readonly Dictionary<ETournamentPools, MonsterGenus[]> RestrictSubBreeds = new()
+    {
+        { ETournamentPools.A_Phoenix, [MonsterGenus.Phoenix] }
+    };
+
+    private static readonly MonsterGenus[] SpecialSubs =
+    [
+        MonsterGenus.XX, MonsterGenus.XY, MonsterGenus.XZ,
+        MonsterGenus.YX, MonsterGenus.YY, MonsterGenus.YZ
+    ];
+
+    public readonly TournamentInfo Info = Tourneys[pool];
+
+    public readonly ETournamentPools Pool = pool;
+
+    private Range<int> RankRange => Info.Rank switch
+    {
+        EMonsterRanks.L => (conf.RankM4, 9999),
+        EMonsterRanks.M => (conf.RankS, conf.RankM4),
+        EMonsterRanks.S => (conf.RankA, conf.RankS),
+        EMonsterRanks.A => (conf.RankB, conf.RankA),
+        EMonsterRanks.B => (conf.RankC, conf.RankB),
+        EMonsterRanks.C => (conf.RankD, conf.RankC),
+        EMonsterRanks.D => (conf.RankE, conf.RankD),
+        EMonsterRanks.E => (conf.RankZ, conf.RankE),
+        _ => throw new ArgumentOutOfRangeException()
+    };
+
+    private int StatStart => Math.Clamp(Info.StatOffset.Min + RankRange.Min, 1, 9999);
+    private int StatEnd => Math.Clamp(Info.StatOffset.Max + RankRange.Max, 1, 9999);
+
+    /// <summary>
+    ///     This function promotes two sets of monsters.
+    ///     1. A random monster from the class, extremely weighted towards any monsters approaching the top of the soft stat
+    ///     cap.
+    ///     2. Any monsters remaining in the class that are over the soft stat cap by a small amount.
+    /// </summary>
+    public void MonstersPromoteToNewPool(TournamentPool newPool)
+    {
+        Logger.Info("Promoting monsters from " + Info.Name + " to " + newPool.Info.Name, Color.LightBlue);
+        var stattotal = 0;
+        // Find all monsters in this pool
+        var monsters = tournament.Monsters
+            .FindAll(m => m.Pools.Select(p => p.Pool).Contains(Pool));
+        if (monsters.Count == 0)
+        {
+            Logger.Debug($"Pool {Pool} is empty! nothing to promote");
+            return;
         }
 
-        public void MonsterAdd ( ABD_TournamentMonster m ) {
-            if ( !monsters.Contains( m ) ) {
-                monsters.Add( m );
-                m.pools.Add( this );
+        var promoted = monsters[0];
+
+        foreach (var mon in monsters)
+            stattotal += Math.Max(mon.StatTotal - (StatEnd - 100), 1);
+
+        if (stattotal > 50)
+        {
+            stattotal = Random.Shared.Next(stattotal);
+            foreach (var monster in monsters)
+            {
+                var mvalue = Math.Max(monster.StatTotal - (StatEnd - 100), 1);
+
+                stattotal -= mvalue;
+                promoted = monster;
+                if (stattotal <= 0) break;
+            }
+
+            MonsterPromoteToNewPool(promoted, newPool);
+        }
+        else
+        {
+            Logger.Warn("Tournament Stat Totals dangeorusly low. Growth rates may be too low.");
+        }
+
+        // Soft Cap Monster Promotions
+        for (var i = monsters.Count - 1; i >= 0; i--)
+            if (monsters[i].StatTotal - 100 > StatEnd)
+                MonsterPromoteToNewPool(monsters[i], newPool);
+    }
+
+    private void MonsterPromoteToNewPool(TournamentMonster monster, TournamentPool newPool)
+    {
+        monster.LearnTechnique();
+        monster.Rank = newPool.Info.Rank;
+        monster.Pools.Remove( this ); 
+        monster.Pools.Add( newPool );
+        Logger.Info($"{monster.Name} promoted.", Color.LightBlue);
+    }
+
+    public TournamentMonster GenerateNewValidMonster(List<MonsterGenus> available)
+    {
+        Logger.Info("TP: Getting Breed", Color.AliceBlue);
+
+        var mainRestrictions = RestrictMainBreeds.GetValueOrDefault(Pool) ?? [];
+        var subRestrictions = RestrictSubBreeds.GetValueOrDefault(Pool) ?? [];
+
+        var allBreeds = new List<MonsterBreed>(MonsterBreed.AllBreeds);
+        Utils.Shuffle(Random.Shared, allBreeds);
+        var breed = allBreeds[0];
+        foreach (var b in allBreeds)
+        {
+            if (!available.Contains(breed.Main) || !available.Contains(breed.Sub)) continue;
+            if (mainRestrictions is [] && subRestrictions is [])
+            {
+                // Tourney has no breed restrictions so check to see if we allow a unique monster
+                if (SpecialSubs.Contains(b.Main) &&
+                    Random.Shared.NextDouble() < conf.SpeciesUnique)
+                    continue;
+                breed = b;
+                break;
+            }
+
+            // If we have a restriction, guarantee we generate a breed with this main or sub
+            if ((mainRestrictions is not [] && mainRestrictions.Contains(b.Main)) ||
+                (subRestrictions is not [] && subRestrictions.Contains(b.Sub)))
+            {
+                breed = b;
+                break;
             }
         }
 
-        public void MonsterRemove ( ABD_TournamentMonster m ) {
-            if ( monsters.Contains( m ) ) {
-                monsters.Remove( m );
-                m.pools.Remove( this );
+        Logger.Info("Breed chosen " + breed.Main + "/" + breed.Sub, Color.AliceBlue);
+        return GenerateNewValidMonster(breed);
+    }
+
+    private TournamentMonster GenerateNewValidMonster(MonsterBreed breed)
+    {
+        Logger.Debug("TP: Generating ", Color.AliceBlue);
+        var monData = new BattleMonsterData
+        {
+            GenusMain = breed.Main,
+            GenusSub = breed.Sub,
+            Name = TournamentData.RandomNameList[Random.Shared.Next(TournamentData.RandomNameList.Length)],
+            Life = 80,
+            Power = 1,
+            Skill = 1,
+            Speed = 1,
+            Defense = 1,
+            Intelligence = 1,
+            Nature = (sbyte)Random.Shared.Next(255),
+            Fear = (byte)Random.Shared.Next(25),
+            Spoil = (byte)Random.Shared.Next(25),
+            BattleSpecial = (BattleSpecials)Random.Shared.Next(4)
+        };
+
+        if (tournament._config.SpeciesAccuracyTraits) {
+            monData.ArenaSpeed = Byte.Parse( breed.SDATAValues[ 19 ] );
+            monData.GutsRate = Byte.Parse( breed.SDATAValues[ 20 ] );
+        } else {
+            monData.ArenaSpeed = (byte) Random.Shared.Next( 5 ); 
+            monData.GutsRate = (byte) Random.Shared.Next( 7, 21 ); 
+        }
+            var nm = new TournamentMonster( conf, monData );
+        Logger.Trace("TP: Breed " + nm.GenusMain + " " + nm.GenusMain, Color.AliceBlue);
+
+        // Attempt to assign three basics, weighted generally towards worse basic techs with variance.
+        if (nm.BreedInfo.TechList[0].Type == ErrantryType.Basic)
+            nm.MonsterAddTechnique(nm.BreedInfo.TechList[0]);
+        for (var tc = 0; tc < 3; tc++)
+        {
+            var tech = nm.BreedInfo.TechList[0];
+
+            for (var j = 1; j < nm.BreedInfo.TechList.Count; j++)
+            {
+                var nt = nm.BreedInfo.TechList[j];
+                if (nt.Type == ErrantryType.Basic)
+                    if (nt.TechValue - Random.Shared.Next(20) < tech.TechValue)
+                        tech = nt;
             }
+
+            nm.MonsterAddTechnique(tech);
         }
 
-        /// <summary>
-        /// This function promotes two sets of monsters. 
-        /// 1. A random monster from the class, extremely weighted towards any monsters approaching the top of the soft stat cap.
-        /// 2. Any monsters remaining in the class that are over the soft stat cap by a small amount.
-        /// </summary>
-        /// <param name="newPool"></param>
-        public void MonstersPromoteToNewPool ( TournamentPool newPool ) {
-            TournamentData._mod.DebugLog( 1, "Promoting monsters from " + _name + " to " + newPool._name, Color.LightBlue );
-            int stattotal = 0; ABD_TournamentMonster promoted;
-            promoted = monsters[ 0 ];
+        // Logger.Trace("TP: Basics Setup " + nm.techs.Count, Color.AliceBlue);
 
-            foreach ( ABD_TournamentMonster abdm in monsters ) {
-                stattotal += Math.Max(abdm.monster.stat_total - (stat_end - 100), 1);
-            }
+        // This is significantly messing with growth rates across the board. Going to manually set the lifespan afterwards based upon the rank.
+        while (nm.StatTotal < StatStart)
+            nm.AdvanceMonth();
+        Logger.Trace("TP: Stats Generated", Color.AliceBlue);
 
-            if ( stattotal > 50 ) {
-                stattotal = Random.Shared.Next() % stattotal;
-                for ( var i = 0; i < monsters.Count; i++ ) {
-                    int mvalue = Math.Max( monsters[ i ].monster.stat_total - ( stat_end - 100 ), 1 ); ;
-                    stattotal -= mvalue;
-                    promoted = monsters[ i ];
-                    if ( stattotal <= 0 ) { break; }
-                }
+        for (var i = 0; i < Info.Tier; i++)
+            nm.LearnTechnique();
+        Logger.Trace("TP: Techs", Color.AliceBlue);
 
-                MonsterPromoteToNewPool( promoted, newPool );
-            }
-            else { TournamentData._mod.DebugLog( 1, "Tournament Stat Totals dangeorusly low. Growth rates may be too low.", Color.Yellow ); } 
-
-            for ( var i = monsters.Count() - 1; i >= 0; i-- ) { 
-                if ( monsters[i].monster.stat_total - 100 > stat_end ) {
-                    MonsterPromoteToNewPool( monsters[ i ], newPool );
-                }
-            }
-        }
-
-        private void MonsterPromoteToNewPool( ABD_TournamentMonster monster, TournamentPool newPool ) {
-            monster.LearnTechnique();
-            monster._monsterRank = newPool._monsterRank;
-
-            MonsterRemove( monster );
-            newPool.MonsterAdd( monster );
-            TournamentData._mod.DebugLog( 1, monster.monster.name + " promoted.", Color.LightBlue );
-        }
-
-        public void GenerateNewValidMonster ( List<MonsterGenus> available ) {
-            TournamentData._mod.DebugLog( 1, "TP: Getting Breed", Color.AliceBlue );
-            MonsterBreed breed = MonsterBreed.AllBreeds[ 0 ];
-
-            if ( _tournamentPool == ETournamentPools.A_Phoenix ) {
-                for ( var i = 0; i < 500; i++ ) {
-                    breed = MonsterBreed.AllBreeds[ Random.Shared.Next() % MonsterBreed.AllBreeds.Count ];
-                    if ( breed.breed_id == MonsterGenus.Phoenix || breed.sub_id == MonsterGenus.Phoenix ) {
-                        break;
-                    }
-                }
-            }
-
-            else if ( _tournamentPool == ETournamentPools.B_Dragon ) {
-                for ( var i = 0; i < 500; i++ ) {
-                    breed = MonsterBreed.AllBreeds[ Random.Shared.Next() % MonsterBreed.AllBreeds.Count ];
-                    if ( breed.breed_id == MonsterGenus.Dragon ) {
-                        break;
-                    }
-                }
-            }
-
-            else if ( _tournamentPool == ETournamentPools.A_DEdge ) {
-                for ( var i = 0; i < 500; i++ ) {
-                    breed = MonsterBreed.AllBreeds[ Random.Shared.Next() % MonsterBreed.AllBreeds.Count ];
-                    if ( breed.breed_id == MonsterGenus.Durahan ) {
-                        break;
-                    }
-                }
-            }
-
-            else if ( _tournamentPool == ETournamentPools.F_Elder ) {
-                for ( var i = 0; i < 250; i++ ) {
-                    breed = MonsterBreed.AllBreeds[ Random.Shared.Next() % MonsterBreed.AllBreeds.Count ];
-                    if ( available.Contains( breed.breed_id ) && available.Contains( breed.sub_id ) ) {
-                        if ( breed.breed_id == MonsterGenus.Plant || breed.breed_id == MonsterGenus.Mew || breed.breed_id == MonsterGenus.Ape || breed.breed_id == MonsterGenus.Arrowhead
-                            || breed.breed_id == MonsterGenus.Durahan || breed.breed_id == MonsterGenus.ColorPandora || breed.breed_id == MonsterGenus.Mock || breed.breed_id == MonsterGenus.Wracky ) {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            else if ( _tournamentPool == ETournamentPools.F_Hero ) {
-                for ( var i = 0; i < 250; i++ ) {
-                    breed = MonsterBreed.AllBreeds[ Random.Shared.Next() % MonsterBreed.AllBreeds.Count ];
-                    if ( available.Contains( breed.breed_id ) && available.Contains( breed.sub_id ) ) {
-                        if ( breed.breed_id == MonsterGenus.Baku || breed.breed_id == MonsterGenus.Centaur || breed.breed_id == MonsterGenus.ColorPandora || breed.breed_id == MonsterGenus.Ducken ||
-                                breed.breed_id == MonsterGenus.Gali || breed.breed_id == MonsterGenus.Hare || breed.breed_id == MonsterGenus.Henger || breed.breed_id == MonsterGenus.Mocchi ||
-                                breed.breed_id == MonsterGenus.Niton || breed.breed_id == MonsterGenus.Tiger || breed.breed_id == MonsterGenus.Undine
-                            ) {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            else if ( _tournamentPool == ETournamentPools.F_Heel ) {
-                for ( var i = 0; i < 250; i++ ) {
-                    breed = MonsterBreed.AllBreeds[ Random.Shared.Next() % MonsterBreed.AllBreeds.Count ];
-                    if ( available.Contains( breed.breed_id ) && available.Contains( breed.sub_id ) ) {
-                        if ( breed.breed_id == MonsterGenus.Ape || breed.breed_id == MonsterGenus.Dragon || breed.breed_id == MonsterGenus.Joker || breed.breed_id == MonsterGenus.Kato
-                            || breed.breed_id == MonsterGenus.Monol || breed.breed_id == MonsterGenus.Naga || breed.breed_id == MonsterGenus.Pixie || breed.breed_id == MonsterGenus.Suezo || breed.breed_id == MonsterGenus.Wracky ) {
-                            break;
-                        }
-                    }
-                }
-            }
-
-           else {
-                for ( var i = 0; i < 100; i++ ) {
-                    breed = MonsterBreed.AllBreeds[ Random.Shared.Next() % MonsterBreed.AllBreeds.Count ];
-                    if ( available.Contains( breed.breed_id ) && available.Contains( breed.sub_id ) ) {
-                        if ( breed.sub_id == MonsterGenus.Unknown1 || breed.sub_id == MonsterGenus.Unknown2 || breed.sub_id == MonsterGenus.Unknown3 ||
-                            breed.sub_id == MonsterGenus.Unknown4 || breed.sub_id == MonsterGenus.Unknown5 || breed.sub_id == MonsterGenus.Unknown6 ) {
-                            if ( Random.Shared.NextDouble() < TournamentData._configuration._confDTP_species_unique ) { break; }
-                        }
-
-                        else { break; }
-                    }
-                }
-            }
-            TournamentData._mod.DebugLog( 1, "Breed chosen " + breed.breed_id + "/" + breed.sub_id, Color.AliceBlue );
-            GenerateNewValidMonster( breed );
-
-        }
-        private void GenerateNewValidMonster ( MonsterBreed breed ) {
-            TournamentData._mod.DebugLog( 2, "TP: Generating", Color.AliceBlue );
-            byte[] nmraw = new byte[ 60 ];// This doesn't matter, it gets completely overwritten below anyways.
-            TournamentMonster nm = new TournamentMonster( nmraw );
-
-
-            nm.breed_main = breed.breed_id; nm.breed_sub = breed.sub_id;
-            TournamentData._mod.DebugLog( 3, "TP: Breed " + nm.breed_main + " " + nm.breed_sub, Color.AliceBlue );
-            // // // // // //
-
-            ABD_TournamentMonster abdm = new ABD_TournamentMonster( nm );
-
-            abdm.monster.name = TournamentData._random_name_list[ Random.Shared.Next() % TournamentData._random_name_list.Length ];
-            abdm.monster.stat_lif = 80;
-            abdm.monster.stat_pow = 1;
-            abdm.monster.stat_ski = 1;
-            abdm.monster.stat_spd = 1;
-            abdm.monster.stat_def = 1;
-            abdm.monster.stat_int = 1;
-
-            abdm.monster.per_nature = (byte) ( Random.Shared.Next() % 255 );
-            abdm.monster.per_fear = (byte) ( Random.Shared.Next() % 25 );
-            abdm.monster.per_spoil = (byte) ( Random.Shared.Next() % 25 );
-
-            abdm.monster.arena_movespeed = (byte) ( Random.Shared.Next() % 4 ); // TODO: Where does this come from?
-            abdm.monster.arena_gutsrate = (byte) ( 7 + Random.Shared.Next() % 14 ); // 7 - 20?
-
-            abdm.monster.battle_specials = (byte) (Random.Shared.Next() % 4);
-
-            // Attempt to assign three basics, weighted generally towards worse basic techs with variance.
-            if ( abdm.breedInfo._techniques[ 0 ]._errantry == ErrantryType.Basic ) { 
-                abdm.monster.techniques = abdm.monster.techniques | (uint) ( 1 << abdm.breedInfo._techniques[ 0 ]._id );
-                abdm.techniques.Add( abdm.breedInfo._techniques[ 0 ] );
-            }
-
-            for ( var tc = 0; tc < 3; tc++ ) {
-                MonsterTechnique tech = abdm.breedInfo._techniques[ 0 ];
-
-                for ( var j = 1; j < abdm.breedInfo._techniques.Count; j++ ) {
-                    var nt = abdm.breedInfo._techniques[ j ];
-                    if ( nt._errantry == ErrantryType.Basic ) {
-                        if ( nt._techValue - ( Random.Shared.Next() % 20 ) < tech._techValue ) {
-                            tech = nt;
-                        }
-                    }
-                }
-
-                abdm.MonsterAddTechnique( tech );
-            }
-            TournamentData._mod.DebugLog( 3, "TP: Basics Setup " + abdm.techniques.Count, Color.AliceBlue );
-
-            // This is significantly messing with growth rates across the board. Going to manually set the lifespan afterwards based upon the rank.
-            while ( abdm.monster.stat_total < stat_start ) {
-                abdm.AdvanceMonth();
-            }
-            TournamentData._mod.DebugLog( 3, "TP: Stats Generated", Color.AliceBlue );
-
-            for ( int i = 0; i < tournament_tier; i++ ) {
-                abdm.LearnTechnique();
-            }
-            TournamentData._mod.DebugLog( 3, "TP: Techs", Color.AliceBlue );
-
+        nm.Lifespan = Info.Rank switch
+        {
             // Need this to account for bad growth rate monsters. At minimum monsters should be living for at least 8 months. Not a lot of time but enough to reduce churn.
-                    if ( _monsterRank == EMonsterRanks.L ) { abdm.lifespan = (ushort) ( 12 + ( TournamentData.LifespanRNG.Next() % 5 ) ); }
-            else    if ( _monsterRank == EMonsterRanks.M ) { abdm.lifespan = (ushort) ( 16 + ( TournamentData.LifespanRNG.Next() % 5 ) ); }
-            else    if ( _monsterRank == EMonsterRanks.S ) { abdm.lifespan = (ushort) ( 20 + ( TournamentData.LifespanRNG.Next() % 7 ) ); }
-            else    if ( _monsterRank == EMonsterRanks.A ) { abdm.lifespan = (ushort) ( 24 + ( TournamentData.LifespanRNG.Next() % 7 ) ); }
-            else    if ( _monsterRank == EMonsterRanks.B ) { abdm.lifespan = (ushort) ( abdm.lifetotal - ( 14 + ( TournamentData.LifespanRNG.Next() % 9 ) ) ); }
-            else    if ( _monsterRank == EMonsterRanks.C ) { abdm.lifespan = (ushort) ( abdm.lifetotal - ( 6 + ( TournamentData.LifespanRNG.Next() % 7 ) ) ); }
-            else    if ( _monsterRank == EMonsterRanks.D ) { abdm.lifespan = (ushort) (abdm.lifetotal - ( 2 + ( TournamentData.LifespanRNG.Next() % 5 ) ) ); }
-            else    if ( _monsterRank == EMonsterRanks.E ) { abdm.lifespan = abdm.lifetotal; }
-            abdm.alive = true;
+            EMonsterRanks.L => (ushort)TournamentData.LifespanRNG.Next( 12, 16 + 1 ),
+            EMonsterRanks.M => (ushort)TournamentData.LifespanRNG.Next( 16, 20 + 1 ),
+            EMonsterRanks.S => (ushort)TournamentData.LifespanRNG.Next( 20, 26 + 1 ),
+            EMonsterRanks.A => (ushort)TournamentData.LifespanRNG.Next( 24, 30 + 1 ),
+            EMonsterRanks.B => (ushort)(nm.LifeTotal - TournamentData.LifespanRNG.Next( 14, 22 + 1 ) ),
+            EMonsterRanks.C => (ushort)(nm.LifeTotal - TournamentData.LifespanRNG.Next( 6, 12 ) ),
+            EMonsterRanks.D => (ushort)(nm.LifeTotal - TournamentData.LifespanRNG.Next( 2, 6 + 1) ),
+            EMonsterRanks.E => nm.LifeTotal,
+            _ => nm.Lifespan
+        };
+        nm.Alive = true;
 
-            abdm.PromoteToRank( _monsterRank );
-            
-            TournamentData._mod.DebugLog( 2, "TP: Complete", Color.AliceBlue );
-            tournamentData.monsters.Add( abdm );
-            this.MonsterAdd( abdm );
-        }
+        nm.PromoteToRank(Info.Rank);
 
+        Logger.Debug("TP: Complete", Color.AliceBlue);
+        nm.Pools.Add(this);
+        return nm;
+    }
 
-        /// <summary>
-        /// Adds the tournament participants to the provided list. This is a random selection of [_minimumSize] monsters.
-        /// </summary>
-        /// <param name="participants"></param>
-        public void AddTournamentParticipants ( List<ABD_TournamentMonster> participants ) {
-            for ( var i = 0; i < _minimumSize; i++ ) { participants.Add( monsters[ i ] ); }
-        }
-
+    public static ETournamentPools PoolFromId(int id)
+    {
+        if (id is 0 or >= 119)
+            Logger.Error($"Pool id {id} out of tourney range");
+        return Tourneys
+            .First(kvpair => kvpair.Value.Id.Min <= id && id <= kvpair.Value.Id.Max)
+            .Key;
     }
 }

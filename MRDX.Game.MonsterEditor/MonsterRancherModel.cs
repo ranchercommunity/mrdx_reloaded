@@ -394,7 +394,7 @@ public class MonsterModel : IMonster
         set => _mon.MotivationSwim = value;
     }
 
-    public IList<IMonsterAttack> Moves { get; } = new List<IMonsterAttack>();
+    public IList<IMonsterTechnique> Moves { get; } = new List<IMonsterTechnique>();
     public IList<byte> MoveUseCount { get; } = new List<byte>();
 
     public string Name

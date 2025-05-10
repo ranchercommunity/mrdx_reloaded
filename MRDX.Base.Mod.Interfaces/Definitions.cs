@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MRDX.Base.Mod.Interfaces;
 
@@ -230,12 +231,13 @@ public enum MonsterGenus : byte
     Worm = 36,
     Naga = 37,
     Count = 38,
-    Unknown1 = 38,
-    Unknown2 = 39,
-    Unknown3 = 40,
-    Unknown4 = 41,
-    Unknown5 = 42,
-    Unknown6 = 43
+    XX = 38, // Unknown 1
+    XY = 39, // Unknown 2
+    XZ = 40, // Unknown 3
+    YX = 41, // Unknown 4
+    YY = 42, // Unknown 5
+    YZ = 43, // Unknown 6,
+    Garbage = 0xff
 }
 
 public enum Form : sbyte
@@ -302,9 +304,51 @@ public enum TechNature : byte
     Evil = 2
 }
 
-public record MonsterInfo
+public record struct Range<T>(T Min, T Max)
+{
+    public static implicit operator ValueTuple<T, T>(Range<T> record)
+    {
+        return (record.Min, record.Max);
+    }
+
+    public static implicit operator Range<T>(ValueTuple<T, T> record)
+    {
+        return new Range<T> { Min = record.Item1, Max = record.Item2 };
+    }
+}
+
+/// <summary>
+///     Container for information used to load monster data from disk.
+///     Some of the files in data.bin reference the Name while others use
+///     the ShortName field.
+/// </summary>
+public record GenusInfo
 {
     public MonsterGenus Id { get; init; } = 0;
     public string Name { get; init; } = string.Empty;
     public string ShortName { get; init; } = string.Empty;
+}
+
+/// <summary>
+///     Represents an actual monster breed (combination of two Genus) that is used in game
+/// </summary>
+public record MonsterBreed
+{
+    public static List<MonsterBreed> AllBreeds = [];
+    public MonsterGenus Main { get; init; } = 0;
+    public MonsterGenus Sub { get; init; } = 0;
+
+    public string Name { get; init; } = string.Empty;
+
+    public string BreedIdentifier { get; init; } = string.Empty;
+
+    public string[] SDATAValues { get; init; } = [];
+
+    public List<IMonsterTechnique> TechList { get; init; } = [];
+
+    public static MonsterBreed? GetBreed(MonsterGenus main, MonsterGenus sub)
+    {
+        Logger.Trace($"Get Breed: {main}, sub: {sub}");
+        return AllBreeds.Find(m => m.Main == main && m.Sub == sub);
+    }
 }

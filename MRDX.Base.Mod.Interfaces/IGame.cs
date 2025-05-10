@@ -26,7 +26,18 @@ public interface IGame
     /// </summary>
     public delegate void MonsterChange(IMonsterChange change);
 
+    /// <summary>
+    ///     Event that is fired when the week changes
+    /// </summary>
+    public delegate void WeekChange(IWeekChange change);
+
     public IMonster Monster { get; set; }
+
+    public Utils.OneTimeEvent<bool> OnMonsterBreedsLoaded { get; }
+
+    public List<MonsterGenus> UnlockedMonsters { get; }
+
+    public event WeekChange OnWeekChange;
 
     public event MonsterChange OnMonsterChanged;
 
@@ -36,10 +47,10 @@ public interface IGame
     public event GameSceneChange OnGameSceneChanged;
 }
 
-public interface ISaveFile
+public interface IWeekChange
 {
-    IMonster CurrentMonster { get; set; }
-    IList<IMonster> Freezer { get; init; }
+    uint OldWeek { get; }
+    uint NewWeek { get; }
 }
 
 public interface IMonsterChange
@@ -59,4 +70,25 @@ public interface IMonsterModChange : IMonsterChange
 
 public interface IMonsterCompleteChange : IMonsterChange
 {
+}
+
+public interface ISaveFileEntry
+{
+    string Filename { get; }
+    string Slot { get; }
+    bool IsAutoSave { get; }
+}
+
+public interface ISaveFile
+{
+    public delegate void Load(ISaveFileEntry file);
+
+    public delegate void Save(ISaveFileEntry file);
+
+    public event Load OnLoad;
+
+    public event Save OnSave;
+
+    // IMonster CurrentMonster { get; set; }
+    // IList<IMonster> Freezer { get; init; }
 }

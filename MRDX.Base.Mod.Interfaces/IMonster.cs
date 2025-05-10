@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace MRDX.Base.Mod.Interfaces;
@@ -69,6 +70,38 @@ public enum StatFlags : ulong
     PrizeMoney = 1L << 53
 }
 
+[Flags]
+public enum TechSlots : uint
+{
+    Melee0 = 1 << 0,
+    Melee1 = 1 << 1,
+    Melee2 = 1 << 2,
+    Melee3 = 1 << 3,
+    Melee4 = 1 << 4,
+    Melee5 = 1 << 5,
+
+    Short0 = 1 << 6,
+    Short1 = 1 << 7,
+    Short2 = 1 << 8,
+    Short3 = 1 << 9,
+    Short4 = 1 << 10,
+    Short5 = 1 << 11,
+
+    Medium0 = 1 << 12,
+    Medium1 = 1 << 13,
+    Medium2 = 1 << 14,
+    Medium3 = 1 << 15,
+    Medium4 = 1 << 16,
+    Medium5 = 1 << 17,
+
+    Long0 = 1 << 18,
+    Long1 = 1 << 19,
+    Long2 = 1 << 20,
+    Long3 = 1 << 21,
+    Long4 = 1 << 22,
+    Long5 = 1 << 23
+}
+
 public static class MonsterHelper
 {
     public static TEnum ToRangeEnum<TEnum, T>(T val) where T : IBinaryInteger<T> where TEnum : struct, Enum
@@ -94,7 +127,7 @@ public static class MonsterHelper
         return (short)Math.Truncate(Math.Asin(natureMod / 100.0f) * 2048 / Math.PI);
     }
 
-    public static void Deconstruct(this MonsterInfo src, out MonsterGenus a0, out string a1, out string a2)
+    public static void Deconstruct(this GenusInfo src, out MonsterGenus a0, out string a1, out string a2)
     {
         a0 = src.Id;
         a1 = src.Name;
@@ -104,8 +137,8 @@ public static class MonsterHelper
 
 public interface IMonster
 {
-    static readonly MonsterInfo[] AllMonsters =
-    {
+    public static readonly GenusInfo[] AllMonsters =
+    [
         new() { Id = MonsterGenus.Pixie, Name = "Pixie", ShortName = "kapi" },
         new() { Id = MonsterGenus.Dragon, Name = "Dragon", ShortName = "kbdr" },
         new() { Id = MonsterGenus.Centaur, Name = "Centaur", ShortName = "kckn" },
@@ -144,13 +177,13 @@ public interface IMonster
         new() { Id = MonsterGenus.Ape, Name = "Ape", ShortName = "mylau" },
         new() { Id = MonsterGenus.Worm, Name = "Worm", ShortName = "mzmus" },
         new() { Id = MonsterGenus.Naga, Name = "Naga", ShortName = "naaga" },
-        new() { Id = MonsterGenus.Unknown1, Name = "Unknown1", ShortName = "unk1" },
-        new() { Id = MonsterGenus.Unknown2, Name = "Unknown2", ShortName = "unk2" },
-        new() { Id = MonsterGenus.Unknown3, Name = "Unknown3", ShortName = "unk3" },
-        new() { Id = MonsterGenus.Unknown4, Name = "Unknown4", ShortName = "unk4" },
-        new() { Id = MonsterGenus.Unknown5, Name = "Unknown5", ShortName = "unk5" },
-        new() { Id = MonsterGenus.Unknown6, Name = "Unknown6", ShortName = "unk6" }
-    };
+        new() { Id = MonsterGenus.XX, Name = "Unknown", ShortName = "xx" },
+        new() { Id = MonsterGenus.XY, Name = "Unknown", ShortName = "xy" },
+        new() { Id = MonsterGenus.XZ, Name = "Unknown", ShortName = "xz" },
+        new() { Id = MonsterGenus.YX, Name = "Unknown", ShortName = "yx" },
+        new() { Id = MonsterGenus.YY, Name = "Unknown", ShortName = "yy" },
+        new() { Id = MonsterGenus.YZ, Name = "Unknown", ShortName = "yz" }
+    ];
 
     ushort Age { get; set; }
 
@@ -170,7 +203,7 @@ public interface IMonster
     short NatureRaw { get; set; }
     sbyte NatureBase { get; set; }
 
-    EffectiveNature Nature
+    EffectiveNature NatureDisplay
     {
         get =>
             MonsterHelper.ToRangeEnum<EffectiveNature, sbyte>(
@@ -179,6 +212,14 @@ public interface IMonster
             NatureRaw = MonsterHelper.NatureModToRaw(
                 (short)(MonsterHelper.FromRangeEnum<EffectiveNature, sbyte>(value) - NatureBase));
     }
+
+    sbyte Nature => (sbyte)(NatureBase + MonsterHelper.NatureRawToMod(NatureRaw));
+
+    ushort AdjustedSpeed => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+        (double)Speed * (sbyte)(NatureBase + MonsterHelper.NatureRawToMod(NatureRaw)) / 4 * 100) / 10000), 1, 999);
+
+    ushort AdjustedDefense => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+        (double)Defense * (sbyte)(NatureBase + MonsterHelper.NatureRawToMod(NatureRaw)) / 4 * 100) / 10000), 1, 999);
 
     byte Fatigue { get; set; }
     byte Fame { get; set; }
@@ -217,7 +258,7 @@ public interface IMonster
     byte ArenaSpeed { get; set; }
     byte GutsRate { get; set; }
 
-    IList<IMonsterAttack> Moves { get; }
+    IList<IMonsterTechnique> Moves { get; }
     IList<byte> MoveUseCount { get; }
 
     byte MotivationDomino { get; set; }
@@ -236,7 +277,7 @@ public interface IMonster
     uint PrizeMoney { get; set; }
 }
 
-public interface IBattleMonster
+public interface IBattleMonsterData
 {
     string Name { get; set; }
 
@@ -250,17 +291,162 @@ public interface IBattleMonster
     ushort Speed { get; set; }
     ushort Intelligence { get; set; }
 
+    ushort AdjustedSpeed => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+        (double)Speed * Nature / 4 * 100) / 10000), 1, 999);
+
+    ushort AdjustedDefense => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+        (double)Defense * Nature / 4 * 100) / 10000), 1, 999);
+
     sbyte Nature { get; set; }
 
     byte Spoil { get; set; }
     byte Fear { get; set; }
 
-    byte[] Attacks { get; set; }
+    byte[] Techs { get; set; }
+
+    TechSlots TechSlot
+    {
+        get => (TechSlots)BitConverter.ToUInt32(Techs, 0);
+        set => BitConverter.GetBytes((uint)value)[..2].CopyTo(Techs, 0);
+    }
 
     byte ArenaSpeed { get; set; }
     byte GutsRate { get; set; }
 
     BattleSpecials BattleSpecial { get; set; }
+
+    ushort StatTotal => (ushort)(Life + Power + Defense + Skill + Speed + Intelligence);
+
+    byte[] Serialize()
+    {
+        return GetSerializedData();
+    }
+
+    public byte[] GetSerializedData()
+    {
+        var o = Enumerable.Repeat((byte)0xff, 60).ToArray();
+        Name.AsMr2().AsBytes().CopyTo(o, 0);
+        o[26] = (byte)GenusMain;
+        o[27] = (byte)GenusSub;
+        BitConverter.GetBytes(Life).CopyTo(o, 28);
+        BitConverter.GetBytes(Power).CopyTo(o, 30);
+        BitConverter.GetBytes(Defense).CopyTo(o, 32);
+        BitConverter.GetBytes(Skill).CopyTo(o, 34);
+        BitConverter.GetBytes(Speed).CopyTo(o, 36);
+        BitConverter.GetBytes(Intelligence).CopyTo(o, 38);
+        o[40] = (byte)Nature;
+        o[41] = Fear;
+        o[42] = Spoil;
+        Techs.CopyTo(o, 43);
+        o[48] = ArenaSpeed;
+        o[49] = GutsRate;
+        BitConverter.GetBytes((ushort)BattleSpecial).CopyTo(o, 52);
+        return o;
+    }
+
+    public static IBattleMonsterData FromBytes(byte[] o)
+    {
+        return new BattleMonsterData
+        {
+            Name = o[..26].AsShorts().AsString(),
+            GenusMain = (MonsterGenus)o[26],
+            GenusSub = (MonsterGenus)o[27],
+            Life = BitConverter.ToUInt16(o, 28),
+            Power = BitConverter.ToUInt16(o, 30),
+            Defense = BitConverter.ToUInt16(o, 32),
+            Skill = BitConverter.ToUInt16(o, 34),
+            Speed = BitConverter.ToUInt16(o, 36),
+            Intelligence = BitConverter.ToUInt16(o, 38),
+            Nature = (sbyte)o[40],
+            Fear = o[41],
+            Spoil = o[42],
+            Techs = o[43..47],
+            ArenaSpeed = o[48],
+            GutsRate = o[49],
+            BattleSpecial = (BattleSpecials)BitConverter.ToUInt16(o, 52)
+        };
+    }
+}
+
+public class BattleMonsterData : IBattleMonsterData
+{
+    public BattleMonsterData()
+    {
+    }
+
+    public BattleMonsterData(IBattleMonsterData b)
+    {
+        // Copy all of the fields from the battlemonsterdata into "us" 
+        Name = b.Name;
+        GenusMain = b.GenusMain;
+        GenusSub = b.GenusSub;
+        Life = b.Life;
+        Power = b.Power;
+        Defense = b.Defense;
+        Skill = b.Skill;
+        Speed = b.Speed;
+        Intelligence = b.Intelligence;
+        Nature = b.Nature;
+        Fear = b.Fear;
+        Spoil = b.Spoil;
+        Techs = b.Techs;
+        ArenaSpeed = b.ArenaSpeed;
+        GutsRate = b.GutsRate;
+        BattleSpecial = b.BattleSpecial;
+    }
+
+    public ushort StatTotal => (ushort)(Life + Power + Defense + Skill + Speed + Intelligence);
+
+    public ushort AdjustedSpeed => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+        (double)Speed * Nature / 4 * 100) / 10000), 1, 999);
+
+    public ushort AdjustedDefense => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+        (double)Defense * Nature / 4 * 100) / 10000), 1, 999);
+
+    public TechSlots TechSlot
+    {
+        get => (TechSlots)BitConverter.ToUInt32(Techs, 0);
+        set => BitConverter.GetBytes((uint)value).CopyTo(Techs, 0);
+    }
+
+    public string Name { get; set; }
+    public MonsterGenus GenusMain { get; set; }
+    public MonsterGenus GenusSub { get; set; }
+    public ushort Life { get; set; }
+    public ushort Power { get; set; }
+    public ushort Defense { get; set; }
+    public ushort Skill { get; set; }
+    public ushort Speed { get; set; }
+    public ushort Intelligence { get; set; }
+    public sbyte Nature { get; set; }
+    public byte Spoil { get; set; }
+    public byte Fear { get; set; }
+    public byte[] Techs { get; set; } = new byte[4];
+    public byte ArenaSpeed { get; set; }
+    public byte GutsRate { get; set; }
+    public BattleSpecials BattleSpecial { get; set; }
+
+    public byte[] Serialize()
+    {
+        return (this as IBattleMonsterData).GetSerializedData();
+    }
+}
+
+public interface IBattleMonster : IBattleMonsterData
+{
+    ushort Hp { get; set; }
+
+    sbyte Stress { get; set; }
+
+    byte Fame { get; set; }
+
+    BattleSpecials ActiveBattleSpecial { get; set; }
+
+    BattleSpecials InactiveBattleSpecial { get; set; }
+
+    byte Guts { get; set; }
+
+    IList<IMonsterTechnique> TechData { get; }
 }
 
 public static class StatFlagUtil

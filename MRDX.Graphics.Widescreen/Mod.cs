@@ -78,7 +78,7 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         hooks.AddHook<CreateOverlay>(CreateOverlayHook)
-            .ContinueWith(result => _createOverlayHook = result.Result?.Activate());
+            .ContinueWith(result => _createOverlayHook = result.Result);
         UpdateWindowBounds(_configuration.AspectRatio);
         CalculateSkyboxCoords(_configuration.AspectRatio);
         var startupScanner = _modLoader.GetController<IStartupScanner>();

@@ -1,289 +1,320 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using MRDX.Base.Mod.Interfaces;
-using Reloaded.Mod.Interfaces;
 //using static MRDX.Base.Mod.Interfaces.TournamentData;
 using Config = MRDX.Game.DynamicTournaments.Configuration.Config;
 
 namespace MRDX.Game.DynamicTournaments;
 
-public enum EMonsterRanks { L, M, S, A, B, C, D, E };
-public enum ETournamentPools { L, M, S, A, B, C, D, E,
-    A_Phoenix, A_DEdge, B_Dragon, F_Hero, F_Heel, F_Elder,
-    S_FIMBA, A_FIMBA, B_FIMBA, C_FIMBA, D_FIMBA,
-    S_FIMBA2, A_FIMBA2, B_FIMBA2, C_FIMBA2, D_FIMBA2, X_MOO
+public enum EMonsterRanks
+{
+    L,
+    M,
+    S,
+    A,
+    B,
+    C,
+    D,
+    E
 }
+
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+public enum ETournamentPools
+{
+    L,
+    M,
+    S,
+    A,
+    B,
+    C,
+    D,
+    E,
+    A_Phoenix,
+    A_DEdge,
+    B_Dragon,
+    F_Hero,
+    F_Heel,
+    F_Elder,
+    S_FIMBA,
+    A_FIMBA,
+    B_FIMBA,
+    C_FIMBA,
+    D_FIMBA,
+    S_FIMBA2,
+    A_FIMBA2,
+    B_FIMBA2,
+    C_FIMBA2,
+    D_FIMBA2,
+    X_MOO, 
+    //L_FIMBA,
+}
+
+public enum EMonsterRegion {
+    IMA,
+    FIMBA
+}
+
 public class TournamentData
 {
-    public static Mod _mod;
-    public static ILogger _logger;
-    public static Config _configuration;
-
-    public static string[] _random_name_list = ["Cimasio", "Kyrades", "Ambroros", "Teodeus", "Lazan", "Pegetus", "Perseos", "Asandrou", "Agametrios",
-        "Lazion", "Morphosyne", "Gelantinos", "Narkelous", "Taloclus", "Baltsalus", "Hypnaeon", "Atrol", "Alexede", "Baccinos", "Idastos", "Ophyroe","Larissa", "Asperata",
-        "Alnifolia","Dentala","Celsa","Hempera","Laurel","Haldiphe","Saffronea", "Quinn",
-        "Poplarbush","Snowdrop","Funnyfluff","Firo","Limespice","Herb","Twinklespa","Spring","Shinyglade",
-        "Almond","Foggytree","Pecan","Jesterfeet","Skylark","Rainbow","Snow","Oakswamp","Liri", "Briarpuff",
-        "Extos","Grimes","Talis","Anemia","Tinder","Neige","Lec","Chinook","Graund","Greidax","Pigatt",
-        "Kuanezz","Nidar","Danuzz","Razodrug","Krorodurr","Galae",
-        "Tepua","Uvle","Ujay","Surlul","Razsa","Dezunu","Urabu","Sholgokoh","Abedin","Yetsi","Jaedrey",
-        "Leadeth","Baudr","Araldyng","Gilparymr","Sawah","Mazraeh",
-        "Aayuh","Grimstriker","Twistmight","Pyregaze","Heatmarch","Omega","Dalton","Alpha","Beta","Gamma","Zeta","Phi","Jaeger",
-        "Dimbranch","Raindust","Hillbrace","Storm","Sohish","Sunhol","Ehtae","Lilsof","Ghostsign","Snowlock","Mystic","Nevi","Azahz","Owen","Denzel","Robinson",
-        "Blossom","Yarn","Skitter","Mercy","Firj","Blubber","Dribble","Angel","Tank","Dottie","Taugh","Liberi",
-        "Thespia","Pirene","Isonei","Harrow","Bakano","Polo","Okal","Ochen","Mhina","Siaka","Tamba","Savane","Boukary","Traore","Yaya","Dia","Dio","Aaron","Prizo","Dimitri","Dashaco",
-        "Mathis","Calamity","Buve","Hosho","Zimba","Tsun","Mawere","Rufaro","Emoger","Fida","Thorns","Saffron","Teddago","Skelyte","Chilleni","Slowhawk","Jagola",
-        "Zhar","Dim","Cleoz","Rav","Membut","Dazam","Groznur","Aqrat","Azzac","Tergu","Kirchon","Nilla","Ricryll","Imnor","Lanceruil","Ballion",
-        "Quosa","Yesnorin","Caina","Holyn","Athena","Nandra","Beratha","Libgalyn","Galin","Heleto","Faerona","Fairest","Chuckles","Darkness",
-        "Shiner","Monkeytime","Noper","Willow","Grassfall","Misty","Mantle","Painscribe","Plainwood","Orbgold","Ragespear","Dawnward",
-        "Clair","Caffal","Ronch","Pola","Moux","Ranteau","Nothier","Peseul","Astellon","Glide","Roughkiss","Mosswisp","Shadow","Autumn",
-        "Voidbane","Voidsicle","Kingsmith","Kingly","Peasant","Pleasant","Swellow","Alexa","Luitgard","Ede","Medou","Branka","Devotee","Aura",
-        "Outlaw","Jade","Nocturne","Jarvis","Beeps","Faint","Perkless","Yill","Quona","Washerguard","Eda","Rosery","Tapper","Undergrow","Ova",
-        "Adamant","Silverlock","Dobby","Finx","Gar","Hope","Jewel","Kattery","Languish","Zephyr","Xilla","Cedar","Villa","Branx","Naught","Midas",
-        "Atronaph", "Argus", "Aideen", "Alias", "Adonay", "Anno", "Apollo", "Aydin", "Asakoa", "Aviri", "Adelynn", "Arsonwheel", "Angerstomp",
-        "Bajor", "Beekler", "Bobbles", "Buu", "Brainstorm", "Bracer", "Basselt", "Boggycreek", "Boggart", "Bahamut", "Baretree", "Birchbellow",
-        "Calaphyx", "Cawcaws", "Cix", "Cerrusio", "Creator", "Clipse", "Conjus", "Chanceux", "Ciorliath", "Clearwish", 
-        "David", "Dingus", "Dakadaka", "Dill", "Doodle", "Daydream", "Dreameater", "Diablo", "Diabolos", "Dunker", "Dragonfly", 
-        "Eater", "Eo", "Endofall", "Exuberance", "Etresse", "Elan", "Entun", "Earthtender",
+    public static readonly string[] RandomNameList =
+    [
+        "Cimasio", "Kyrades", "Ambroros", "Teodeus", "Lazan", "Pegetus", "Perseos", "Asandrou", "Agametrios",
+        "Lazion", "Morphosyne", "Gelantinos", "Narkelous", "Taloclus", "Baltsalus", "Hypnaeon", "Atrol", "Alexede",
+        "Baccinos", "Idastos", "Ophyroe", "Larissa", "Asperata",
+        "Alnifolia", "Dentala", "Celsa", "Hempera", "Laurel", "Haldiphe", "Saffronea", "Quinn",
+        "Poplarbush", "Snowdrop", "Funnyfluff", "Firo", "Limespice", "Herb", "Twinklespa", "Spring", "Shinyglade",
+        "Almond", "Foggytree", "Pecan", "Jesterfeet", "Skylark", "Rainbow", "Snow", "Oakswamp", "Liri", "Briarpuff",
+        "Extos", "Grimes", "Talis", "Anemia", "Tinder", "Neige", "Lec", "Chinook", "Graund", "Greidax", "Pigatt",
+        "Kuanezz", "Nidar", "Danuzz", "Razodrug", "Krorodurr", "Galae",
+        "Tepua", "Uvle", "Ujay", "Surlul", "Razsa", "Dezunu", "Urabu", "Sholgokoh", "Abedin", "Yetsi", "Jaedrey",
+        "Leadeth", "Baudr", "Araldyng", "Gilparymr", "Sawah", "Mazraeh",
+        "Aayuh", "Grimstriker", "Twistmight", "Pyregaze", "Heatmarch", "Omega", "Dalton", "Alpha", "Beta", "Gamma",
+        "Zeta", "Phi", "Jaeger", "Dimbranch", "Raindust", "Hillbrace", "Storm", "Sohish", "Sunhol", "Ehtae", "Lilsof",
+        "Ghostsign", "Snowlock", "Mystic", "Nevi", "Azahz", "Owen", "Denzel", "Robinson",
+        "Blossom", "Yarn", "Skitter", "Mercy", "Firj", "Blubber", "Dribble", "Angel", "Tank", "Dottie", "Taugh",
+        "Liberi", "Thespia", "Pirene", "Isonei", "Harrow", "Bakano", "Polo", "Okal", "Ochen", "Mhina", "Siaka", "Tamba",
+        "Savane", "Boukary", "Traore", "Yaya", "Dia", "Dio", "Aaron", "Prizo", "Dimitri", "Dashaco",
+        "Mathis", "Calamity", "Buve", "Hosho", "Zimba", "Tsun", "Mawere", "Rufaro", "Emoger", "Fida", "Thorns",
+        "Saffron", "Teddago", "Skelyte", "Chilleni", "Slowhawk", "Jagola",
+        "Zhar", "Dim", "Cleoz", "Rav", "Membut", "Dazam", "Groznur", "Aqrat", "Azzac", "Tergu", "Kirchon", "Nilla",
+        "Ricryll", "Imnor", "Lanceruil", "Ballion",
+        "Quosa", "Yesnorin", "Caina", "Holyn", "Athena", "Nandra", "Beratha", "Libgalyn", "Galin", "Heleto", "Faerona",
+        "Fairest", "Chuckles", "Darkness",
+        "Shiner", "Monkeytime", "Noper", "Willow", "Grassfall", "Misty", "Mantle", "Painscribe", "Plainwood", "Orbgold",
+        "Ragespear", "Dawnward", "Clair", "Caffal", "Ronch", "Pola", "Moux", "Ranteau", "Nothier", "Peseul", "Astellon",
+        "Glide", "Roughkiss", "Mosswisp", "Shadow", "Autumn",
+        "Voidbane", "Voidsicle", "Kingsmith", "Kingly", "Peasant", "Pleasant", "Swellow", "Alexa", "Luitgard", "Ede",
+        "Medou", "Branka", "Devotee", "Aura",
+        "Outlaw", "Jade", "Nocturne", "Jarvis", "Beeps", "Faint", "Perkless", "Yill", "Quona", "Washerguard", "Eda",
+        "Rosery", "Tapper", "Undergrow", "Ova",
+        "Adamant", "Silverlock", "Dobby", "Finx", "Gar", "Hope", "Jewel", "Kattery", "Languish", "Zephyr", "Xilla",
+        "Cedar", "Villa", "Branx", "Naught", "Midas",
+        "Atronaph", "Argus", "Aideen", "Alias", "Adonay", "Anno", "Apollo", "Aydin", "Asakoa", "Aviri", "Adelynn",
+        "Arsonwheel", "Angerstomp", "Aybeedee",
+        "Bajor", "Beekler", "Bobbles", "Buu", "Brainstorm", "Bracer", "Basselt", "Boggycreek", "Boggart", "Bahamut",
+        "Baretree", "Birchbellow",
+        "Calaphyx", "Cawcaws", "Cix", "Cerrusio", "Creator", "Clipse", "Conjus", "Chanceux", "Ciorliath", "Clearwish",
+        "David", "Dingus", "Dakadaka", "Dill", "Doodle", "Daydream", "Dreameater", "Diablo", "Diabolos", "Dunker",
+        "Dragonfly", "Eater", "Eo", "Endofall", "Exuberance", "Etresse", "Elan", "Entun", "Earthtender",
         "Fargus", "Fillero", "Ferrus", "Faunus", "Feathers", "Fuzzball", "Foolcaller",
         "Gronkula", "Gimmles", "Golox", "Gargamel", "Gutterman", "Gale", "Gemlashes", "Gotusloop", "Goldenboy",
         "Hardness", "Herman", "Hillox", "Hundredyear", "Hurlante", "Hazel", "Hanzel", "Hatemonger",
         "Io", "Iodine", "Iaz", "Illomens", "Incarnate", "Isaias", "Islecrusher", "Iaull", "Itong", "Iilos",
-        "Jax", "Jack", "Jillian", "Jellyjam", "Julius", "Jasmine", "Jazlynn",
+        "Jax", "Jack", "Jillian", "Jellyjam", "Julius", "Jasmine", "Jazlynn", "Jayrhoe",
         "Kawkaws", "Ki", "Kallus", "Keith", "Kevin", "Kitten", "Kedijah", "Keah", "Kammi",
         "Larrius", "Lengeru", "Ludwiz", "Longboy", "Llij", "Liyong", "Laylah",
-        "Moparscape", "Mardok", "Mueller", "Mastodon", "Morphius", "Murph", "McNasty", "Mehret", "Mordheim", "Mors", "Magician", "Morefather",
+        "Moparscape", "Mardok", "Mueller", "Mastodon", "Morphius", "Murph", "McNasty", "Mehret", "Mordheim", "Mors",
+        "Magician", "Morefather",
         "Nilus", "Neo", "Nevarine", "Nix", "Nemo", "Nangara", "Neta", "Nontoun",
         "Ox", "Otherwilds", "Outerspace", "Oiler", "Officer", "Omexx", "Ocus", "Oddball",
-        "Parrix", "Pickle", "Piledriver", "Puffpuff", "Peachclaw", "Peargrinder", "Paraema", 
+        "Parrix", "Pickle", "Piledriver", "Puffpuff", "Peachclaw", "Peargrinder", "Paraema",
         "Quizler", "Qix", "Quark", "Qidus", "Quid",
         "Roachest", "Rizz", "Rue", "Ramman", "Rammuh", "Ragdoll", "Rose",
-        "Savi", "Serenity", "Silverhand", "Sammy", "Soothsayer", "Swissmiss", "Sully", "Semere", "Spiris", "Splinter", "Sandytwist", "Seatsaidh",
+        "Savi", "Serenity", "Silverhand", "Sammy", "Soothsayer", "Swissmiss", "Sully", "Semere", "Spiris", "Splinter",
+        "Sandytwist", "Seatsaidh",
         "Tav", "Traveller", "Taximon", "Truegold", "Tuskies", "Tinkertot", "Terminus", "Tamil",
         "Underway", "Uco", "Unibrow",
-        "Valiant", "Violence", "Vorton", "Voodoo", "Veuve", "Vexee", "Volance", 
+        "Valiant", "Violence", "Vorton", "Voodoo", "Veuve", "Vexee", "Volance",
         "Wabberjack", "Warbler", "Werebaby", "Wodyeith",
-        "Xilla", "Xerces", 
-        "Yoyo", "Yanger", "Yucca", "Yew", "Yewflower", 
-        "Zoro", "Zewdi", "Zaben", "Zookeeper"];
+        "Xilla", "Xerces",
+        "Yoyo", "Yanger", "Yucca", "Yew", "Yewflower",
+        "Zoro", "Zewdi", "Zaben", "Zookeeper"
+    ];
 
-    public bool _initialized = false;
-    public bool _firstweek = false;
-    public static Random GrowthRNG = new Random(0);
-    public static Random LifespanRNG = new Random(1);
+    public static readonly Random GrowthRNG = new(Random.Shared.Next());
+    public static readonly Random LifespanRNG = new(Random.Shared.Next());
 
-    public uint _currentWeek = 0;
-    public List<MonsterGenus> _unlockedTournamentBreeds = new List<MonsterGenus>();
+    public readonly Config _config;
+    public readonly string _gamePath;
 
-    public Dictionary<ETournamentPools, TournamentPool> tournamentPools = new Dictionary<ETournamentPools, TournamentPool>();
-    public List<ABD_TournamentMonster> monsters = new List<ABD_TournamentMonster>();
+    private readonly Dictionary<ETournamentPools, TournamentPool> _tournamentPools = [];
+    public readonly List<TournamentMonster> Monsters = [];
 
-    public List<byte[]> startingMonsterTemplates = new List<byte[]>();
-   
-    public TournamentData(Mod m, ILogger logger, Config config) 
+    private uint _currentWeek;
+    private bool _firstweek;
+
+    private bool _initialized;
+    private List<MonsterGenus> _unlockedTournamentBreeds = [];
+
+    public TournamentData(string gamePath, Config config)
     {
-        TournamentData._mod = m;
-        TournamentData._logger = logger;
-        TournamentData._configuration = config;
-
-        tournamentPools.Add( ETournamentPools.L, new TournamentPool( this, EMonsterRanks.L, ETournamentPools.L, "Legend", 2, 52, 53,     _configuration._confABD_tournament_rank_m4,        9999, 9 ) );
-        tournamentPools.Add( ETournamentPools.M, new TournamentPool( this, EMonsterRanks.M, ETournamentPools.M, "Major 4", 8, 54, 61,    _configuration._confABD_tournament_rank_s,         _configuration._confABD_tournament_rank_m4 - 1, 7 ) );
-        tournamentPools.Add( ETournamentPools.S, new TournamentPool( this, EMonsterRanks.S, ETournamentPools.S, "S Rank", 8, 1, 8,       _configuration._confABD_tournament_rank_a,         _configuration._confABD_tournament_rank_s - 1, 6));
-        tournamentPools.Add( ETournamentPools.A, new TournamentPool( this, EMonsterRanks.A, ETournamentPools.A, "A Rank", 8, 9, 16,      _configuration._confABD_tournament_rank_b,         _configuration._confABD_tournament_rank_a - 1, 5));
-        tournamentPools.Add( ETournamentPools.B, new TournamentPool( this, EMonsterRanks.B, ETournamentPools.B, "B Rank", 10, 17, 26,    _configuration._confABD_tournament_rank_c,         _configuration._confABD_tournament_rank_b - 1, 4));
-        tournamentPools.Add( ETournamentPools.C, new TournamentPool( this, EMonsterRanks.C, ETournamentPools.C, "C Rank", 10, 27, 36,    _configuration._confABD_tournament_rank_d,         _configuration._confABD_tournament_rank_c - 1, 2));
-        tournamentPools.Add( ETournamentPools.D, new TournamentPool( this, EMonsterRanks.D, ETournamentPools.D, "D Rank", 8, 37, 44,     _configuration._confABD_tournament_rank_e,         _configuration._confABD_tournament_rank_d - 1, 1));
-        tournamentPools.Add( ETournamentPools.E, new TournamentPool( this, EMonsterRanks.E, ETournamentPools.E, "E Rank", 6, 45, 50,     _configuration._confABD_tournament_rank_z,         _configuration._confABD_tournament_rank_e - 1, 0));
-
-        tournamentPools.Add( ETournamentPools.X_MOO, new TournamentPool( this, EMonsterRanks.L, ETournamentPools.X_MOO, "L - Moo", 6, 51, 51, _configuration._confABD_tournament_rank_m4 + 250, 9999, 9 ) );
-
-        tournamentPools.Add( ETournamentPools.A_Phoenix, new TournamentPool( this, EMonsterRanks.A,     ETournamentPools.A_Phoenix, "A - Phoenix", 3, 62, 64, _configuration._confABD_tournament_rank_b, _configuration._confABD_tournament_rank_a, 6 ) );
-        tournamentPools.Add( ETournamentPools.A_DEdge, new TournamentPool( this, EMonsterRanks.A,       ETournamentPools.A_DEdge,   "A - Double Edge", 1, 66, 66, _configuration._confABD_tournament_rank_b, _configuration._confABD_tournament_rank_a, 6 ) );
-        tournamentPools.Add( ETournamentPools.B_Dragon, new TournamentPool( this, EMonsterRanks.B,      ETournamentPools.B_Dragon,  "B - Dragon Tusk", 1, 65, 65, _configuration._confABD_tournament_rank_c, _configuration._confABD_tournament_rank_b, 6 ) );
-        tournamentPools.Add( ETournamentPools.F_Hero,  new TournamentPool( this, EMonsterRanks.A,       ETournamentPools.F_Hero,    "F - Hero", 5, 67, 71, _configuration._confABD_tournament_rank_b, 9999, 7 ) );
-        tournamentPools.Add( ETournamentPools.F_Heel,  new TournamentPool( this, EMonsterRanks.A,       ETournamentPools.F_Heel,    "F - Heel", 5, 72, 76, _configuration._confABD_tournament_rank_b, 9999, 7 ) );
-        tournamentPools.Add( ETournamentPools.F_Elder, new TournamentPool( this, EMonsterRanks.A,       ETournamentPools.F_Elder,   "F - Elder", 3, 77, 79, _configuration._confABD_tournament_rank_b, 9999, 8 ) );
-
-        tournamentPools.Add( ETournamentPools.S_FIMBA, new TournamentPool(this, EMonsterRanks.S,        ETournamentPools.S_FIMBA,   "S FIMBA", 4, 80, 83, _configuration._confABD_tournament_rank_a + 200, _configuration._confABD_tournament_rank_m4, 8 ) );
-        tournamentPools.Add( ETournamentPools.A_FIMBA, new TournamentPool( this, EMonsterRanks.A,       ETournamentPools.A_FIMBA,   "A FIMBA", 4, 84, 87, _configuration._confABD_tournament_rank_b + 200, _configuration._confABD_tournament_rank_a, 6 ) );
-        tournamentPools.Add( ETournamentPools.B_FIMBA, new TournamentPool( this, EMonsterRanks.B,       ETournamentPools.B_FIMBA,   "B FIMBA", 4, 88, 91, _configuration._confABD_tournament_rank_c + 200, _configuration._confABD_tournament_rank_b, 5 ) );
-        tournamentPools.Add( ETournamentPools.C_FIMBA, new TournamentPool( this, EMonsterRanks.C,       ETournamentPools.C_FIMBA,   "C FIMBA", 4, 92, 95, _configuration._confABD_tournament_rank_d + 100, _configuration._confABD_tournament_rank_c, 4 ) );
-        tournamentPools.Add( ETournamentPools.D_FIMBA, new TournamentPool( this, EMonsterRanks.D,       ETournamentPools.D_FIMBA,   "D FIMBA", 4, 96, 99, _configuration._confABD_tournament_rank_e + 100, _configuration._confABD_tournament_rank_d, 2 ) );
-
-        tournamentPools.Add( ETournamentPools.S_FIMBA2, new TournamentPool( this, EMonsterRanks.S,      ETournamentPools.S_FIMBA2,  "S FIMBA2", 4, 100, 103, _configuration._confABD_tournament_rank_a + 200, _configuration._confABD_tournament_rank_m4, 8 ) );
-        tournamentPools.Add( ETournamentPools.A_FIMBA2, new TournamentPool( this, EMonsterRanks.A,      ETournamentPools.A_FIMBA2,  "A FIMBA2", 4, 104, 107, _configuration._confABD_tournament_rank_b + 200, _configuration._confABD_tournament_rank_a, 6 ) );
-        tournamentPools.Add( ETournamentPools.B_FIMBA2, new TournamentPool( this, EMonsterRanks.B,      ETournamentPools.B_FIMBA2,  "B FIMBA2", 4, 108, 111, _configuration._confABD_tournament_rank_c + 200, _configuration._confABD_tournament_rank_b, 5 ) );
-        tournamentPools.Add( ETournamentPools.C_FIMBA2, new TournamentPool( this, EMonsterRanks.C,      ETournamentPools.C_FIMBA2,  "C FIMBA2", 4, 112, 115, _configuration._confABD_tournament_rank_d + 100, _configuration._confABD_tournament_rank_c, 4 ) );
-        tournamentPools.Add( ETournamentPools.D_FIMBA2, new TournamentPool( this, EMonsterRanks.D,      ETournamentPools.D_FIMBA2,  "D FIMBA2", 4, 116, 118, _configuration._confABD_tournament_rank_e + 100, _configuration._confABD_tournament_rank_d, 2 ) );
+        _config = config;
+        _gamePath = gamePath;
+        Logger.Trace("Creating new tourney pools");
+        foreach (var pool in Enum.GetValues<ETournamentPools>())
+            _tournamentPools.Add(pool, new TournamentPool(this, config, pool));
     }
 
-    public void AddExistingMonster(TournamentMonster m, int id)
+    private TournamentMonster AddExistingMonster(IBattleMonsterData m, int id)
     {
-        ETournamentPools pool = ETournamentPools.S;
-        ABD_TournamentMonster abdm = new ABD_TournamentMonster(m);
+        var pool = TournamentPool.PoolFromId(id);
+        Logger.Trace($"Creating new monster for pool {pool}");
+        var dtpmonster = new TournamentMonster(_config, m)
+        {
+            Rank = _tournamentPools[pool].Info.Rank
+        };
+        dtpmonster.Pools.Add(_tournamentPools[pool]);
 
-        if ( id >= 1 && id <= 8 )           { pool = ETournamentPools.S; }
-        else if ( id >= 9 && id <= 16 )     { pool = ETournamentPools.A; }
-        else if ( id >= 17 && id <= 26 )    { pool = ETournamentPools.B; }
-        else if ( id >= 27 && id <= 36 )    { pool = ETournamentPools.C; }
-        else if ( id >= 37 && id <= 44 )    { pool = ETournamentPools.D; }
-        else if ( id >= 45 && id <= 50 )    { pool = ETournamentPools.E; }
-
-        else if ( id >= 51 && id <= 51 )    { pool = ETournamentPools.X_MOO; } 
-        else if ( id >= 52 && id <= 53 )    { pool = ETournamentPools.L; }
-        else if ( id >= 54 && id <= 61 )    { pool = ETournamentPools.M; }
-
-        else if ( id >= 62 && id <= 64 )    { pool = ETournamentPools.A_Phoenix; }
-        else if ( id >= 65 && id <= 65 )    { pool = ETournamentPools.B_Dragon; }
-        else if ( id >= 66 && id <= 66 )    { pool = ETournamentPools.A_DEdge; }
-
-        else if ( id >= 67 && id <= 71 )    { pool = ETournamentPools.F_Hero; }
-        else if ( id >= 72 && id <= 76 )    { pool = ETournamentPools.F_Heel; }
-        else if ( id >= 77 && id <= 79 )    { pool = ETournamentPools.F_Elder; }
-
-        else if ( id >= 80 && id <= 83 )    { pool = ETournamentPools.S_FIMBA; }
-        else if ( id >= 84 && id <= 87 )    { pool = ETournamentPools.A_FIMBA; }
-        else if ( id >= 88 && id <= 91 )    { pool = ETournamentPools.B_FIMBA; }
-        else if ( id >= 92 && id <= 95 )    { pool = ETournamentPools.C_FIMBA; }
-        else if ( id >= 96 && id <= 99 )    { pool = ETournamentPools.D_FIMBA; }
-
-        else if ( id >= 100 && id <= 103 )  { pool = ETournamentPools.S_FIMBA2; }
-        else if ( id >= 104 && id <= 107 )  { pool = ETournamentPools.A_FIMBA2; }
-        else if ( id >= 108 && id <= 111 )  { pool = ETournamentPools.B_FIMBA2; }
-        else if ( id >= 112 && id <= 115 )  { pool = ETournamentPools.C_FIMBA2; }
-        else if ( id >= 116 && id <= 119 )  { pool = ETournamentPools.D_FIMBA2; }
-
-        abdm._monsterRank = tournamentPools[ pool ]._monsterRank;
-
-        monsters.Add(abdm);
-        tournamentPools[pool].MonsterAdd(abdm);
+        Monsters.Add(dtpmonster);
+        return dtpmonster;
     }
 
-    public void AddExistingMonster(ABD_TournamentMonster abdm) {
-        monsters.Add( abdm );
-
-        foreach ( TournamentPool pool in tournamentPools.Values ) {
-            for ( var i = 0; i < 4; i++ ) {
-                if ( (ETournamentPools) abdm._rawpools[ i ] == pool._tournamentPool ) {
-                    pool.MonsterAdd( abdm );
-                }
-            }
-        }
-    }
-
-    public void AdvanceWeek ( uint currentWeek, List<MonsterGenus> unlockedmonsters ) {
+    public void AdvanceWeek(uint currentWeek, List<MonsterGenus> unlockedmonsters)
+    {
         _unlockedTournamentBreeds = unlockedmonsters;
 
-        if ( !_initialized ) { _currentWeek = currentWeek; return; }
-        if ( _firstweek && currentWeek != 0 ) { _currentWeek = currentWeek - 1; }
-        else if ( currentWeek > int.MaxValue - 4 ) { _currentWeek = 0; currentWeek = 0; }
+        if (!_initialized)
+        {
+            _currentWeek = currentWeek;
+            return;
+        }
 
-        TournamentData._mod.DebugLog( 2, "Advancing Weeks in TD: " + _currentWeek + " trying to get to " + currentWeek );
-        while ( _currentWeek < currentWeek ) {
+        if (_firstweek && currentWeek != 0)
+        {
+            _currentWeek = currentWeek - 1;
+        }
+        else if (currentWeek > int.MaxValue - 4)
+        {
+            _currentWeek = 0;
+            currentWeek = 0;
+        }
+
+        Logger.Debug("Advancing Weeks in TD: " + _currentWeek + " trying to get to " + currentWeek);
+        while (_currentWeek < currentWeek)
+        {
             _currentWeek++;
 
-            if ( _currentWeek % 4 == 0 ) {
-                AdvanceMonth();
-            }
+            if (_currentWeek % 4 == 0) AdvanceMonth();
 
-            if ( _currentWeek % 12 == 0 ) {
-                AdvanceTournamentPromotions();
-            }
+            if (_currentWeek % 12 == 0) AdvanceTournamentPromotions();
         }
 
-        _mod.DebugLog( 2, "Finished Advancing Weeks, Checking Pools", Color.Yellow );
-        foreach ( TournamentPool pool in tournamentPools.Values ) {
-            while ( pool.monsters.Count < pool._minimumSize ) {
-                pool.GenerateNewValidMonster(_unlockedTournamentBreeds);
-            }
-
-            // Shuffle Monsters - TODO: This should happen weekly.
-            ABD_TournamentMonster[] ml = pool.monsters.ToArray();
-            Random.Shared.Shuffle( ml );
-            pool.monsters = new List<ABD_TournamentMonster>( ml );
-        }
-
+        Logger.Debug("Finished Advancing Weeks, Checking Pools", Color.Yellow);
+        foreach (var pool in _tournamentPools.Values)
+            while (Monsters.Count(m => m.Pools.Contains(pool)) < pool.Info.Size)
+                Monsters.Add(pool.GenerateNewValidMonster(_unlockedTournamentBreeds));
+        // Shuffle Monsters - TODO: This should happen weekly.
+        Utils.Shuffle(Random.Shared, Monsters);
         _firstweek = false;
     }
-    public void AdvanceMonth()
+
+    public void LoadSavedTournamentData(List<byte[]> monstersRaw)
     {
-        _mod.DebugLog( 2, "Advancing month from TournamentData", Color.Blue );
-        for (var i = monsters.Count - 1 ; i >= 0 ; i--) {
-            var m = monsters[i];
+        var monsters = new List<TournamentMonster>();
+        foreach (var raw in monstersRaw)
+            monsters.Add(new TournamentMonster(_tournamentPools, raw));
+        Logger.Info("Loaded Data for " + monsters.Count + " monsters.", Color.Orange);
+        ClearAllData();
+        foreach (var dtpmonster in monsters)
+            Monsters.Add(dtpmonster);
+
+        _initialized = true;
+        _firstweek = true;
+        Logger.Info("Initialization Complete", Color.Orange);
+    }
+
+    /// <summary>
+    ///     Loads the taikai_en.flk file and generates the TournamentData from it. Is loaded at startup and when a new save
+    ///     without save data is loaded.
+    /// </summary>
+    public void SetupTournamentParticipantsFromTaikai()
+    {
+        Logger.Trace("Setting up tourney data from basic enemy file");
+        ClearAllData();
+
+        var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
+        // var rawmonster = new byte[60];
+
+        Logger.Trace($"Loading default tourney monster file ${tournamentMonsterFile}");
+        var raw = File.ReadAllBytes(tournamentMonsterFile);
+        // using var fs = new FileStream(tournamentMonsterFile, FileMode.Open);
+        // fs.Position = 0xA8C + 60; // This relies upon nothing earlier in the file being appended.
+        var baseFilePos = 0xA8C + 60;
+        for (var i = 1; i < 119; i++)
+        {
+            // 0 = Dummy Monster so skip. 119 in the standard file.
+            // raw.ReadExactly(rawmonster, 0, 60);
+            // TournamentMonster tm = new(_config, );
+            var start = baseFilePos + i * 60;
+            var end = start + 60;
+            var tm = AddExistingMonster(IBattleMonsterData.FromBytes(raw[start..end]), i);
+            Logger.Trace("Monster " + i + " Parsed: " + tm, Color.Lime);
+
+            // var bytes = "";
+            // for (var z = 0; z < 60; z++) bytes += rawmonster[z] + ",";
+        }
+
+        _initialized = true;
+    }
+
+    public void WriteTournamentParticipantsToTaikai(string redirectPath)
+    {
+        var enemyFileRedirected = $@"{redirectPath}\taikai_en.flk";
+
+        var monsters = GetTournamentMembers(1, 118);
+        var rawbytes = new List<byte>
+        {
+            Capacity = 60 * 118
+        };
+        foreach (var m in monsters)
+            rawbytes.AddRange(m.Serialize());
+
+        using var writer = new FileStream(enemyFileRedirected, FileMode.Open, FileAccess.Write);
+        writer.Seek(0xA8C + 60, SeekOrigin.Begin);
+        writer.Write(rawbytes.ToArray());
+    }
+
+    private void AdvanceMonth()
+    {
+        Logger.Debug("Advancing month from TournamentData", Color.Blue);
+        for (var i = Monsters.Count - 1; i >= 0; i--)
+        {
+            var m = Monsters[i];
 
             m.AdvanceMonth();
-            if ( !m.alive ) {
-                _mod.DebugLog( 1, m.monster.name + " has died. Rest in peace.", Color.Blue );
-                for ( var j = m.pools.Count() - 1; j >= 0; j-- ) {
-                    m.pools[j].MonsterRemove( m );
-                }
-                monsters.Remove( m );
+            if (!m.Alive)
+            {
+                Logger.Info(m.Name + " has died. Rest in peace.", Color.Blue);
+                Monsters.Remove(m);
+                continue;
             }
 
             // TODO CONFIG TECHNIQUE RATE
-            if ( Random.Shared.Next() % 25 == 0 ) {
-                m.LearnTechnique();
-            }
+            if (Random.Shared.Next(25) == 0) m.LearnTechnique();
         }
     }
 
-    private void AdvanceTournamentPromotions() {
-        tournamentPools[ ETournamentPools.M ].MonstersPromoteToNewPool( tournamentPools[ ETournamentPools.L ] );
-        tournamentPools[ ETournamentPools.S ].MonstersPromoteToNewPool( tournamentPools[ ETournamentPools.M ] );
-        tournamentPools[ ETournamentPools.A ].MonstersPromoteToNewPool( tournamentPools[ ETournamentPools.S ] );
-        tournamentPools[ ETournamentPools.B ].MonstersPromoteToNewPool( tournamentPools[ ETournamentPools.A ] );
-        tournamentPools[ ETournamentPools.C ].MonstersPromoteToNewPool( tournamentPools[ ETournamentPools.B ] );
-        tournamentPools[ ETournamentPools.D ].MonstersPromoteToNewPool( tournamentPools[ ETournamentPools.C ] );
-        tournamentPools[ ETournamentPools.E ].MonstersPromoteToNewPool( tournamentPools[ ETournamentPools.D ] );
+    private void AdvanceTournamentPromotions()
+    {
+        _tournamentPools[ETournamentPools.M].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.L]);
+        _tournamentPools[ETournamentPools.S].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.M]);
+        _tournamentPools[ETournamentPools.A].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.S]);
+        _tournamentPools[ETournamentPools.B].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.A]);
+        _tournamentPools[ETournamentPools.C].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.B]);
+        _tournamentPools[ETournamentPools.D].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.C]);
+        _tournamentPools[ETournamentPools.E].MonstersPromoteToNewPool(_tournamentPools[ETournamentPools.D]);
     }
 
-    public List<ABD_TournamentMonster>GetTournamentMembers( int start, int end ) {
-        List<ABD_TournamentMonster> participants = new List<ABD_TournamentMonster>();
+    public List<TournamentMonster> GetTournamentMembers(int start, int end)
+    {
+        var participants = new List<TournamentMonster>();
 
-        tournamentPools[ ETournamentPools.S ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.A ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.B ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.C ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.D ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.E ].AddTournamentParticipants( participants );
+        foreach (var pool in _tournamentPools.Values)
+        {
+            if (pool.Pool == ETournamentPools.X_MOO)
+                participants.Add( Monsters.First( m => m.Pools.Exists( p => p.Pool == ETournamentPools.S ) ) );
 
-        // Edge Case to Handle the ONE SLOT that is skipped For Moo.
-        participants.Add( tournamentPools[ ETournamentPools.S ].monsters[ 0 ] );
-
-        tournamentPools[ ETournamentPools.L ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.M ].AddTournamentParticipants( participants );
-
-        tournamentPools[ ETournamentPools.A_Phoenix ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.B_Dragon ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.A_DEdge ].AddTournamentParticipants( participants );
-
-        tournamentPools[ ETournamentPools.F_Hero ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.F_Heel ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.F_Elder ].AddTournamentParticipants( participants );
-
-        tournamentPools[ ETournamentPools.S_FIMBA ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.A_FIMBA ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.B_FIMBA ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.C_FIMBA ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.D_FIMBA ].AddTournamentParticipants( participants );
-
-        tournamentPools[ ETournamentPools.S_FIMBA2 ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.A_FIMBA2 ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.B_FIMBA2 ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.C_FIMBA2 ].AddTournamentParticipants( participants );
-        tournamentPools[ ETournamentPools.D_FIMBA2 ].AddTournamentParticipants( participants );
-
+            var poolMonsters = Monsters.FindAll(m => m.Pools.Contains(pool));
+            participants.AddRange(poolMonsters[..pool.Info.Size]);
+        }
+        
         return participants;
     }
 
-    public void ClearAllData() {
+    private void ClearAllData()
+    {
         _initialized = false;
 
-        monsters.Clear();
-        foreach( TournamentPool pool in tournamentPools.Values ) {
-            pool.monsters.Clear();
-        }
+        Monsters.Clear();
     }
 }
-
-
-

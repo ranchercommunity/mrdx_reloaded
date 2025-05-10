@@ -1,11 +1,9 @@
-using MRDX.Base.ExtractDataBin.Interface;
-using MRDX.Game.Randomizer.Configuration;
-using MRDX.Game.Randomizer.Template;
+﻿using MRDX.Base.BattleSimulator.Configuration;
+using MRDX.Base.BattleSimulator.Template;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
-using Reloaded.Universal.Redirector.Interfaces;
 
-namespace MRDX.Game.Randomizer;
+namespace MRDX.Base.BattleSimulator;
 
 /// <summary>
 ///     Your mod logic goes here.
@@ -38,8 +36,6 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private readonly IMod _owner;
 
-    private readonly WeakReference<IRedirectorController>? _redirector;
-
     /// <summary>
     ///     Provides access to this mod's configuration.
     /// </summary>
@@ -54,36 +50,14 @@ public class Mod : ModBase // <= Do not Remove.
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
-        _logger.WriteLine(
-            $"[MRDX Randomizer] Default flagstring {new RandomizerConfig().ToFlags()}");
 
-        _redirector = _modLoader.GetController<IRedirectorController>();
-        _redirector.TryGetTarget(out var redirector);
-        if (redirector == null)
-        {
-            _logger.WriteLine(
-                "[MRDX Randomizer] Could not initialize randomizer, failed to get redirector!");
-            return;
-        }
+        // For more information about this template, please see
+        // https://reloaded-project.github.io/Reloaded-II/ModTemplate/
 
-        var randomizer = Randomizer.Create(_logger, _redirector,
-            _modLoader.GetDirectoryForModId("MRDX.Game.Randomizer"),
-            _configuration.FlagString);
-        if (randomizer == null)
-        {
-            _logger.WriteLine(
-                "[MRDX Randomizer] Could not initialize randomizer, failed to launch randomizer!");
-            return;
-        }
+        // If you want to implement e.g. unload support in your mod,
+        // and some other neat features, override the methods in ModBase.
 
-        if (!_modLoader.GetController<IExtractDataBin>().TryGetTarget(out var extract))
-        {
-            _logger.WriteLine(
-                "[MRDX Randomizer] Could not initialize extraction, failed to extract bin!");
-            return;
-        }
-
-        extract.ExtractComplete.Subscribe(randomizer.DataExtractComplete);
+        // TODO: Implement some mod logic
     }
 
     #region For Exports, Serialization etc.

@@ -70,7 +70,7 @@ public static class Base
 public class BaseObject<TParent> where TParent : class
 {
     private readonly Memory _memory;
-    private readonly IDictionary<string, IList<int>> _offsetMapping = new Dictionary<string, IList<int>>();
+    private readonly Dictionary<string, IList<int>> _offsetMapping = [];
     public readonly long BaseAddress;
 
     protected BaseObject(int baseOffset = 0)
