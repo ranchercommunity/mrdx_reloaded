@@ -146,6 +146,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
             Logger.Warn("Tournament Stat Totals dangeorusly low. Growth rates may be too low.");
         }
 
+        // Soft Cap Monster Promotions
         for (var i = monsters.Count - 1; i >= 0; i--)
             if (monsters[i].StatTotal - 100 > StatEnd)
                 MonsterPromoteToNewPool(monsters[i], newPool);

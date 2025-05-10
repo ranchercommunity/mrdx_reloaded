@@ -243,20 +243,12 @@ public class TournamentData
 
     public void WriteTournamentParticipantsToTaikai(string redirectPath)
     {
-        var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
-
         var enemyFileRedirected = $@"{redirectPath}\taikai_en.flk";
-
-        if (!File.Exists(enemyFileRedirected))
-        {
-            var data = File.ReadAllBytes(tournamentMonsterFile);
-            File.WriteAllBytes(enemyFileRedirected, data);
-        }
 
         var monsters = GetTournamentMembers(1, 118);
         var rawbytes = new List<byte>
         {
-            Capacity = 60 * 119
+            Capacity = 60 * 118
         };
         foreach (var m in monsters)
             rawbytes.AddRange(m.Serialize());

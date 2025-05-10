@@ -6,6 +6,7 @@ using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
+using Reloaded.Universal.Redirector.Interfaces;
 
 namespace MRDX.Base.Mod;
 
@@ -104,6 +105,8 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _modConfig = context.ModConfig;
         _configuration = context.Configuration;
         Logger.LoggerInternal = _logger;
+
+        Logger.SetLogLevel( Logger.LogLevel.Trace );
 
         // Order is somewhat important here as some other controllers will use the Hooks
         var hooks = new Hooks(context);

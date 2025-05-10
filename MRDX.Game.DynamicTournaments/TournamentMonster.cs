@@ -318,7 +318,6 @@ public class TournamentMonster : BattleMonsterData
 
     public void LearnTechnique()
     {
-        // TODO: Smarter Logic About which tech to get
         Logger.Trace(
             "Monster " + Name + " attempting to learn technique. They have " + TechList.Count + " | " +
             TechSlot + " now.", Color.Orange);

@@ -19,6 +19,7 @@ public class Mod : ModBase // <= Do not Remove.
     private readonly LearningTesting? _lt;
 
     private readonly WeakReference<IRedirectorController>? _redirector;
+    private string _tournamentDataFolder;
     private string _saveDataFolder;
 
     private uint _gameCurrentWeek;
@@ -36,8 +37,8 @@ public class Mod : ModBase // <= Do not Remove.
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
-        _saveDataFolder = Path.Combine(_modLoader.GetDirectoryForModId(_modConfig.ModId), "SaveData");
-        Directory.CreateDirectory(_saveDataFolder);
+        _tournamentDataFolder = Path.Combine(_modLoader.GetDirectoryForModId(_modConfig.ModId), "TournamentData");
+        Directory.CreateDirectory(_tournamentDataFolder);
 
         var iHooks = _modLoader.GetController<IHooks>();
         _redirector = _modLoader.GetController<IRedirectorController>();
@@ -53,7 +54,7 @@ public class Mod : ModBase // <= Do not Remove.
         // _addressCurrentweek = _gameAddress + 0x379444;
         //548CD0
 
-        //Debugger.Launch();
+        Debugger.Launch();
         Logger.SetLogLevel( _configuration.LogLevel );
 
         if (iHooks == null)
@@ -129,7 +130,7 @@ public class Mod : ModBase // <= Do not Remove.
             redirect.Enable();
 
             var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
-            var enemyFileRedirected = $@"{_saveDataFolder}\taikai_en.flk";
+            var enemyFileRedirected = $@"{_tournamentDataFolder}\taikai_en.flk";
             redirect.AddRedirect(tournamentMonsterFile, enemyFileRedirected);
         }
         else
@@ -143,7 +144,6 @@ public class Mod : ModBase // <= Do not Remove.
     {
         if ( _configuration.Autosaves || !savefile.IsAutoSave ) {
             _saveDataFolder = Path.GetDirectoryName( savefile.Filename );
-            //Directory.CreateDirectory( _saveDataFolder );
             var file = Path.Combine( _saveDataFolder, $"dtp_monsters_{savefile.Slot}.bin" );
 
             using var fs = new FileStream( file, FileMode.Create );
@@ -254,7 +254,7 @@ public class Mod : ModBase // <= Do not Remove.
             return;
         }
 
-        _tournamentData.WriteTournamentParticipantsToTaikai(_saveDataFolder);
+        _tournamentData.WriteTournamentParticipantsToTaikai(_tournamentDataFolder);
     }
 
     private void AdvanceWeekUpdateTournamentMonsters(List<MonsterGenus> unlockedmonsters)
