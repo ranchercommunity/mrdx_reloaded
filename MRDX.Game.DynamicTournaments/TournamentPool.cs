@@ -11,38 +11,93 @@ public readonly record struct TournamentInfo(
     Range<int> Id,
     Range<int> StatOffset)
 {
-    public int Size => Id.Max - Id.Min;
+    public int Size => ( ( Id.Max + 1 ) - Id.Min );
 }
+
+public readonly record struct TournamentRuleset (
+    string Name,
+    EMonsterRanks[] Ranks,
+    MonsterGenus[] MainBreeds,
+    MonsterGenus[] SubBreeds,
+    int MinParticipants,
+    EMonsterRegion MonsterRegion ) { }
 
 public class TournamentPool(TournamentData tournament, Config conf, ETournamentPools pool)
 {
     private static readonly Dictionary<ETournamentPools, TournamentInfo> Tourneys = new()
     {
-        { ETournamentPools.S, new TournamentInfo("S Rank", EMonsterRanks.S, 6, (1, 9), (0, 0)) },
-        { ETournamentPools.A, new TournamentInfo("A Rank", EMonsterRanks.A, 5, (9, 17), (0, 0)) },
-        { ETournamentPools.B, new TournamentInfo("B Rank", EMonsterRanks.B, 4, (17, 27), (0, 0)) },
-        { ETournamentPools.C, new TournamentInfo("C Rank", EMonsterRanks.C, 2, (27, 37), (0, 0)) },
-        { ETournamentPools.D, new TournamentInfo("D Rank", EMonsterRanks.D, 1, (37, 45), (0, 0)) },
-        { ETournamentPools.E, new TournamentInfo("E Rank", EMonsterRanks.E, 0, (45, 51), (0, 0)) },
-        { ETournamentPools.X_MOO, new TournamentInfo("L - Moo", EMonsterRanks.L, 9, (51, 52), (250, 9999)) },
-        { ETournamentPools.L, new TournamentInfo("Legend", EMonsterRanks.L, 9, (52, 54), (0, 9999)) },
-        { ETournamentPools.M, new TournamentInfo("Major 4", EMonsterRanks.M, 7, (54, 62), (0, 0)) },
-        { ETournamentPools.A_Phoenix, new TournamentInfo("A - Phoenix", EMonsterRanks.A, 6, (62, 65), (0, 0)) },
-        { ETournamentPools.A_DEdge, new TournamentInfo("A - Double Edge", EMonsterRanks.A, 6, (66, 67), (0, 0)) },
-        { ETournamentPools.B_Dragon, new TournamentInfo("B - Dragon Tusk", EMonsterRanks.B, 5, (65, 66), (0, 0)) },
-        { ETournamentPools.F_Hero, new TournamentInfo("F - Hero", EMonsterRanks.A, 7, (67, 72), (0, 9999)) },
-        { ETournamentPools.F_Heel, new TournamentInfo("F - Heel", EMonsterRanks.A, 7, (72, 77), (0, 9999)) },
-        { ETournamentPools.F_Elder, new TournamentInfo("F - Elder", EMonsterRanks.A, 8, (77, 80), (0, 9999)) },
-        { ETournamentPools.S_FIMBA, new TournamentInfo("S FIMBA", EMonsterRanks.S, 8, (80, 84), (200, 0)) },
-        { ETournamentPools.A_FIMBA, new TournamentInfo("A FIMBA", EMonsterRanks.A, 6, (84, 88), (200, 0)) },
-        { ETournamentPools.B_FIMBA, new TournamentInfo("B FIMBA", EMonsterRanks.B, 5, (88, 92), (200, 0)) },
-        { ETournamentPools.C_FIMBA, new TournamentInfo("C FIMBA", EMonsterRanks.C, 4, (92, 96), (100, 0)) },
-        { ETournamentPools.D_FIMBA, new TournamentInfo("D FIMBA", EMonsterRanks.D, 2, (96, 100), (100, 0)) },
-        { ETournamentPools.S_FIMBA2, new TournamentInfo("S FIMBA2", EMonsterRanks.S, 8, (100, 104), (200, 0)) },
-        { ETournamentPools.A_FIMBA2, new TournamentInfo("A FIMBA2", EMonsterRanks.A, 6, (104, 108), (200, 0)) },
-        { ETournamentPools.B_FIMBA2, new TournamentInfo("B FIMBA2", EMonsterRanks.B, 5, (108, 112), (200, 0)) },
-        { ETournamentPools.C_FIMBA2, new TournamentInfo("C FIMBA2", EMonsterRanks.C, 4, (112, 116), (100, 0)) },
-        { ETournamentPools.D_FIMBA2, new TournamentInfo("D FIMBA2", EMonsterRanks.D, 2, (116, 119), (100, 0)) }
+        { ETournamentPools.S, new TournamentInfo("S Rank", EMonsterRanks.S, 6, (1, 8), (0, 0)) },
+        { ETournamentPools.A, new TournamentInfo("A Rank", EMonsterRanks.A, 5, (9, 16), (0, 0)) },
+        { ETournamentPools.B, new TournamentInfo("B Rank", EMonsterRanks.B, 4, (17, 26), (0, 0)) },
+        { ETournamentPools.C, new TournamentInfo("C Rank", EMonsterRanks.C, 2, (27, 36), (0, 0)) },
+        { ETournamentPools.D, new TournamentInfo("D Rank", EMonsterRanks.D, 1, (37, 44), (0, 0)) },
+        { ETournamentPools.E, new TournamentInfo("E Rank", EMonsterRanks.E, 0, (45, 50), (0, 0)) },
+        { ETournamentPools.X_MOO, new TournamentInfo("L - Moo", EMonsterRanks.L, 9, (51, 51), (250, 9999)) },
+        { ETournamentPools.L, new TournamentInfo("Legend", EMonsterRanks.L, 9, (52, 53), (0, 9999)) },
+        { ETournamentPools.M, new TournamentInfo("Major 4", EMonsterRanks.M, 7, (54, 61), (0, 0)) },
+        { ETournamentPools.A_Phoenix, new TournamentInfo("A - Phoenix", EMonsterRanks.A, 6, (62, 64), (0, 0)) },
+        { ETournamentPools.A_DEdge, new TournamentInfo("A - Double Edge", EMonsterRanks.A, 6, (66, 66), (0, 0)) },
+        { ETournamentPools.B_Dragon, new TournamentInfo("B - Dragon Tusk", EMonsterRanks.B, 5, (65, 65), (0, 0)) },
+        { ETournamentPools.F_Hero, new TournamentInfo("F - Hero", EMonsterRanks.A, 7, (67, 71), (0, 9999)) },
+        { ETournamentPools.F_Heel, new TournamentInfo("F - Heel", EMonsterRanks.A, 7, (72, 76), (0, 9999)) },
+        { ETournamentPools.F_Elder, new TournamentInfo("F - Elder", EMonsterRanks.A, 8, (77, 79), (0, 9999)) },
+        { ETournamentPools.S_FIMBA, new TournamentInfo("S FIMBA", EMonsterRanks.S, 8, (80, 83), (200, 0)) },
+        { ETournamentPools.A_FIMBA, new TournamentInfo("A FIMBA", EMonsterRanks.A, 6, (84, 87), (200, 0)) },
+        { ETournamentPools.B_FIMBA, new TournamentInfo("B FIMBA", EMonsterRanks.B, 5, (88, 91), (200, 0)) },
+        { ETournamentPools.C_FIMBA, new TournamentInfo("C FIMBA", EMonsterRanks.C, 4, (92, 95), (100, 0)) },
+        { ETournamentPools.D_FIMBA, new TournamentInfo("D FIMBA", EMonsterRanks.D, 2, (96, 99), (100, 0)) },
+        { ETournamentPools.S_FIMBA2, new TournamentInfo("S FIMBA2", EMonsterRanks.S, 8, (100, 103), (200, 0)) },
+        { ETournamentPools.A_FIMBA2, new TournamentInfo("A FIMBA2", EMonsterRanks.A, 6, (104, 107), (200, 0)) },
+        { ETournamentPools.B_FIMBA2, new TournamentInfo("B FIMBA2", EMonsterRanks.B, 5, (108, 111), (200, 0)) },
+        { ETournamentPools.C_FIMBA2, new TournamentInfo("C FIMBA2", EMonsterRanks.C, 4, (112, 115), (100, 0)) },
+        { ETournamentPools.D_FIMBA2, new TournamentInfo("D FIMBA2", EMonsterRanks.D, 2, (116, 118), (100, 0)) }
+    };
+
+    private static readonly Dictionary<ETournamentPools, TournamentRuleset> Tournaments = new Dictionary<ETournamentPools, TournamentRuleset>() {
+        { ETournamentPools.L, new TournamentRuleset("Legend", [EMonsterRanks.L], [], [], 1, EMonsterRegion.IMA) },
+        { ETournamentPools.M, new TournamentRuleset("Major 4",[EMonsterRanks.M], [], [], 6, EMonsterRegion.IMA) },
+        { ETournamentPools.S, new TournamentRuleset("S Rank", [EMonsterRanks.S], [], [], 8, EMonsterRegion.IMA) },
+        { ETournamentPools.A, new TournamentRuleset("A Rank", [EMonsterRanks.A], [], [], 8, EMonsterRegion.IMA) },
+        { ETournamentPools.B, new TournamentRuleset("B Rank", [EMonsterRanks.B], [], [], 10, EMonsterRegion.IMA) },
+        { ETournamentPools.C, new TournamentRuleset("C Rank", [EMonsterRanks.C], [], [], 10, EMonsterRegion.IMA) },
+        { ETournamentPools.D, new TournamentRuleset("D Rank", [EMonsterRanks.D], [], [], 8, EMonsterRegion.IMA) },
+        { ETournamentPools.E, new TournamentRuleset("E Rank", [EMonsterRanks.E], [], [], 6, EMonsterRegion.IMA) },
+
+
+        { ETournamentPools.A_Phoenix, new TournamentRuleset("A - Phoenix", [EMonsterRanks.A],
+            [MonsterGenus.Phoenix], [MonsterGenus.Phoenix],
+            3, EMonsterRegion.IMA) },
+
+        { ETournamentPools.A_DEdge, new TournamentRuleset("A - Double Edge", [EMonsterRanks.A],
+            [MonsterGenus.Durahan], [], 1, EMonsterRegion.IMA) },
+
+        { ETournamentPools.B_Dragon, new TournamentRuleset("B - Dragon Tusk", [EMonsterRanks.B],
+            [MonsterGenus.Dragon], [], 1, EMonsterRegion.IMA) },
+
+        { ETournamentPools.F_Hero, new TournamentRuleset("F - Hero", [EMonsterRanks.B, EMonsterRanks.A],
+            [   MonsterGenus.Baku, MonsterGenus.Centaur, MonsterGenus.ColorPandora,
+                MonsterGenus.Ducken, MonsterGenus.Gali, MonsterGenus.Hare, MonsterGenus.Henger,
+                MonsterGenus.Mocchi, MonsterGenus.Niton, MonsterGenus.Tiger, MonsterGenus.Undine], [],
+            5, EMonsterRegion.IMA) },
+
+        { ETournamentPools.F_Heel, new TournamentRuleset("F - Heel", [EMonsterRanks.B, EMonsterRanks.A],
+            [   MonsterGenus.Ape, MonsterGenus.Dragon, MonsterGenus.Joker, MonsterGenus.Kato,
+                MonsterGenus.Monol, MonsterGenus.Naga, MonsterGenus.Pixie, MonsterGenus.Suezo, MonsterGenus.Wracky], [],
+            5, EMonsterRegion.IMA) },
+
+
+        { ETournamentPools.F_Elder, new TournamentRuleset("F - Elder", [EMonsterRanks.A],
+            [   MonsterGenus.Plant, MonsterGenus.Mew, MonsterGenus.Ape,
+                MonsterGenus.Arrowhead, MonsterGenus.Durahan, MonsterGenus.ColorPandora,
+                MonsterGenus.Mock, MonsterGenus.Wracky], [],
+            3, EMonsterRegion.IMA) },
+
+        { ETournamentPools.L_FIMBA, new TournamentRuleset("L FIMBA", [EMonsterRanks.L], [], [], 1, EMonsterRegion.IMA) },
+        { ETournamentPools.S_FIMBA, new TournamentRuleset("S FIMBA", [EMonsterRanks.S], [], [], 1, EMonsterRegion.FIMBA) },
+        { ETournamentPools.A_FIMBA, new TournamentRuleset("A FIMBA", [EMonsterRanks.A], [], [], 1, EMonsterRegion.FIMBA) },
+        { ETournamentPools.B_FIMBA, new TournamentRuleset("B FIMBA", [EMonsterRanks.B], [], [], 1, EMonsterRegion.FIMBA) },
+        { ETournamentPools.C_FIMBA, new TournamentRuleset("C FIMBA", [EMonsterRanks.C], [], [], 1, EMonsterRegion.FIMBA) },
+        { ETournamentPools.D_FIMBA, new TournamentRuleset("D FIMBA", [EMonsterRanks.D], [], [], 1, EMonsterRegion.FIMBA) },
     };
 
     private static readonly Dictionary<ETournamentPools, MonsterGenus[]> RestrictMainBreeds = new()
@@ -89,7 +144,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
 
     private Range<int> RankRange => Info.Rank switch
     {
-        EMonsterRanks.L => (conf.RankM4, conf.RankM4),
+        EMonsterRanks.L => (conf.RankM4, 9999),
         EMonsterRanks.M => (conf.RankS, conf.RankM4),
         EMonsterRanks.S => (conf.RankA, conf.RankS),
         EMonsterRanks.A => (conf.RankB, conf.RankA),
@@ -156,6 +211,8 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
     {
         monster.LearnTechnique();
         monster.Rank = newPool.Info.Rank;
+        monster.Pools.Remove( this ); 
+        monster.Pools.Add( newPool );
         Logger.Info($"{monster.Name} promoted.", Color.LightBlue);
     }
 
@@ -251,13 +308,13 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         nm.Lifespan = Info.Rank switch
         {
             // Need this to account for bad growth rate monsters. At minimum monsters should be living for at least 8 months. Not a lot of time but enough to reduce churn.
-            EMonsterRanks.L => (ushort)TournamentData.LifespanRNG.Next(12, 17),
-            EMonsterRanks.M => (ushort)TournamentData.LifespanRNG.Next(16, 21),
-            EMonsterRanks.S => (ushort)TournamentData.LifespanRNG.Next(20, 27),
-            EMonsterRanks.A => (ushort)TournamentData.LifespanRNG.Next(24, 31),
-            EMonsterRanks.B => (ushort)(nm.LifeTotal - TournamentData.LifespanRNG.Next(14, 23)),
-            EMonsterRanks.C => (ushort)(nm.LifeTotal - TournamentData.LifespanRNG.Next(6, 13)),
-            EMonsterRanks.D => (ushort)(nm.LifeTotal - TournamentData.LifespanRNG.Next(2, 7)),
+            EMonsterRanks.L => (ushort)TournamentData.LifespanRNG.Next( 12, 16 + 1 ),
+            EMonsterRanks.M => (ushort)TournamentData.LifespanRNG.Next( 16, 20 + 1 ),
+            EMonsterRanks.S => (ushort)TournamentData.LifespanRNG.Next( 20, 26 + 1 ),
+            EMonsterRanks.A => (ushort)TournamentData.LifespanRNG.Next( 24, 30 + 1 ),
+            EMonsterRanks.B => (ushort)(nm.LifeTotal - TournamentData.LifespanRNG.Next( 14, 22 + 1 ) ),
+            EMonsterRanks.C => (ushort)(nm.LifeTotal - TournamentData.LifespanRNG.Next( 6, 12 ) ),
+            EMonsterRanks.D => (ushort)(nm.LifeTotal - TournamentData.LifespanRNG.Next( 2, 6 + 1) ),
             EMonsterRanks.E => nm.LifeTotal,
             _ => nm.Lifespan
         };
@@ -272,10 +329,10 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
 
     public static ETournamentPools PoolFromId(int id)
     {
-        if (id is 0 or > 119)
+        if (id is 0 or >= 119)
             Logger.Error($"Pool id {id} out of tourney range");
         return Tourneys
-            .First(kvpair => kvpair.Value.Id.Min <= id && id < kvpair.Value.Id.Max)
+            .First(kvpair => kvpair.Value.Id.Min <= id && id <= kvpair.Value.Id.Max)
             .Key;
     }
 }

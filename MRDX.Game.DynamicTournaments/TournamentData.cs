@@ -35,6 +35,7 @@ public enum ETournamentPools
     F_Hero,
     F_Heel,
     F_Elder,
+    L_FIMBA,
     S_FIMBA,
     A_FIMBA,
     B_FIMBA,
@@ -46,6 +47,11 @@ public enum ETournamentPools
     C_FIMBA2,
     D_FIMBA2,
     X_MOO
+}
+
+public enum EMonsterRegion {
+    IMA,
+    FIMBA
 }
 
 public class TournamentData
@@ -84,7 +90,7 @@ public class TournamentData
         "Adamant", "Silverlock", "Dobby", "Finx", "Gar", "Hope", "Jewel", "Kattery", "Languish", "Zephyr", "Xilla",
         "Cedar", "Villa", "Branx", "Naught", "Midas",
         "Atronaph", "Argus", "Aideen", "Alias", "Adonay", "Anno", "Apollo", "Aydin", "Asakoa", "Aviri", "Adelynn",
-        "Arsonwheel", "Angerstomp",
+        "Arsonwheel", "Angerstomp", "Aybeedee",
         "Bajor", "Beekler", "Bobbles", "Buu", "Brainstorm", "Bracer", "Basselt", "Boggycreek", "Boggart", "Bahamut",
         "Baretree", "Birchbellow",
         "Calaphyx", "Cawcaws", "Cix", "Cerrusio", "Creator", "Clipse", "Conjus", "Chanceux", "Ciorliath", "Clearwish",
@@ -94,7 +100,7 @@ public class TournamentData
         "Gronkula", "Gimmles", "Golox", "Gargamel", "Gutterman", "Gale", "Gemlashes", "Gotusloop", "Goldenboy",
         "Hardness", "Herman", "Hillox", "Hundredyear", "Hurlante", "Hazel", "Hanzel", "Hatemonger",
         "Io", "Iodine", "Iaz", "Illomens", "Incarnate", "Isaias", "Islecrusher", "Iaull", "Itong", "Iilos",
-        "Jax", "Jack", "Jillian", "Jellyjam", "Julius", "Jasmine", "Jazlynn",
+        "Jax", "Jack", "Jillian", "Jellyjam", "Julius", "Jasmine", "Jazlynn", "Jayrhoe",
         "Kawkaws", "Ki", "Kallus", "Keith", "Kevin", "Kitten", "Kedijah", "Keah", "Kammi",
         "Larrius", "Lengeru", "Ludwiz", "Longboy", "Llij", "Liyong", "Laylah",
         "Moparscape", "Mardok", "Mueller", "Mastodon", "Morphius", "Murph", "McNasty", "Mehret", "Mordheim", "Mors",
@@ -296,13 +302,12 @@ public class TournamentData
         foreach (var pool in _tournamentPools.Values)
         {
             if (pool.Pool == ETournamentPools.X_MOO)
-                continue;
+                participants.Add( Monsters.First( m => m.Pools.Exists( p => p.Pool == ETournamentPools.S ) ) );
+
             var poolMonsters = Monsters.FindAll(m => m.Pools.Contains(pool));
             participants.AddRange(poolMonsters[..pool.Info.Size]);
         }
-
-        // Edge Case to Handle the ONE SLOT that is skipped For Moo.
-        participants.Add(Monsters.First(m => m.Pools.Exists(p => p.Pool == ETournamentPools.S)));
+        
         return participants;
     }
 
