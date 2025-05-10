@@ -113,7 +113,7 @@ public class Randomizer
                         case StatShuffleOrder.Hit:
                             // NOTE: This range is different, its -16, 34
                             val = Rng.Next(0, (byte)Math.Max(1, Math.Round(Math.Min(total, 50)))) - 16;
-                            atk.HitPercent = (byte)val;
+                            atk.HitPercent = (sbyte)val;
                             break;
                         case StatShuffleOrder.Sharp:
                             // Set the range 0, 50 (times 2)
@@ -146,7 +146,7 @@ public class Randomizer
                 // TODO: adjustable biases?
                 // Bias towards lower values to prevent too many crazy overpowered moves 
                 atk.Force = (byte)Math.Min(Rng.Next(1, 60), Rng.Next(1, 60));
-                atk.HitPercent = (byte)Math.Min(Rng.Next(-16, 35), Rng.Next(-16, 35));
+                atk.HitPercent = (sbyte)Math.Min(Rng.Next(-16, 35), Rng.Next(-16, 35));
                 atk.GutsCost = (byte)Math.Min(Rng.Next(10, 55), Rng.Next(10, 55));
                 atk.Withering = (byte)Math.Min(Rng.Next(0, 55), Rng.Next(0, 55));
                 atk.Sharpness = (byte)Math.Min(Rng.Next(0, 55), Rng.Next(0, 55));

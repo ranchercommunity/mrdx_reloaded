@@ -281,7 +281,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
             monData.GutsRate = (byte) Random.Shared.Next( 7, 21 ); 
         }
             var nm = new TournamentMonster( conf, monData );
-        Logger.Trace("TP: Breed " + nm.GenusMain + " " + nm.GenusMain, Color.AliceBlue);
+        Logger.Trace($"TP: Breed " + nm.GenusMain + " " + nm.GenusSub + $" AS:{monData.ArenaSpeed}|GUTS:{monData.GutsRate}", Color.AliceBlue);
 
         // Attempt to assign three basics, weighted generally towards worse basic techs with variance.
         if (nm.BreedInfo.TechList[0].Type == ErrantryType.Basic)

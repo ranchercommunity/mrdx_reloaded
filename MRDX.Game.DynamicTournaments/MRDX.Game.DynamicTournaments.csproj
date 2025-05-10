@@ -42,6 +42,9 @@
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <None Update="Preview.png" CopyToOutputDirectory="PreserveNewest" />
+        <None Update="TournamentData\taikai_en.flk">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Remove="Publish.ps1" />
         <None Remove="BuildLinked.ps1" />
         <None Remove="Reloaded.Trimming.targets" />
@@ -67,7 +70,7 @@
 
     <ItemGroup>
         <Folder Include="Redirector\Resources\data\mf2\" />
-		<Folder Include="TournamentData\"/>
+		<Folder Include="TournamentData\" />
     </ItemGroup>
 
     <Target Name="Replace" BeforeTargets="BeforeBuild;BeforeRebuild">

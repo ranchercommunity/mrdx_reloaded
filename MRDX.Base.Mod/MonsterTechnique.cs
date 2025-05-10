@@ -15,7 +15,7 @@ public record MonsterTechnique : IMonsterTechnique
         Nature = (TechNature)dat[18];
         Scaling = (TechType)dat[19];
         Available = dat[20] == 1;
-        HitPercent = dat[21];
+        HitPercent = (sbyte) dat[ 21 ];
         Force = dat[22];
         Withering = dat[23];
         Sharpness = dat[24];
@@ -38,7 +38,7 @@ public record MonsterTechnique : IMonsterTechnique
     public TechNature Nature { get; set; }
     public TechType Scaling { get; set; }
     public bool Available { get; set; }
-    public byte HitPercent { get; set; }
+    public sbyte HitPercent { get; set; }
     public byte Force { get; set; }
     public byte Withering { get; set; }
     public byte Sharpness { get; set; }

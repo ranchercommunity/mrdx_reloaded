@@ -29,7 +29,7 @@ public interface IMonsterTechnique
 
     bool Available { get; set; }
 
-    byte HitPercent { get; set; }
+    sbyte HitPercent { get; set; }
     byte Force { get; set; }
     byte Withering { get; set; }
     byte Sharpness { get; set; }
@@ -69,7 +69,7 @@ public interface IMonsterTechnique
         o[18] = (byte)Nature;
         o[19] = (byte)Scaling;
         o[20] = (byte)(Available ? 1 : 0);
-        o[21] = HitPercent;
+        o[21] = (byte) HitPercent;
         o[22] = Force;
         o[23] = Withering;
         o[24] = Sharpness;
