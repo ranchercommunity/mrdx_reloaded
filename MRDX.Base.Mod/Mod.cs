@@ -1,4 +1,5 @@
-﻿using MRDX.Base.ExtractDataBin.Interface;
+﻿using System.Diagnostics;
+using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.Mod.Interfaces;
 using MRDX.Base.Mod.Template;
 using Reloaded.Hooks.Definitions;
@@ -199,13 +200,23 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     private static async Task LoadMonsterBreeds()
     {
+        Debugger.Launch();
         Logger.Info("Loading monster breeds");
         var newBreeds = new List<MonsterBreed>
         {
             Capacity = 400
         };
         var atkNameTable = LoadAtkNames();
-        var sdataTable = LoadSDATA();
+
+        var sDataList = new Dictionary<(MonsterGenus, MonsterGenus), string[]>();
+        var sdata = await File.ReadAllLinesAsync( Path.Combine( DataPath, "SDATA_MONSTER.csv" ) );
+        for ( var i = 0; i < sdata.Length; i++ ) {
+            var row = sdata[ i ].Split( "," );
+
+            if ( !sDataList.ContainsKey( ((MonsterGenus) Int32.Parse( row[ 2 ] ), (MonsterGenus) Int32.Parse( row[ 3 ] )) ) ) {
+                sDataList.Add( ((MonsterGenus) Int32.Parse( row[ 2 ] ), (MonsterGenus) Int32.Parse( row[ 3 ] )), row );
+            }
+        }
 
         foreach (var info in IMonster.AllMonsters)
         {
@@ -256,7 +267,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
                     Name = string.Empty,
                     BreedIdentifier = breedIdentifier,
                     TechList = techs,
-                    SDATAValues = sdataTable[(info.Id, sub)]
+                    SDATAValues = sDataList[(info.Id, sub)]
                 });
             }
         }
@@ -295,21 +306,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         }
 
         return atkList;
-    }
-
-    private static Dictionary<(MonsterGenus, MonsterGenus), string[]> LoadSDATA() 
-    {
-        var sDataList = new Dictionary<(MonsterGenus, MonsterGenus), string[]>();
-        var data = File.ReadAllLines( Path.Combine( DataPath, "SDATA_MONSTER.csv" ) );
-        for ( var i = 0; i < data.Length; i++ ) {
-            var row = data[ i ].Split( "," );
-
-            if ( !sDataList.ContainsKey( ( (MonsterGenus) Int32.Parse( row[2] ), (MonsterGenus) Int32.Parse( row[3] ) ) ) ){
-                sDataList.Add( ((MonsterGenus) Int32.Parse( row[ 2 ] ), (MonsterGenus) Int32.Parse( row[ 3 ] )), row );
-            }
-        }
-
-        return sDataList;
     }
 
     private static List<IMonsterTechnique> CreateTechs(string[,] atkNames, Span<byte> rawStats)

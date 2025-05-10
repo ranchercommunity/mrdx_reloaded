@@ -50,7 +50,8 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         { ETournamentPools.A_FIMBA2, new TournamentInfo("A FIMBA2", EMonsterRanks.A, 6, (104, 107), (200, 0)) },
         { ETournamentPools.B_FIMBA2, new TournamentInfo("B FIMBA2", EMonsterRanks.B, 5, (108, 111), (200, 0)) },
         { ETournamentPools.C_FIMBA2, new TournamentInfo("C FIMBA2", EMonsterRanks.C, 4, (112, 115), (100, 0)) },
-        { ETournamentPools.D_FIMBA2, new TournamentInfo("D FIMBA2", EMonsterRanks.D, 2, (116, 118), (100, 0)) }
+        { ETournamentPools.D_FIMBA2, new TournamentInfo("D FIMBA2", EMonsterRanks.D, 2, (116, 118), (100, 0)) },
+        { ETournamentPools.L_FIMBA, new TournamentInfo("L FIMBA", EMonsterRanks.L, 1, (80,80), (0, 0)) }
     };
 
     private static readonly Dictionary<ETournamentPools, TournamentRuleset> Tournaments = new Dictionary<ETournamentPools, TournamentRuleset>() {
@@ -269,11 +270,17 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
             Nature = (sbyte)Random.Shared.Next(255),
             Fear = (byte)Random.Shared.Next(25),
             Spoil = (byte)Random.Shared.Next(25),
-            ArenaSpeed = (byte)Random.Shared.Next(4), // TODO: Where does this come from?
-            GutsRate = (byte)Random.Shared.Next(7, 21), // 7 - 20?
             BattleSpecial = (BattleSpecials)Random.Shared.Next(4)
         };
-        var nm = new TournamentMonster(conf, monData);
+
+        if (tournament._config.SpeciesAccuracyTraits) {
+            monData.ArenaSpeed = Byte.Parse( breed.SDATAValues[ 19 ] );
+            monData.GutsRate = Byte.Parse( breed.SDATAValues[ 20 ] );
+        } else {
+            monData.ArenaSpeed = (byte) Random.Shared.Next( 5 ); 
+            monData.GutsRate = (byte) Random.Shared.Next( 7, 21 ); 
+        }
+            var nm = new TournamentMonster( conf, monData );
         Logger.Trace("TP: Breed " + nm.GenusMain + " " + nm.GenusMain, Color.AliceBlue);
 
         // Attempt to assign three basics, weighted generally towards worse basic techs with variance.

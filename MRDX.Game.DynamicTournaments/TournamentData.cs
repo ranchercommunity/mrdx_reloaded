@@ -35,7 +35,6 @@ public enum ETournamentPools
     F_Hero,
     F_Heel,
     F_Elder,
-    L_FIMBA,
     S_FIMBA,
     A_FIMBA,
     B_FIMBA,
@@ -46,7 +45,7 @@ public enum ETournamentPools
     B_FIMBA2,
     C_FIMBA2,
     D_FIMBA2,
-    X_MOO
+    X_MOO, L_FIMBA,
 }
 
 public enum EMonsterRegion {
