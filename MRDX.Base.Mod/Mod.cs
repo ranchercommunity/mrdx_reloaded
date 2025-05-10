@@ -242,6 +242,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
                 var mainIdentifier = filename[^9..^7];
                 var subIdentifier = filename[^6..^4];
                 var breedIdentifier = $"{mainIdentifier}_{subIdentifier}";
+
                 Logger.Trace($"creating new breed {breedIdentifier}");
 
                 // Compares Sub Information to Known Monsters - Have to do some shenanigans to take care of the unknown ??? species in the database.
@@ -257,6 +258,11 @@ public class Mod : ModBase, IExports // <= Do not Remove.
                 {
                     Logger.Trace($"Can't handle garbage unknown breed {breedIdentifier}");
                     continue;
+                }
+
+                if ( info.Id == MonsterGenus.Durahan && sub == MonsterGenus.Henger ) {
+                    Logger.Trace( $"Durahan / Henger has an invalid texture file. {breedIdentifier}" ); 
+                    continue; 
                 }
 
                 Logger.Trace($"found subinfo: {sub}");
