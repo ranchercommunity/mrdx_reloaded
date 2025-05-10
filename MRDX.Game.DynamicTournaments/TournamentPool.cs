@@ -232,13 +232,11 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         var breed = allBreeds[0];
         foreach (var b in allBreeds)
         {
-            if (!available.Contains(b.Main) || !available.Contains(b.Sub)) continue;
+            if ( !available.Contains( b.Main ) || !available.Contains( b.Sub ) ) { continue; }
+            if ( SpecialSubs.Contains( b.Sub ) && Random.Shared.NextDouble() < conf.SpeciesUnique ) { continue; }
+
             if (mainRestrictions is [] && subRestrictions is [])
             {
-                // Tourney has no breed restrictions so check to see if we allow a unique monster
-                if (SpecialSubs.Contains(b.Main) &&
-                    Random.Shared.NextDouble() < conf.SpeciesUnique)
-                    continue;
                 breed = b;
                 break;
             }
