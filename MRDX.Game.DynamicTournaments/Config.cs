@@ -22,6 +22,12 @@ public class Config : Configurable<Config>
         PlayerOnlyRealistic,
         WildWest
     }
+
+    public enum ESpeciesAccuracyTraits {
+        Strict,
+        Loose,
+        WildWest,
+    }
     /*
         User Properties:
             - Please put all of your configurable properties here.
@@ -61,13 +67,24 @@ public class Config : Configurable<Config>
     [SliderControlParams(0.01, showTextField: true, isTextFieldEditable: true)]
     public double SpeciesUnique { get; set; } = 0.25;
 
-    [Category( "Tournament Opponents" )]
-    [DisplayName( "Species Accuracy - Immutable Traits" )]
+    [Category( "Tournament Opponents - Game Accuracy" )]
+    [DisplayName( "Immutable Traits" )]
     [Description( "Determines whether tournament monsters respect the following monster species traits.\n" +
              "Guts Regeneration, Arena Movespeed\n" +
-             "Note: Setting this to false will result in less predictable and potentially very powerful monsters." )]
+             "Strict - Monsters will always use the base trait values.\n" +
+             "Loose - Monsters will have base trait values with small offsets (AS-1, GUTS-2)\n" +
+             "Wild West - Monsters will have random base trait values.")]
+    [DefaultValue( ESpeciesAccuracyTraits.Loose )]
+    public ESpeciesAccuracyTraits SpeciesAccuracyTraits { get; set; } = ESpeciesAccuracyTraits.Loose;
+
+
+    [Category( "Tournament Opponents - Game Accuracy" )]
+    [DisplayName( "Stat Growths" )]
+    [Description( "Determines whether if a monster's base stat growths are applied to trainer formulas.\n" +
+            "Note: This is a soft modifier. Trainers will still raise monsters in interesting ways.\n" +
+            "For example, when enabled a Mock will always have higher priority towards Int, a Golem will have higher Power/Def, etc." )]
     [DefaultValue( true )]
-    public bool SpeciesAccuracyTraits { get; set; } = true;
+    public bool SpeciesAccuracyStatGrowths { get; set; } = true;
 
 
     [Category("Tournament Ranks")]

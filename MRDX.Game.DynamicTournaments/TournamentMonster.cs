@@ -239,6 +239,14 @@ public class TournamentMonster : BattleMonsterData
             else if (_growthIntensity == 5) gopts = [7, 8, 10, 13, 4, 2];
         }
 
+        // If enabled, configuration option adds the stat growth value to the growth pattern (A Life = +4 Life Options)
+        // SDATA stat growths is from 13-18.
+        if ( config.SpeciesAccuracyStatGrowths ) {
+            for ( var i = 0; i < 6; i++ ) {
+                gopts[ i ] += Byte.Parse(BreedInfo.SDATAValues[ 13 + i ]);
+            }
+        }
+
         // This is some fun variance. 16% chance of a stat (1 on average) getting a slight penalty or boost.
         // CONFIG: Wildcard chance of a stat being effectively completely randomized with no rhyme or reason. (Approximately 1/50 monsters have a stat altered in this way at 300).
         for (var i = 0; i < gopts.Length; i++)
@@ -346,17 +354,25 @@ public class TournamentMonster : BattleMonsterData
             if (TechList.Contains(tech)) continue;
             var techval = tech.TechValue + Random.Shared.Next() % techvariance;
 
-            if (missingRanges.Contains(tech.Range)) techval += 20;
+            if (missingRanges.Contains(tech.Range)) techval += 25;
             if (techint != Config.TechInt.Minimal)
             {
-                if (tech.Scaling == TechType.Power && Power < Intelligence)
-                    techval = techval * 0.8 * ((float)Power / Intelligence);
+                if ( tech.Scaling == TechType.Power && Power < Intelligence && Math.Abs(Power - Intelligence) > 100 ) {
+                    techval = techval * 0.7 * ( (float) Power / Intelligence );
+                    if ( tech.Type == ErrantryType.Withering ) {
+                        techval += 15;
+                    }
+                }
 
-                else if (tech.Scaling == TechType.Intelligence && Intelligence < Power)
-                    techval = techval * 0.8 * ((float)Intelligence / Power);
+                else if ( tech.Scaling == TechType.Intelligence && Intelligence < Power && Math.Abs( Power - Intelligence ) > 100 ) {
+                    techval = techval * 0.7 * ( (float) Intelligence / Power );
+                    if ( tech.Type == ErrantryType.Withering ) {
+                        techval += 15;
+                    }
+                }
             }
 
-            if (tech.Type == ErrantryType.Basic && TechList.Count <= 4) techval *= 2;
+            if (tech.Type == ErrantryType.Basic && TechList.Count <= 4) techval *= 2.5;
             switch (_growthGroup)
             {
                 case GrowthGroups.Power when tech.Type == ErrantryType.Heavy:
@@ -379,7 +395,7 @@ public class TournamentMonster : BattleMonsterData
                 techval = (int)(techval * 1.1);
 
             Logger.Debug(techval + " TV: " + tech, Color.Beige);
-            for (var j = 10; j < techval; j++)
+            for (var j = 20; j < techval; j++)
                 weightedLearnPool.Add(tech.Slot);
         }
 

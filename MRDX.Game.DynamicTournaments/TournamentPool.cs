@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using Iced.Intel;
 using MRDX.Base.Mod.Interfaces;
 using MRDX.Game.DynamicTournaments.Configuration;
 
@@ -196,6 +197,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
             }
 
             MonsterPromoteToNewPool(promoted, newPool);
+            monsters.Remove( promoted );
         }
         else
         {
@@ -214,7 +216,8 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         monster.Rank = newPool.Info.Rank;
         monster.Pools.Remove( this ); 
         monster.Pools.Add( newPool );
-        Logger.Info($"{monster.Name} promoted.", Color.LightBlue);
+        Logger.Info( $"{monster.Name} R {monster.Rank}: promoted from {this.Info.Name} to {newPool.Info.Name}", Color.LightBlue );
+
     }
 
     public TournamentMonster GenerateNewValidMonster(List<MonsterGenus> available)
@@ -229,7 +232,7 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
         var breed = allBreeds[0];
         foreach (var b in allBreeds)
         {
-            if (!available.Contains(breed.Main) || !available.Contains(breed.Sub)) continue;
+            if (!available.Contains(b.Main) || !available.Contains(b.Sub)) continue;
             if (mainRestrictions is [] && subRestrictions is [])
             {
                 // Tourney has no breed restrictions so check to see if we allow a unique monster
@@ -256,31 +259,40 @@ public class TournamentPool(TournamentData tournament, Config conf, ETournamentP
     private TournamentMonster GenerateNewValidMonster(MonsterBreed breed)
     {
         Logger.Debug("TP: Generating ", Color.AliceBlue);
-        var monData = new BattleMonsterData
-        {
+        var monData = new BattleMonsterData {
             GenusMain = breed.Main,
             GenusSub = breed.Sub,
-            Name = TournamentData.RandomNameList[Random.Shared.Next(TournamentData.RandomNameList.Length)],
+            Name = TournamentData.RandomNameList[ Random.Shared.Next( TournamentData.RandomNameList.Length ) ],
             Life = 80,
             Power = 1,
             Skill = 1,
             Speed = 1,
             Defense = 1,
             Intelligence = 1,
-            Nature = (sbyte)Random.Shared.Next(255),
-            Fear = (byte)Random.Shared.Next(25),
-            Spoil = (byte)Random.Shared.Next(25),
-            BattleSpecial = (BattleSpecials)Random.Shared.Next(4)
+            Nature = (sbyte) Random.Shared.Next( 255 ),
+            Fear = (byte) Random.Shared.Next( 25 ),
+            Spoil = (byte) Random.Shared.Next( 25 ),
+            ArenaSpeed = 0,
+            GutsRate = 10,
+            BattleSpecial = (BattleSpecials) Random.Shared.Next( 4 )
         };
 
-        if (tournament._config.SpeciesAccuracyTraits) {
-            monData.ArenaSpeed = Byte.Parse( breed.SDATAValues[ 19 ] );
-            monData.GutsRate = Byte.Parse( breed.SDATAValues[ 20 ] );
-        } else {
-            monData.ArenaSpeed = (byte) Random.Shared.Next( 5 ); 
-            monData.GutsRate = (byte) Random.Shared.Next( 7, 21 ); 
+        switch (tournament._config.SpeciesAccuracyTraits) {
+            case Config.ESpeciesAccuracyTraits.Strict:
+                monData.ArenaSpeed = Byte.Parse( breed.SDATAValues[ 19 ] );
+                monData.GutsRate = Byte.Parse( breed.SDATAValues[ 20 ] );
+                break;
+            case Config.ESpeciesAccuracyTraits.Loose:
+                monData.ArenaSpeed = Math.Clamp( (byte) ( Byte.Parse( breed.SDATAValues[ 19 ] ) + Random.Shared.Next( -1, 1 ) ), (byte) 0, (byte) 4 );
+                monData.GutsRate = Math.Clamp( (byte) ( Byte.Parse( breed.SDATAValues[ 20 ] ) + Random.Shared.Next( -2, 2 ) ), (byte) 6, (byte) 21 );
+                break;
+            case Config.ESpeciesAccuracyTraits.WildWest:
+                monData.ArenaSpeed = (byte) Random.Shared.Next( 0, 4 ); 
+                monData.GutsRate = (byte) Random.Shared.Next( 7, 21 );
+                break;
         }
-            var nm = new TournamentMonster( conf, monData );
+
+        var nm = new TournamentMonster( conf, monData );
         Logger.Trace($"TP: Breed " + nm.GenusMain + " " + nm.GenusSub + $" AS:{monData.ArenaSpeed}|GUTS:{monData.GutsRate}", Color.AliceBlue);
 
         // Attempt to assign three basics, weighted generally towards worse basic techs with variance.

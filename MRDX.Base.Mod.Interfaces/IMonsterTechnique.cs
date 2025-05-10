@@ -48,7 +48,7 @@ public interface IMonsterTechnique
     {
         get
         {
-            var v = 30 + (HitPercent * 1.5 + Force * 1.8 + Withering * 1.2 + Sharpness / 1.25) - GutsCost;
+            var v = 30 + (HitPercent * 1.3 + Force * 1.5 + Withering * 1.0 + Sharpness / 1.25) - GutsCost;
             v *= GutsSteal > 0 || LifeSteal > 0 || LifeRecovery > 0 ? 1.3 : 1.0;
             v *= ForceHitSelf > 0 || ForceMissSelf > 0 ? 0.85 : 1.0;
             return v;

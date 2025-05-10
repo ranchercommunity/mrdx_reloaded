@@ -106,7 +106,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _configuration = context.Configuration;
         Logger.LoggerInternal = _logger;
 
-        Logger.SetLogLevel( Logger.LogLevel.Trace );
+        Logger.SetLogLevel( Logger.LogLevel.Info );
 
         // Order is somewhat important here as some other controllers will use the Hooks
         var hooks = new Hooks(context);
