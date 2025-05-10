@@ -98,7 +98,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     public Mod(ModContext context)
     {
-        // Debugger.Launch();
         _modLoader = context.ModLoader;
         _hooks = context.Hooks;
         _logger = context.Logger;
@@ -200,7 +199,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     private static async Task LoadMonsterBreeds()
     {
-        Debugger.Launch();
         Logger.Info("Loading monster breeds");
         var newBreeds = new List<MonsterBreed>
         {
@@ -209,12 +207,13 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         var atkNameTable = LoadAtkNames();
 
         var sDataList = new Dictionary<(MonsterGenus, MonsterGenus), string[]>();
-        var sdata = await File.ReadAllLinesAsync( Path.Combine( DataPath, "SDATA_MONSTER.csv" ) );
-        for ( var i = 0; i < sdata.Length; i++ ) {
-            var row = sdata[ i ].Split( "," );
+        var sdata = await File.ReadAllLinesAsync( Path.Combine( DataPath!, "SDATA_MONSTER.csv" ) );
+        foreach (var t in sdata)
+        {
+            var row = t.Split( "," );
 
-            if ( !sDataList.ContainsKey( ((MonsterGenus) Int32.Parse( row[ 2 ] ), (MonsterGenus) Int32.Parse( row[ 3 ] )) ) ) {
-                sDataList.Add( ((MonsterGenus) Int32.Parse( row[ 2 ] ), (MonsterGenus) Int32.Parse( row[ 3 ] )), row );
+            if ( !sDataList.ContainsKey( ((MonsterGenus) int.Parse( row[ 2 ] ), (MonsterGenus) int.Parse( row[ 3 ] )) ) ) {
+                sDataList.Add( ((MonsterGenus) int.Parse( row[ 2 ] ), (MonsterGenus) int.Parse( row[ 3 ] )), row );
             }
         }
 
@@ -344,7 +343,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
     }
     // private void DrawTextToScreenHook(nint input, nint output, nint unk2)
     // {
-    //     // Debugger.Launch();
     //     _textHook!.OriginalFunction(input, output, unk2);
     //     var o = Base.ReadString(output);
     //     // _logger.WriteLine($"Parsed Text: {o}");
@@ -353,7 +351,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
     // private void DrawBattleNumberToScreenHook(int number, short xcoord, short ycoord, short unkflag, uint unused5,
     //     uint unused6, IntPtr unkdata)
     // {
-    //     // Debugger.Launch();
     //     _logger.WriteLine($"Number: {number} at ({xcoord}, {ycoord}) flag: {unkflag} ptr: {unkdata.ToInt64():02X}");
     //     _numberHook!.OriginalFunction(number, xcoord, ycoord, unkflag, unused5, unused6, unkdata);
     // }

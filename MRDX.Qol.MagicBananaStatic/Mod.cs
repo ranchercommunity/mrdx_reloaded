@@ -97,8 +97,6 @@ public class Mod : ModBase // <= Do not Remove.
         iGame.OnMonsterChanged += MonsterChanged;
 
         extract.ExtractComplete.Subscribe(RedirectorBananaTextAndTextures);
-
-        //Debugger.Launch();
     }
 
     #region For Exports, Serialization etc.

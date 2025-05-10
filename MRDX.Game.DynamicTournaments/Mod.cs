@@ -54,7 +54,6 @@ public class Mod : ModBase // <= Do not Remove.
         // _addressCurrentweek = _gameAddress + 0x379444;
         //548CD0
 
-        Debugger.Launch();
         Logger.SetLogLevel( _configuration.LogLevel );
 
         if (iHooks == null)

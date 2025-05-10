@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.ExtractDataBin.Template;
 using Reloaded.Hooks.Definitions;
@@ -63,8 +62,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         //
         //     return;
         // }
-
-        var task = new Task(() =>
+        _modLoader.OnModLoaderInitialized += () =>
         {
             _logger.WriteLine(
                 $"[{_modConfig.ModId}] Starting extraction for {_modLoader.GetAppConfig().AppId}");
@@ -73,10 +71,9 @@ public class Mod : ModBase, IExports // <= Do not Remove.
                 ? $"[{_modConfig.ModId}] Extracting data.bin complete"
                 : $"[{_modConfig.ModId}] Extracting data.bin failed...");
             _logger.WriteLine($"[{_modConfig.ModId}] Launch complete.");
-        });
-        task.Start();
-        // We don't need to wait since we learned that we can just disable the redirector until the process is complete
-        // task.Wait();
+            // We don't need to wait since we learned that we can just disable the redirector until the process is complete
+            // task.Wait();
+        };
     }
 
     #region For Exports, Serialization etc.
