@@ -61,6 +61,14 @@ public class Config : Configurable<Config>
     [SliderControlParams(0.01, showTextField: true, isTextFieldEditable: true)]
     public double SpeciesUnique { get; set; } = 0.25;
 
+    [Category( "Tournament Opponents" )]
+    [DisplayName( "Species Accuracy - Immutable Traits" )]
+    [Description( "Determines whether tournament monsters respect the following monster species traits.\n" +
+             "Guts Regeneration, Arena Movespeed\n" +
+             "Note: Setting this to false will result in less predictable and potentially very powerful monsters." )]
+    [DefaultValue( true )]
+    public bool SpeciesAccuracyTraits { get; set; } = true;
+
 
     [Category("Tournament Ranks")]
     [DisplayName("Stat Cap - Major 4")]

@@ -124,8 +124,8 @@ public class TournamentData
     public static readonly Random GrowthRNG = new(Random.Shared.Next());
     public static readonly Random LifespanRNG = new(Random.Shared.Next());
 
-    private readonly Config _config;
-    private readonly string _gamePath;
+    public readonly Config _config;
+    public readonly string _gamePath;
 
     private readonly Dictionary<ETournamentPools, TournamentPool> _tournamentPools = [];
     public readonly List<TournamentMonster> Monsters = [];

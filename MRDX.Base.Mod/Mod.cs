@@ -205,6 +205,8 @@ public class Mod : ModBase, IExports // <= Do not Remove.
             Capacity = 400
         };
         var atkNameTable = LoadAtkNames();
+        var sdataTable = LoadSDATA();
+
         foreach (var info in IMonster.AllMonsters)
         {
             if (info.Name.StartsWith("Unknown")) continue;
@@ -253,7 +255,8 @@ public class Mod : ModBase, IExports // <= Do not Remove.
                     Sub = sub,
                     Name = string.Empty,
                     BreedIdentifier = breedIdentifier,
-                    TechList = techs
+                    TechList = techs,
+                    SDATAValues = sdataTable[(info.Id, sub)]
                 });
             }
         }
@@ -292,6 +295,21 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         }
 
         return atkList;
+    }
+
+    private static Dictionary<(MonsterGenus, MonsterGenus), string[]> LoadSDATA() 
+    {
+        var sDataList = new Dictionary<(MonsterGenus, MonsterGenus), string[]>();
+        var data = File.ReadAllLines( Path.Combine( DataPath, "SDATA_MONSTER.csv" ) );
+        for ( var i = 0; i < data.Length; i++ ) {
+            var row = data[ i ].Split( "," );
+
+            if ( !sDataList.ContainsKey( ( (MonsterGenus) Int32.Parse( row[2] ), (MonsterGenus) Int32.Parse( row[3] ) ) ) ){
+                sDataList.Add( ((MonsterGenus) Int32.Parse( row[ 2 ] ), (MonsterGenus) Int32.Parse( row[ 3 ] )), row );
+            }
+        }
+
+        return sDataList;
     }
 
     private static List<IMonsterTechnique> CreateTechs(string[,] atkNames, Span<byte> rawStats)

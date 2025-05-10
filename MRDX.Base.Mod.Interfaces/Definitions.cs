@@ -342,6 +342,8 @@ public record MonsterBreed
 
     public string BreedIdentifier { get; init; } = string.Empty;
 
+    public string[] SDATAValues { get; init; } = [];
+
     public List<IMonsterTechnique> TechList { get; init; } = [];
 
     public static MonsterBreed? GetBreed(MonsterGenus main, MonsterGenus sub)
