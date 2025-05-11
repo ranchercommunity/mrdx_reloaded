@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using MRDX.Base.ExtractDataBin.Interface;
+﻿using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.Mod.Interfaces;
 using MRDX.Base.Mod.Template;
 using Reloaded.Hooks.Definitions;
@@ -7,14 +6,13 @@ using Reloaded.Memory.Sigscan.Definitions.Structs;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
-using Reloaded.Universal.Redirector.Interfaces;
 
 namespace MRDX.Base.Mod;
 
 /// <summary>
 ///     Your mod logic goes here.
 /// </summary>
-public class Mod : ModBase, IExports // <= Do not Remove.
+public sealed class Mod : ModBase, IExports // <= Do not Remove.
 {
     private static readonly Dictionary<string, ushort[]> PluralNames = new()
     {
@@ -58,12 +56,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         { "Nagas", "Naga".AsMr2() }
     };
 
-
-    /// <summary>
-    ///     Provides access to this mod's configuration.
-    /// </summary>
-    private readonly Config _configuration;
-
     private readonly IGame _game;
 
     /// <summary>
@@ -96,6 +88,12 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     private readonly IStartupScanner? _startupScanner;
 
+
+    /// <summary>
+    ///     Provides access to this mod's configuration.
+    /// </summary>
+    private Config _configuration;
+
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -105,8 +103,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _modConfig = context.ModConfig;
         _configuration = context.Configuration;
         Logger.LoggerInternal = _logger;
-
-        Logger.SetLogLevel( Logger.LogLevel.Info );
+        ConfigurationUpdated(_configuration);
 
         // Order is somewhat important here as some other controllers will use the Hooks
         var hooks = new Hooks(context);
@@ -160,6 +157,12 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         return [typeof(IController), typeof(IHooks), typeof(IGame), typeof(IGameClient), typeof(ISaveFile)];
     }
 
+    public override void ConfigurationUpdated(Config configuration)
+    {
+        _configuration = configuration;
+        Logger.GlobalLogLevel = _configuration.LogLevel;
+    }
+
     private void ExtractionComplete(string? path)
     {
         DataPath = path;
@@ -207,13 +210,14 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         var atkNameTable = LoadAtkNames();
 
         var sDataList = new Dictionary<(MonsterGenus, MonsterGenus), string[]>();
-        var sdata = await File.ReadAllLinesAsync( Path.Combine( DataPath!, "SDATA_MONSTER.csv" ) );
+        var sdata = await File.ReadAllLinesAsync(Path.Combine(DataPath!, "SDATA_MONSTER.csv"));
         foreach (var t in sdata)
         {
-            var row = t.Split( "," );
+            var row = t.Split(",");
 
-            if ( !sDataList.ContainsKey( ((MonsterGenus) int.Parse( row[ 2 ] ), (MonsterGenus) int.Parse( row[ 3 ] )) ) ) {
-                sDataList.Add( ((MonsterGenus) int.Parse( row[ 2 ] ), (MonsterGenus) int.Parse( row[ 3 ] )), row );
+            if (!sDataList.ContainsKey(((MonsterGenus)int.Parse(row[2]), (MonsterGenus)int.Parse(row[3]))))
+            {
+                sDataList.Add(((MonsterGenus)int.Parse(row[2]), (MonsterGenus)int.Parse(row[3])), row);
             }
         }
 
@@ -259,9 +263,10 @@ public class Mod : ModBase, IExports // <= Do not Remove.
                     continue;
                 }
 
-                if ( info.Id == MonsterGenus.Durahan && sub == MonsterGenus.Henger ) {
-                    Logger.Trace( $"Durahan / Henger has an invalid texture file. {breedIdentifier}" ); 
-                    continue; 
+                if (info.Id == MonsterGenus.Durahan && sub == MonsterGenus.Henger)
+                {
+                    Logger.Trace($"Durahan / Henger has an invalid texture file. {breedIdentifier}");
+                    continue;
                 }
 
                 Logger.Trace($"found subinfo: {sub}");
