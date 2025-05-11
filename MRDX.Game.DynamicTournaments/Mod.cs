@@ -54,6 +54,7 @@ public class Mod : ModBase // <= Do not Remove.
         // _addressCurrentweek = _gameAddress + 0x379444;
         //548CD0
 
+        Debugger.Launch();
         Logger.SetLogLevel( _configuration.LogLevel );
 
         if (iHooks == null)
@@ -172,7 +173,6 @@ public class Mod : ModBase // <= Do not Remove.
             List<byte[]> monstersRaw = [];
 
             
-
             using var fs = new FileStream(file, FileMode.Open);
             var remaining = fs.Length / 100;
             while (remaining > 0)
@@ -246,7 +246,7 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void UpdateTournamentMonsterFile()
     {
-        if (_tournamentData == null || _tournamentData.Monsters.Count < 118)
+        if (_tournamentData == null || _tournamentData.Monsters.Count <= 119)
         {
             Logger.Warn(
                 "Cannot update tournament monsters file because we haven't finished generating all monsters yet.");
