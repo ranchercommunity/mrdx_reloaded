@@ -40,7 +40,7 @@ public enum EPool
     B_FIMBA,
     C_FIMBA,
     D_FIMBA,
-    //L_FIMBA,
+    L_FIMBA,
 }
 
 public enum EMonsterRegion {
@@ -133,7 +133,7 @@ public class TournamentData
     private bool _initialized;
     private List<MonsterGenus> _unlockedTournamentBreeds = [];
 
-
+    public bool Initialized => _initialized;
 
     public TournamentData(string gamePath, Config config)
     {
@@ -151,9 +151,11 @@ public class TournamentData
         addParticipants( 10, EPool.C ); // 27-36
         addParticipants( 8, EPool.D ); // 37-44
         addParticipants( 6, EPool.E ); // 45-50
-        addParticipants( 1, EPool.L ); // 51 - Moo 
 
-        addParticipants( 2, EPool.L ); // 52-53
+        addParticipants( 1, EPool.L ); // 51 - Moo 
+        addParticipants( 1, EPool.L ); // 52 - Most
+        addParticipants( 1, EPool.L_FIMBA ); // 53 - Porotika
+
         addParticipants( 8, EPool.M ); // 54-61
 
         addParticipants( 3, EPool.A_Phoenix );
@@ -193,6 +195,7 @@ public class TournamentData
         var dtpmonster = new TournamentMonster( _config, m );
 
         if ( id >= 80 ) { dtpmonster.Region = EMonsterRegion.FIMBA; }
+        dtpmonster.PromoteTaikaiRank();
 
         Monsters.Add(dtpmonster);
         return dtpmonster;
@@ -272,25 +275,18 @@ public class TournamentData
         ClearAllData();
 
         var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
-        // var rawmonster = new byte[60];
 
         Logger.Trace($"Loading default tourney monster file ${tournamentMonsterFile}");
         var raw = File.ReadAllBytes(tournamentMonsterFile);
-        // using var fs = new FileStream(tournamentMonsterFile, FileMode.Open);
-        // fs.Position = 0xA8C + 60; // This relies upon nothing earlier in the file being appended.
+        
         var baseFilePos = 0xA8C + 60;
         for (var i = 1; i < 119; i++)
         {
             // 0 = Dummy Monster so skip. 119 in the standard file.
-            // raw.ReadExactly(rawmonster, 0, 60);
-            // TournamentMonster tm = new(_config, );
             var start = baseFilePos + i * 60;
             var end = start + 60;
             var tm = AddTaikaiFileMonster(IBattleMonsterData.FromBytes(raw[start..end]), i);
             Logger.Trace("Monster " + i + " Parsed: " + tm, Color.Lime);
-
-            // var bytes = "";
-            // for (var z = 0; z < 60; z++) bytes += rawmonster[z] + ",";
         }
 
         _initialized = true;

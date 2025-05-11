@@ -340,8 +340,8 @@ public class TournamentMonster : BattleMonsterData
         {
             Config.TechInt.Minimal => 30,
             Config.TechInt.Average => 25,
-            Config.TechInt.Smart => 15,
-            Config.TechInt.Genius => 10,
+            Config.TechInt.Smart => 20,
+            Config.TechInt.Genius => 15,
             _ => 25
         };
 
@@ -358,7 +358,7 @@ public class TournamentMonster : BattleMonsterData
             if (TechList.Contains(tech)) continue;
             var techval = tech.TechValue + Random.Shared.Next() % techvariance;
 
-            if ( missingRanges.Contains( tech.Range ) ) { techval *= 2.5; }
+            if ( missingRanges.Contains( tech.Range ) ) { techval *= 2; }
             if (techint != Config.TechInt.Minimal)
             {
                 if ( tech.Scaling == TechType.Power && Power < Intelligence && Math.Abs(Power - Intelligence) > 100 ) {
@@ -377,29 +377,30 @@ public class TournamentMonster : BattleMonsterData
             }
 
             if ( tech.Type == ErrantryType.Basic && TechList.Count <= 4 && (
-                Rank == EMonsterRank.E || Rank == EMonsterRank.D || Rank == EMonsterRank.C ) ) { techval *= 2.5; }
-            switch (_growthGroup)
-            {
+                Rank == EMonsterRank.E || Rank == EMonsterRank.D || Rank == EMonsterRank.C ) ) { techval *= 2; }
+            else { techval *= 0.8; }
+
+            switch ( _growthGroup ) {
                 case GrowthGroups.Power when tech.Type == ErrantryType.Heavy:
                 case GrowthGroups.Intel when tech.Type == ErrantryType.Skill:
                 case GrowthGroups.Wither when tech.Type == ErrantryType.Withering:
                 case GrowthGroups.Speedy when tech.Type == ErrantryType.Sharp:
-                    techval *= 2;
+                    techval *= 1.5;
                     break;
             }
 
             if (tech.Type == ErrantryType.Special)
             {
                 if (Rank is EMonsterRank.S or EMonsterRank.A or EMonsterRank.B)
-                    techval *= 2;
+                    techval *= 1.5;
                 else
-                    techval *= 0.2;
+                    techval *= 0.1;
             }
 
             if (techint is Config.TechInt.Smart or Config.TechInt.Genius)
                 techval = (int)(techval * 1.1);
 
-            Logger.Debug(techval + " TV: " + tech, Color.Beige);
+            Logger.Trace(techval + " TV: " + tech, Color.Beige);
             for (var j = 20; j < techval; j++)
                 weightedLearnPool.Add(tech.Slot);
         }
@@ -416,8 +417,8 @@ public class TournamentMonster : BattleMonsterData
                 $"Monster {Name} learned {tech.Name} they have {TechList.Count} | {TechSlot} now.", Color.Orange);
         }
 
-        if (techint == Config.TechInt.Genius && TechList.Count > 8 &&
-            Random.Shared.Next() % 20 < TechList.Count) UnlearnTechnique();
+        if (techint == Config.TechInt.Genius && TechList.Count > 6 &&
+            Random.Shared.Next() % 18 < TechList.Count) UnlearnTechnique();
     }
 
     private void UnlearnTechnique()
@@ -441,8 +442,8 @@ public class TournamentMonster : BattleMonsterData
 
             techval = tech.Scaling switch
             {
-                TechType.Power when Power < Intelligence => techval * 0.8 * ((float)Power / Intelligence),
-                TechType.Intelligence when Intelligence < Power => techval * 0.8 * ((float)Intelligence / Power),
+                TechType.Power when Power < Intelligence => techval * 0.7 * ((float)Power / Intelligence),
+                TechType.Intelligence when Intelligence < Power => techval * 0.7 * ((float)Intelligence / Power),
                 _ => techval
             };
 
@@ -459,7 +460,7 @@ public class TournamentMonster : BattleMonsterData
                         break;
                 }
 
-            if (rangeCounts[(int)tech.Range] <= 1) techval += 30;
+            if (rangeCounts[(int)tech.Range] <= 1) techval += 60;
 
             if (minVal > techval) minVal = (int)techval;
 
@@ -514,9 +515,27 @@ public class TournamentMonster : BattleMonsterData
             {
                 Rank--;
                 LearnTechnique();
-                if (Rank == EMonsterRank.A) LearnBattleSpecial();
-                if (Rank == EMonsterRank.D) LearnBattleSpecial();
+                if ( Rank == EMonsterRank.A ) {
+                    LearnTechnique();
+                    LearnBattleSpecial();
+                }
+                if ( Rank == EMonsterRank.C ) { LearnTechnique(); }
+                if ( Rank == EMonsterRank.D ) { LearnBattleSpecial(); }
             }
+
+        Logger.Info( $"{Name} has been promoted to Rank {rank} with a BST of {StatTotal}." );
+    }
+
+    /// <summary>
+    /// A special function that forces a monster into the appropriate rank based on BST.
+    /// Should only ever be run when loading a new taikai_en file, not from loading DTP in progress.
+    /// </summary>
+    public void PromoteTaikaiRank() {
+        foreach ( var rank in TournamentData.RankBSTRanges.Keys ) {
+            if ( StatTotal >= TournamentData.RankBSTRanges[rank].Min && StatTotal <= TournamentData.RankBSTRanges[ rank ].Max ) {
+                Rank = rank;
+            }
+        }
     }
 
     private void LearnBattleSpecial()

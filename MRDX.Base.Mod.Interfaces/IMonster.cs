@@ -291,11 +291,16 @@ public interface IBattleMonsterData
     ushort Speed { get; set; }
     ushort Intelligence { get; set; }
 
-    ushort AdjustedSpeed => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
-        (double)Speed * Nature / 4 * 100) / 10000), 1, 999);
+    //ushort AdjustedSpeed => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+    //    (double)Speed * Nature / 4 * 100) / 10000), 1, 999);
 
-    ushort AdjustedDefense => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
-        (double)Defense * Nature / 4 * 100) / 10000), 1, 999);
+    //ushort AdjustedDefense => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+    //    (double)Defense * Nature / 4 * 100) / 10000), 1, 999);
+
+    // I've commented out the above code, as it is correct, besides the fact it's checking the wrong value (Form), which isn't part of this interface.
+    ushort AdjustedSpeed => Speed;
+
+    ushort AdjustedDefense => Defense;
 
     sbyte Nature { get; set; }
 
@@ -324,7 +329,7 @@ public interface IBattleMonsterData
 
     public byte[] GetSerializedData()
     {
-        var o = Enumerable.Repeat((byte)0xff, 60).ToArray();
+        var o = Enumerable.Repeat((byte)0x00, 60).ToArray();
         Name.AsMr2().AsBytes().CopyTo(o, 0);
         o[26] = (byte)GenusMain;
         o[27] = (byte)GenusSub;
@@ -337,10 +342,15 @@ public interface IBattleMonsterData
         o[40] = (byte)Nature;
         o[41] = Fear;
         o[42] = Spoil;
-        Techs.CopyTo(o, 43);
+        o[43] = 0; // This is almost certainly Form but never used.
+        Techs.CopyTo(o, 44);
         o[48] = ArenaSpeed;
         o[49] = GutsRate;
+        o[50] = 0;
+        o[51] = 0;
         BitConverter.GetBytes((ushort)BattleSpecial).CopyTo(o, 52);
+        o[58] = 0xff;
+        o[59] = 0xff;
         return o;
     }
 
@@ -360,7 +370,7 @@ public interface IBattleMonsterData
             Nature = (sbyte)o[40],
             Fear = o[41],
             Spoil = o[42],
-            Techs = o[43..47],
+            Techs = o[44..47],
             ArenaSpeed = o[48],
             GutsRate = o[49],
             BattleSpecial = (BattleSpecials)BitConverter.ToUInt16(o, 52)
