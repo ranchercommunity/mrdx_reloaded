@@ -28,7 +28,8 @@ public class TournamentMonster : BattleMonsterData
 
     public List<TournamentPool> Pools = [];
 
-    public EMonsterRanks Rank;
+    public EMonsterRank Rank = EMonsterRank.E;
+    public EMonsterRegion Region = EMonsterRegion.IMA;
 
     public TournamentMonster(Config config, IBattleMonsterData m) : base(m)
     {
@@ -81,7 +82,7 @@ public class TournamentMonster : BattleMonsterData
         Logger.Debug("Growth Post Prime" + _growthRate, Color.Lime);
 
         Logger.Info(
-            "A new monster has entered the fray: " + m.Name + ", " + m.GenusMain + "/" + m.GenusSub + ", LIFE: " +
+            $"A new monster has entered the fray: " + m.Name + ", " + m.GenusMain + "/" + m.GenusSub + ", LIFE: " +
             Lifespan + ", GROWTH: " + _growthRate, Color.Lime);
 
         _growthGroup = (GrowthGroups)(TournamentData.GrowthRNG.Next() % 6);
@@ -94,7 +95,7 @@ public class TournamentMonster : BattleMonsterData
             _trainerIntelligence = (Config.TechInt)Random.Shared.Next(4);
     }
 
-    public TournamentMonster(Dictionary<ETournamentPools, TournamentPool> pools, byte[] rawdtpmonster) : base(
+    public TournamentMonster(Dictionary<EPool, TournamentPool> pools, byte[] rawdtpmonster) : base(
         IBattleMonsterData.FromBytes(rawdtpmonster[40..100]))
     {
         Logger.Debug("Loading monster from DTP Save File.", Color.Lime);
@@ -107,13 +108,13 @@ public class TournamentMonster : BattleMonsterData
         _growthGroup = (GrowthGroups)rawdtpmonster[6];
         _growthIntensity = rawdtpmonster[7];
 
-        Rank = (EMonsterRanks)rawdtpmonster[8];
+        Rank = (EMonsterRank)rawdtpmonster[8];
 
         var rawpools = new byte[4];
         rawdtpmonster[10..14].CopyTo(rawpools, 0);
         foreach ( var pool in rawpools ) {
             if ( pool != 0xFF ) {
-                Pools.Add( pools[ (ETournamentPools) pool ] );
+                Pools.Add( pools[ (EPool) pool ] );
             }
         }
 
@@ -132,12 +133,15 @@ public class TournamentMonster : BattleMonsterData
         }
 
         _trainerIntelligence = (Config.TechInt)rawdtpmonster[20];
+
+        Region = (EMonsterRegion) rawdtpmonster[21];
         // DEBUG DEBUG DEBUG
         // for ( var i = 0; i < techniques.Count; i++ ) { TournamentData._mod.DebugLog( 2, monster.name + " has " + techniques[ i ], Color.Orange ); }
     }
 
     private ReadOnlyCollection<IMonsterTechnique> TechList =>
         BreedInfo.TechList.FindAll(t => TechSlot.HasFlag(t.Slot)).AsReadOnly();
+
 
     private void SetupGrowthOptions(Config config)
     {
@@ -166,9 +170,9 @@ public class TournamentMonster : BattleMonsterData
             gopts = [4, 5, 3, 1, 3, 2];
 
             if (_growthIntensity == 1)
-                gopts = [8, 11, 7, 2, 6, 3];
+                gopts = [8, 11, 7, 2, 6, 2];
             else if (_growthIntensity == 2)
-                gopts = [10, 14, 8, 2, 6, 3];
+                gopts = [10, 14, 8, 2, 6, 2];
             else if (_growthIntensity == 3)
                 gopts = [12, 18, 10, 2, 7, 2];
             else if (_growthIntensity == 4)
@@ -178,7 +182,7 @@ public class TournamentMonster : BattleMonsterData
 
         else if (_growthGroup == GrowthGroups.Intel)
         {
-            gopts = [3, 1, 3, 4, 1, 5];
+            gopts = [3, 2, 3, 4, 1, 5];
 
             if (_growthIntensity == 1)
                 gopts = [5, 2, 6, 5, 3, 9];
@@ -193,10 +197,10 @@ public class TournamentMonster : BattleMonsterData
 
         else if (_growthGroup == GrowthGroups.Defend)
         {
-            gopts = [5, 3, 4, 3, 5, 3];
+            gopts = [5, 1, 4, 3, 5, 4];
 
             if (_growthIntensity == 1)
-                gopts = [7, 4, 5, 4, 6, 4];
+                gopts = [7, 6, 5, 4, 6, 1];
             else if (_growthIntensity == 2)
                 gopts = [10, 8, 8, 5, 11, 2];
             else if (_growthIntensity == 3)
@@ -210,33 +214,33 @@ public class TournamentMonster : BattleMonsterData
 
         else if (_growthGroup == GrowthGroups.Wither)
         {
-            gopts = [4, 3, 6, 5, 2, 4];
+            gopts = [4, 2, 6, 5, 2, 4];
 
             if (_growthIntensity == 1)
-                gopts = [5, 5, 9, 7, 2, 5];
+                gopts = [5, 8, 9, 6, 2, 8];
             else if (_growthIntensity == 2)
-                gopts = [6, 2, 13, 8, 2, 5];
+                gopts = [6, 2, 13, 8, 2, 7];
             else if (_growthIntensity == 3)
-                gopts = [9, 2, 15, 9, 3, 8];
+                gopts = [9, 2, 15, 9, 3, 10];
             else if (_growthIntensity == 4)
-                gopts = [6, 5, 13, 8, 2, 2];
+                gopts = [6, 7, 13, 8, 2, 2];
             else if (_growthIntensity == 5) 
-                gopts = [9, 8, 15, 9, 3, 2];
+                gopts = [9, 10, 15, 9, 3, 2];
         }
 
         else if (_growthGroup == GrowthGroups.Speedy)
         {
-            gopts = [4, 4, 5, 6, 2, 3];
+            gopts = [4, 4, 5, 6, 2, 2];
 
             if (_growthIntensity == 1)
-                gopts = [5, 4, 5, 8, 2, 3];
+                gopts = [5, 6, 5, 8, 2, 2];
             else if (_growthIntensity == 2)
-                gopts = [6, 4, 7, 10, 2, 4];
+                gopts = [6, 8, 7, 10, 2, 4];
             else if (_growthIntensity == 3)
-                gopts = [7, 7, 10, 14, 2, 2];
+                gopts = [7, 11, 10, 14, 2, 2];
             else if (_growthIntensity == 4)
-                gopts = [8, 2, 10, 13, 2, 8];
-            else if (_growthIntensity == 5) gopts = [7, 8, 10, 13, 4, 2];
+                gopts = [8, 4, 10, 13, 2, 8];
+            else if (_growthIntensity == 5) gopts = [7, 2, 10, 13, 4, 11];
         }
 
         // If enabled, configuration option adds the stat growth value to the growth pattern (A Life = +4 Life Options)
@@ -354,7 +358,7 @@ public class TournamentMonster : BattleMonsterData
             if (TechList.Contains(tech)) continue;
             var techval = tech.TechValue + Random.Shared.Next() % techvariance;
 
-            if (missingRanges.Contains(tech.Range)) techval += 25;
+            if ( missingRanges.Contains( tech.Range ) ) { techval *= 2.5; }
             if (techint != Config.TechInt.Minimal)
             {
                 if ( tech.Scaling == TechType.Power && Power < Intelligence && Math.Abs(Power - Intelligence) > 100 ) {
@@ -372,7 +376,8 @@ public class TournamentMonster : BattleMonsterData
                 }
             }
 
-            if (tech.Type == ErrantryType.Basic && TechList.Count <= 4) techval *= 2.5;
+            if ( tech.Type == ErrantryType.Basic && TechList.Count <= 4 && (
+                Rank == EMonsterRank.E || Rank == EMonsterRank.D || Rank == EMonsterRank.C ) ) { techval *= 2.5; }
             switch (_growthGroup)
             {
                 case GrowthGroups.Power when tech.Type == ErrantryType.Heavy:
@@ -385,7 +390,7 @@ public class TournamentMonster : BattleMonsterData
 
             if (tech.Type == ErrantryType.Special)
             {
-                if (Rank is EMonsterRanks.S or EMonsterRanks.A or EMonsterRanks.B)
+                if (Rank is EMonsterRank.S or EMonsterRank.A or EMonsterRank.B)
                     techval *= 2;
                 else
                     techval *= 0.2;
@@ -499,7 +504,7 @@ public class TournamentMonster : BattleMonsterData
     ///     Promotes a Monster to a specifc rank, learning specials at D and A ranks.
     ///     Relies on the order of the enum to work properly!
     /// </summary>
-    public void PromoteToRank(EMonsterRanks rank)
+    public void PromoteToRank(EMonsterRank rank)
     {
         if (rank >= Rank)
             Rank = rank;
@@ -508,8 +513,9 @@ public class TournamentMonster : BattleMonsterData
             while (Rank != rank)
             {
                 Rank--;
-                if (Rank == EMonsterRanks.A) LearnBattleSpecial();
-                if (Rank == EMonsterRanks.D) LearnBattleSpecial();
+                LearnTechnique();
+                if (Rank == EMonsterRank.A) LearnBattleSpecial();
+                if (Rank == EMonsterRank.D) LearnBattleSpecial();
             }
     }
 
@@ -530,6 +536,8 @@ public class TournamentMonster : BattleMonsterData
         // 10-13, TournamentPools (Enums)
         // 14-19, Growth Weights (Generated from 6/7)
         // 20, Trainer Intelligence
+
+        // 21, Monster Region
 
         var data = new byte[40 + 60];
         BitConverter.GetBytes(LifeTotal).CopyTo(data, 0);
@@ -554,6 +562,8 @@ public class TournamentMonster : BattleMonsterData
         data[19] = _growthInt;
 
         data[20] = (byte)_trainerIntelligence;
+
+        data[21] = (byte) Region;
 
         // Now copy the raw monster data to the last 60 bytes
         Serialize().CopyTo(data, 40);

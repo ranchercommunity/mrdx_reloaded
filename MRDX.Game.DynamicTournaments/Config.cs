@@ -92,7 +92,7 @@ public class Config : Configurable<Config>
     [Description("The Soft Stat Cap to promote from M4 to Legend Status.\n" +
                  "Note: This currently has no effect on the player.")]
     [DefaultValue(4200)]
-    public int RankM4 { get; set; } = 4200;
+    public int RankM { get; set; } = 4200;
 
     [Category("Tournament Ranks")]
     [DisplayName("Stat Cap - S Rank")]
