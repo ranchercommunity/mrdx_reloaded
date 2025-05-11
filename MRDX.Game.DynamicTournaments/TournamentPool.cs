@@ -100,7 +100,7 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
             [   MonsterGenus.Plant, MonsterGenus.Mock, MonsterGenus.Wracky],
             3, EMonsterRegion.IMA) },
 
-        //{ ETournamentPools.L_FIMBA, new TournamentRuleset("L FIMBA", [EMonsterRanks.L], [], [], 1, EMonsterRegion.IMA) },
+        { EPool.L_FIMBA, new TournamentRuleset("L FIMBA", [EMonsterRank.L], [], [], 1, EMonsterRegion.FIMBA) },
         { EPool.S_FIMBA, new TournamentRuleset("S FIMBA", [EMonsterRank.S, EMonsterRank.M], [], [], 1, EMonsterRegion.FIMBA) },
         { EPool.A_FIMBA, new TournamentRuleset("A FIMBA", [EMonsterRank.A], [], [], 1, EMonsterRegion.FIMBA) },
         { EPool.B_FIMBA, new TournamentRuleset("B FIMBA", [EMonsterRank.B], [], [], 1, EMonsterRegion.FIMBA) },
@@ -163,12 +163,14 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
         Utils.Shuffle( Random.Shared, allBreeds );
         var breed = allBreeds[ 0 ];
         foreach ( var b in allBreeds ) {
-            if ( !available.Contains( b.Main ) || !available.Contains( b.Sub ) ) { continue; }
             if ( SpecialSubs.Contains( b.Sub ) && Random.Shared.NextDouble() < conf.SpeciesUnique ) { continue; }
 
             if ( mainRestrictions is [] && subRestrictions is [] ) {
-                breed = b;
-                break;
+                if ( !available.Contains( b.Main ) || !available.Contains( b.Sub ) ) { continue; }
+                else {
+                    breed = b;
+                    break;
+                }
             }
 
             // If we have a restriction, guarantee we generate a breed with this main or sub
@@ -217,6 +219,13 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
 
     private TournamentMonster GenerateNewMonster(MonsterBreed breed) {
         Logger.Debug( "TP: Generating ", Color.AliceBlue );
+
+        /*Utils.Shuffle( Random.Shared, TournamentData.RandomNameList );
+        var name = TournamentData.RandomNameList[ 0 ];
+        for ( var i = 0; i < TournamentData.RandomNameList.Length; i++ ) {
+            if ( TournamentData.Monsters)
+        }*/
+
         var monData = new BattleMonsterData {
             GenusMain = breed.Main,
             GenusSub = breed.Sub,

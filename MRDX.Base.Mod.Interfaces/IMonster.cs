@@ -291,11 +291,16 @@ public interface IBattleMonsterData
     ushort Speed { get; set; }
     ushort Intelligence { get; set; }
 
-    ushort AdjustedSpeed => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
-        (double)Speed * Nature / 4 * 100) / 10000), 1, 999);
+    //ushort AdjustedSpeed => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+    //    (double)Speed * Nature / 4 * 100) / 10000), 1, 999);
 
-    ushort AdjustedDefense => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
-        (double)Defense * Nature / 4 * 100) / 10000), 1, 999);
+    //ushort AdjustedDefense => (ushort)Math.Clamp(Math.Truncate(Math.Truncate(
+    //    (double)Defense * Nature / 4 * 100) / 10000), 1, 999);
+
+    // I've commented out the above code, as it is correct, besides the fact it's checking the wrong value (Form), which isn't part of this interface.
+    ushort AdjustedSpeed => Speed;
+
+    ushort AdjustedDefense => Defense;
 
     sbyte Nature { get; set; }
 

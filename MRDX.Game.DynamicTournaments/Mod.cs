@@ -28,6 +28,8 @@ public class Mod : ModBase // <= Do not Remove.
 
     private TournamentData? _tournamentData;
 
+    private bool _redirectorEnabled = false;
+
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -47,14 +49,7 @@ public class Mod : ModBase // <= Do not Remove.
         //var memscanner = _modLoader.GetController<IScanner>();
         //_startupScanner = startupScanner;
 
-        // _gameAddress = (nuint)Base.Mod.Base.ExeBaseAddress;
-        //
-        // _addressUnlockedmonsters = _gameAddress + 0x3795A2;
-        // _addressTournamentmonsters = _gameAddress + 0x548D10;
-        // _addressCurrentweek = _gameAddress + 0x379444;
-        //548CD0
-
-        Debugger.Launch();
+        //Debugger.Launch();
         Logger.SetLogLevel( _configuration.LogLevel );
 
         if (iHooks == null)
@@ -121,24 +116,27 @@ public class Mod : ModBase // <= Do not Remove.
         Logger.Trace("Making new tournament data");
         _tournamentData = new TournamentData(_gamePath, _configuration);
 
-
-        if (_redirector != null && _redirector.TryGetTarget(out var redirect))
-        {
-            // Temporarily disable the redirector so we can get the basic monster data
-            redirect.Disable();
-            _tournamentData.SetupTournamentParticipantsFromTaikai();
-            redirect.Enable();
-
-            var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
-            var enemyFileRedirected = $@"{_tournamentDataFolder}\taikai_en.flk";
-            redirect.AddRedirect(tournamentMonsterFile, enemyFileRedirected);
-        }
-        else
-        {
-            Logger.Error("Could not find redirector! Can't setup enemy monster data.");
-        }
+        TaikaiRedirect( false );
+        _tournamentData.SetupTournamentParticipantsFromTaikai();
+        TaikaiRedirect( true );
     }
 
+    private void TaikaiRedirect(bool enabled) {
+        if ( enabled == _redirectorEnabled ) { return; }
+
+        if ( _redirector != null && _redirector.TryGetTarget( out var redirect ) ) {
+            var tournamentMonsterFile = _gamePath + @"\mf2\data\taikai\taikai_en.flk";
+            var enemyFileRedirected = $@"{_tournamentDataFolder}\taikai_en.flk";
+
+
+            if ( enabled ) redirect.AddRedirect( tournamentMonsterFile, enemyFileRedirected );
+            if ( !enabled ) redirect.RemoveRedirect( tournamentMonsterFile );
+
+            _redirectorEnabled = enabled;
+        }
+
+        else { Logger.Error( "Could not find redirector! Can't set up enemy monster data." ); }
+    }
 
     private void SaveTournamentData(ISaveFileEntry savefile)
     {
@@ -166,31 +164,36 @@ public class Mod : ModBase // <= Do not Remove.
         _saveDataFolder = Path.GetDirectoryName( savefile.Filename );
         var file = Path.Combine(_saveDataFolder, $"dtp_monsters_{savefile.Slot}.bin");
 
-        if (!File.Exists(file)) return;
+        if ( File.Exists( file ) ) {
+            try {
+                List<byte[]> monstersRaw = [];
 
-        try
-        {
-            List<byte[]> monstersRaw = [];
 
-            
-            using var fs = new FileStream(file, FileMode.Open);
-            var remaining = fs.Length / 100;
-            while (remaining > 0)
-            {
-                var rawdtpmonster = new byte[ 100 ];
-                remaining--;
+                using var fs = new FileStream( file, FileMode.Open );
+                var remaining = fs.Length / 100;
+                while ( remaining > 0 ) {
+                    var rawdtpmonster = new byte[ 100 ];
+                    remaining--;
 
-                fs.ReadExactly( rawdtpmonster, 0, 100);
-                monstersRaw.Add( rawdtpmonster );
+                    fs.ReadExactly( rawdtpmonster, 0, 100 );
+                    monstersRaw.Add( rawdtpmonster );
+                }
+
+                _tournamentData.LoadSavedTournamentData( monstersRaw );
             }
-
-            _tournamentData.LoadSavedTournamentData(monstersRaw);
+            catch ( Exception e ) {
+                // Failed to load the extra monsters from the savefile, so load them from the default enemy file
+                Logger.Info( $"Failed to load savefile ${file} due to the following error (this may be harmless?): ${e.Message}" );
+                TaikaiRedirect( false );
+                _tournamentData.SetupTournamentParticipantsFromTaikai();
+                TaikaiRedirect( true );
+            }
         }
-        catch (Exception e)
-        {
-            // Failed to load the extra monsters from the savefile, so load them from the default enemy file
-            Logger.Info($"Failed to load savefile ${file} due to the following error (this may be harmless?): ${e.Message}");
+
+        else {
+            TaikaiRedirect( false );
             _tournamentData.SetupTournamentParticipantsFromTaikai();
+            TaikaiRedirect( true );
         }
     }
 
@@ -202,7 +205,6 @@ public class Mod : ModBase // <= Do not Remove.
             return;
 
         _gameCurrentWeek = week.NewWeek;
-        // Unfortunately the ordering of these function calls matters so we have to do this shuffling depending on if the game week progressed.
         var unlockedmonsters = GetUnlockedMonsters();
         AdvanceWeekUpdateTournamentMonsters(unlockedmonsters);
         UpdateTournamentMonsterFile();
@@ -246,14 +248,13 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void UpdateTournamentMonsterFile()
     {
-        if (_tournamentData == null || _tournamentData.Monsters.Count <= 119)
-        {
+        if ( _tournamentData == null || !_tournamentData.Initialized ) {
             Logger.Warn(
-                "Cannot update tournament monsters file because we haven't finished generating all monsters yet.");
+                "Cannot update tournament monsters file because we haven't finished generating all monsters yet." );
             return;
         }
 
-        _tournamentData.WriteTournamentParticipantsToTaikai(_tournamentDataFolder);
+        else { _tournamentData.WriteTournamentParticipantsToTaikai( _tournamentDataFolder ); }
     }
 
     private void AdvanceWeekUpdateTournamentMonsters(List<MonsterGenus> unlockedmonsters)
