@@ -342,8 +342,8 @@ public interface IBattleMonsterData
         o[40] = (byte)Nature;
         o[41] = Fear;
         o[42] = Spoil;
-        o[43] = 0; // This is almost certainly Form but never used.
-        Techs.CopyTo(o, 44);
+        Techs.CopyTo(o, 43);
+        o[43] = 0; // This is almost certainly Form but never used. Quick fix until BitConverter problem resolved.
         o[48] = ArenaSpeed;
         o[49] = GutsRate;
         o[50] = 0;
@@ -370,7 +370,7 @@ public interface IBattleMonsterData
             Nature = (sbyte)o[40],
             Fear = o[41],
             Spoil = o[42],
-            Techs = o[44..47],
+            Techs = [0, o[44], o[45], o[46]],
             ArenaSpeed = o[48],
             GutsRate = o[49],
             BattleSpecial = (BattleSpecials)BitConverter.ToUInt16(o, 52)
@@ -415,6 +415,7 @@ public class BattleMonsterData : IBattleMonsterData
 
     public TechSlots TechSlot
     {
+        
         get => (TechSlots)BitConverter.ToUInt32(Techs, 0);
         set => BitConverter.GetBytes((uint)value).CopyTo(Techs, 0);
     }
