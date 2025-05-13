@@ -1,4 +1,5 @@
-﻿using MRDX.Base.ExtractDataBin.Interface;
+﻿using System.Diagnostics;
+using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.Mod.Interfaces;
 using MRDX.Base.Mod.Template;
 using Reloaded.Hooks.Definitions;
@@ -104,6 +105,8 @@ public sealed class Mod : ModBase, IExports // <= Do not Remove.
         _configuration = context.Configuration;
         Logger.LoggerInternal = _logger;
         ConfigurationUpdated(_configuration);
+        if (_configuration.EnableDebugging)
+            Debugger.Launch();
 
         // Order is somewhat important here as some other controllers will use the Hooks
         var hooks = new Hooks(context);
