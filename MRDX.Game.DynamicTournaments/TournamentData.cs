@@ -105,14 +105,19 @@ public class TournamentData
         "Quizler", "Qix", "Quark", "Qidus", "Quid", "Quiverdance",
         "Roachest", "Rizz", "Rue", "Ramman", "Rammuh", "Ragdoll", "Rose",
         "Savi", "Serenity", "Silverhand", "Sammy", "Soothsayer", "Swissmiss", "Sully", "Semere", "Spiris", "Splinter",
-        "Sandytwist", "Seatsaidh", "Solodiah", "Sunni",
+        "Sandytwist", "Seatsaidh", "Solodiah", "Sunni", "Shredder",
         "Tav", "Traveller", "Taximon", "Truegold", "Tuskies", "Tinkertot", "Terminus", "Tamil",
         "Underway", "Uco", "Unibrow",
         "Valiant", "Violence", "Vorton", "Voodoo", "Veuve", "Vexee", "Volance",
         "Wabberjack", "Warbler", "Werebaby", "Wisk", "Whiskey", "Woobert", "Wodyeith",
         "Xilla", "Xerces",
         "Yoyo", "Yanger", "Yucca", "Yew", "Yewflower",
-        "Zoro", "Zewdi", "Zaben", "Zookeeper"
+        "Zoro", "Zewdi", "Zaben", "Zookeeper",
+        "Donatello", "Leonardo", "Raphael", "Michelan",
+        "DaVinci", "Kahlo", "Picasso", "Gogh", "Monet", "Keeffe", "Rembrandt", "Vermeer", "Pollock", "Dali", "Cassatt",
+        "Degas", "Artemisia", "Caravaggio", "Renoir", "Warhol", "Kandinsky", "Valezquez", "Titian", "Delacroix",
+        "Goya", "Magritte", "Basquiat", "Gauguin", "El Grico", "Courbet", "Bierstadt", "Banksy", "Rockwell",
+        "Dakkung", "Gitano", "Lessio", "Mogimomo", "Octoroller", "Zantasimal"
     ];
 
     public static readonly Random GrowthRNG = new(Random.Shared.Next());
