@@ -311,8 +311,8 @@ public interface IBattleMonsterData
 
     TechSlots TechSlot
     {
-        get => (TechSlots)BitConverter.ToUInt32(Techs, 0);
-        set => BitConverter.GetBytes((uint)value)[..2].CopyTo(Techs, 0);
+        get => (TechSlots)BitConverter.ToUInt32([Techs[0], Techs[1], Techs[2], 0], 0);
+        set => BitConverter.GetBytes((uint)value)[..3].CopyTo(Techs, 0);
     }
 
     byte ArenaSpeed { get; set; }
@@ -342,8 +342,8 @@ public interface IBattleMonsterData
         o[40] = (byte)Nature;
         o[41] = Fear;
         o[42] = Spoil;
-        Techs.CopyTo(o, 43);
-        o[43] = 0; // This is almost certainly Form but never used. Quick fix until BitConverter problem resolved.
+        o[43] = 0; // This is likely FormRaw
+        Techs.CopyTo(o, 44);
         o[48] = ArenaSpeed;
         o[49] = GutsRate;
         o[50] = 0;
@@ -370,7 +370,7 @@ public interface IBattleMonsterData
             Nature = (sbyte)o[40],
             Fear = o[41],
             Spoil = o[42],
-            Techs = [0, o[44], o[45], o[46]],
+            Techs = o[44..47],
             ArenaSpeed = o[48],
             GutsRate = o[49],
             BattleSpecial = (BattleSpecials)BitConverter.ToUInt16(o, 52)
@@ -415,9 +415,8 @@ public class BattleMonsterData : IBattleMonsterData
 
     public TechSlots TechSlot
     {
-        
-        get => (TechSlots)BitConverter.ToUInt32(Techs, 0);
-        set => BitConverter.GetBytes((uint)value).CopyTo(Techs, 0);
+        get => (TechSlots)BitConverter.ToUInt32([Techs[0], Techs[1], Techs[2], 0], 0);
+        set => BitConverter.GetBytes((uint)value)[..3].CopyTo(Techs, 0);
     }
 
     public string Name { get; set; }
@@ -432,7 +431,7 @@ public class BattleMonsterData : IBattleMonsterData
     public sbyte Nature { get; set; }
     public byte Spoil { get; set; }
     public byte Fear { get; set; }
-    public byte[] Techs { get; set; } = new byte[4];
+    public byte[] Techs { get; set; } = new byte[3];
     public byte ArenaSpeed { get; set; }
     public byte GutsRate { get; set; }
     public BattleSpecials BattleSpecial { get; set; }
