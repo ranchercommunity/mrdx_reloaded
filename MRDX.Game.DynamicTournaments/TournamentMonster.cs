@@ -358,7 +358,7 @@ public class TournamentMonster : BattleMonsterData
             if (TechList.Contains(tech)) continue;
             var techval = tech.TechValue + Random.Shared.Next() % techvariance;
 
-            if ( missingRanges.Contains( tech.Range ) ) { techval *= 2; }
+            if ( missingRanges.Contains( tech.Range ) ) { techval *= 2.5; }
             if (techint != Config.TechInt.Minimal)
             {
                 if ( tech.Scaling == TechType.Power && Power < Intelligence && Math.Abs(Power - Intelligence) > 100 ) {
@@ -460,7 +460,7 @@ public class TournamentMonster : BattleMonsterData
                         break;
                 }
 
-            if (rangeCounts[(int)tech.Range] <= 1) techval += 60;
+            if (rangeCounts[(int)tech.Range] <= 1) techval += 40;
 
             if (minVal > techval) minVal = (int)techval;
 

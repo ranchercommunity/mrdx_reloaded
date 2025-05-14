@@ -177,8 +177,8 @@ public class Config : Configurable<Config>
     [DisplayName("Average Monthly Growth")]
     [Description("The average monthly growth rate for trainer monsters in their prime.\n" +
                  "This value can be impacted by multiple factors including breed, variance, and age.")]
-    [DefaultValue(40)]
-    public int GrowthMonthly { get; set; } = 40;
+    [DefaultValue(44)]
+    public int GrowthMonthly { get; set; } = 44;
 
     [Category("Advanced - Monster Growths")]
     [DisplayName("Monthly Growth Variance")]
