@@ -15,7 +15,20 @@ namespace MRDX.Qol.MagicBananaStatic;
 
 [HookDef(BaseGame.Mr2, Region.Us, "55 8B EC B9 01 00 00 00 83 EC 18")]
 [Function(CallingConventions.Cdecl)]
-public delegate void H_ItemUsed(int p1, uint p2, uint p3);
+public delegate void H_ItemUsed(int p1, uint p2, uint p3 );
+
+[HookDef( BaseGame.Mr2, Region.Us, "53 56 57 8B F9 8B DA 8B 0D ?? ?? ?? ??" )]
+[Function( CallingConventions.Fastcall )]
+public delegate int H_MonsterID ( uint p1, uint p2 );
+
+
+[HookDef( BaseGame.Mr2, Region.Us, "53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B ?? 89 6C 24 ?? 8B EC 83 EC 10" )]
+[Function( CallingConventions.Fastcall)]
+public delegate void H_LoadEnemyMonsterData ( nuint self, uint p2, int p3, int p4 );
+
+[HookDef( BaseGame.Mr2, Region.Us, "8A 15 ?? ?? ?? ?? 56 8B F1 57" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void H_BattleStarting ( nuint self );
 
 public class Mod : ModBase // <= Do not Remove.
 {
@@ -43,6 +56,15 @@ public class Mod : ModBase // <= Do not Remove.
     private IMonster _monsterSnapshot;
 
     public bool _snapshotUpdate = true;
+
+
+    private uint _monsterLastId = 999999 ;
+    private IHook<H_MonsterID> _hook_monsterID;
+    private IHook<H_LoadEnemyMonsterData> _hook_loadEMData;
+    private IHook<H_BattleStarting> _hook_battleStarting;
+    private bool _monsterInsideEnemySetup = false;
+    public bool monsterReplaceEnabled = false;
+    public bool retriggerReplacement = false;
 
     public Mod(ModContext context)
     {
@@ -93,10 +115,23 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_ItemUsed>(SetupHookItemUsed)
             .ContinueWith(result => _hook_itemUsed = result.Result);
 
+
+
         _monsterCurrent = iGame.Monster;
         iGame.OnMonsterChanged += MonsterChanged;
 
         extract.ExtractComplete.Subscribe(RedirectorBananaTextAndTextures);
+
+
+        _iHooks.AddHook<H_MonsterID>( SetupHookMonsterID ).ContinueWith( result => _hook_monsterID = result.Result );
+        _iHooks.AddHook<H_LoadEnemyMonsterData>( SetupHookLoadEMData ).ContinueWith( result => _hook_loadEMData = result.Result );
+        _iHooks.AddHook<H_BattleStarting>( SetupBattleStarting ).ContinueWith( result => _hook_battleStarting = result.Result );
+
+
+        WeakReference<IRedirectorController> _redirectorx = _modLoader.GetController<IRedirectorController>();
+        _redirectorx.TryGetTarget( out var redirect );
+        if ( redirect == null ) { _logger.WriteLine( $"[{_modConfig.ModId}] Failed to get redirection controller.", Color.Red ); return; }
+        else { redirect.Loading += ProcessReloadedFileLoad; }
     }
 
     #region For Exports, Serialization etc.
@@ -200,6 +235,8 @@ public class Mod : ModBase // <= Do not Remove.
         _itemGiveHookCount = 0;
     }
 
+
+
     private void StaticBananas()
     {
         if (!_itemHandleMagicBananas) return;
@@ -240,6 +277,68 @@ public class Mod : ModBase // <= Do not Remove.
 
         _itemHandleMagicBananas = false;
     }
+
+    #region MOnster ID Stuff
+
+    private int SetupHookMonsterID ( uint breedIdMain, uint breedIdSub ) {
+
+        if ( !_monsterInsideEnemySetup ) { _monsterLastId = breedIdMain * 40 + breedIdSub; }
+
+        _logger.WriteLineAsync( $"$Getting Monster ID: {breedIdMain} : {breedIdSub} : C{_monsterLastId}", Color.Aqua );
+
+        RedirectFromID( breedIdMain, breedIdSub );
+
+        if ( breedIdMain == 8 && breedIdSub == 5 ) {
+            monsterReplaceEnabled = true;
+
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf.tex" );
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km_bt.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf_bt.tex" );
+
+            return _hook_monsterID!.OriginalFunction( breedIdMain, 10 );
+        }
+
+        else if ( breedIdMain == 8 && breedIdSub == 10 ) {
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex" );
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km_bt.tex" );
+        }
+        return _hook_monsterID!.OriginalFunction( breedIdMain, breedIdSub );
+    }
+
+    private void RedirectFromID( uint breedIdMain, uint breedIdSub ) {
+        if ( breedIdMain == 8 && breedIdSub == 5 ) {
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf.tex" );
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km_bt.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf_bt.tex" );
+        }
+
+        else if ( breedIdMain == 8 && breedIdSub == 10 ) {
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex" );
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km_bt.tex" );
+        }
+    }
+
+    private void SetupHookLoadEMData ( nuint self, uint p2, int p3, int p4 ) {
+        _logger.WriteLineAsync( $"Loading EM Data: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
+        _monsterInsideEnemySetup = true;
+
+        _hook_loadEMData!.OriginalFunction( self, p2, p3, p4 );
+        _logger.WriteLineAsync( $"EM Data Call Done: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
+        _monsterInsideEnemySetup = false;
+    }
+
+    private void SetupBattleStarting ( nuint self ) {
+        _logger.WriteLineAsync( $"BATTLE STARTING!!!!!!!!!!!!!!!!!!!!!", Color.Red );
+
+        _hook_battleStarting!.OriginalFunction( self );
+        _logger.WriteLineAsync( $"BATTLE STARTING OVER !!!!!!!!!!!!!!", Color.Red );
+    }
+    private void ProcessReloadedFileLoad ( string filename ) {
+        if ( filename.Contains( "_bt.tex" ) ) _logger.WriteLine( $"What is the f'ing deal here.", Color.Red );
+    }
+    #endregion
 
     #region Standard Overrides
 
