@@ -290,13 +290,13 @@ public class Mod : ModBase // <= Do not Remove.
 
         if ( _monsterInsideBattleStartup ) { 
             _monsterInsideBattleRedirects++; 
-            if ( _monsterInsideBattleRedirects == 2 ) {
+            if ( _monsterInsideBattleRedirects == 1 ) {
                 _monsterInsideBattleMain = breedIdMain;
                 _monsterInsideBattleSub = breedIdSub;
             }
         }
 
-        if ( !_monsterInsideBattleStartup || _monsterInsideBattleRedirects == 1 ) {
+        if ( !_monsterInsideBattleStartup || _monsterInsideBattleRedirects == 2 ) {
             RedirectFromID( breedIdMain, breedIdSub );
         }
 
