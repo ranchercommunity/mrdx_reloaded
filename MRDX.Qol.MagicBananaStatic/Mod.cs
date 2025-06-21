@@ -62,6 +62,10 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<H_MonsterID> _hook_monsterID;
     private IHook<H_LoadEnemyMonsterData> _hook_loadEMData;
     private IHook<H_BattleStarting> _hook_battleStarting;
+    private bool _monsterInsideBattleStartup = false;
+    private uint _monsterInsideBattleRedirects = 0;
+    private uint _monsterInsideBattleMain = 0;
+    private uint _monsterInsideBattleSub = 0;
     private bool _monsterInsideEnemySetup = false;
     public bool monsterReplaceEnabled = false;
     public bool retriggerReplacement = false;
@@ -282,31 +286,30 @@ public class Mod : ModBase // <= Do not Remove.
 
     private int SetupHookMonsterID ( uint breedIdMain, uint breedIdSub ) {
 
-        if ( !_monsterInsideEnemySetup ) { _monsterLastId = breedIdMain * 40 + breedIdSub; }
-
         _logger.WriteLineAsync( $"$Getting Monster ID: {breedIdMain} : {breedIdSub} : C{_monsterLastId}", Color.Aqua );
 
-        RedirectFromID( breedIdMain, breedIdSub );
+        if ( _monsterInsideBattleStartup ) { 
+            _monsterInsideBattleRedirects++; 
+            if ( _monsterInsideBattleRedirects == 2 ) {
+                _monsterInsideBattleMain = breedIdMain;
+                _monsterInsideBattleSub = breedIdSub;
+            }
+        }
+
+        if ( !_monsterInsideBattleStartup || _monsterInsideBattleRedirects == 1 ) {
+            RedirectFromID( breedIdMain, breedIdSub );
+        }
 
         if ( breedIdMain == 8 && breedIdSub == 5 ) {
-            monsterReplaceEnabled = true;
-
-            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex",
-                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf.tex" );
-            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km_bt.tex",
-                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf_bt.tex" );
-
             return _hook_monsterID!.OriginalFunction( breedIdMain, 10 );
         }
 
-        else if ( breedIdMain == 8 && breedIdSub == 10 ) {
-            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex" );
-            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km_bt.tex" );
-        }
         return _hook_monsterID!.OriginalFunction( breedIdMain, breedIdSub );
+
     }
 
-    private void RedirectFromID( uint breedIdMain, uint breedIdSub ) {
+    private void RedirectFromID ( uint breedIdMain, uint breedIdSub ) {
+        _logger.WriteLineAsync( $"Running Redirect Script: {breedIdMain}/{breedIdSub}", Color.Lime );
         if ( breedIdMain == 8 && breedIdSub == 5 ) {
             _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex",
                 _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf.tex" );
@@ -330,13 +333,28 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     private void SetupBattleStarting ( nuint self ) {
+        _monsterInsideBattleStartup = true;
+        _monsterInsideBattleRedirects = 0;
         _logger.WriteLineAsync( $"BATTLE STARTING!!!!!!!!!!!!!!!!!!!!!", Color.Red );
 
         _hook_battleStarting!.OriginalFunction( self );
         _logger.WriteLineAsync( $"BATTLE STARTING OVER !!!!!!!!!!!!!!", Color.Red );
+        _monsterInsideBattleStartup = false;
     }
     private void ProcessReloadedFileLoad ( string filename ) {
-        if ( filename.Contains( "_bt.tex" ) ) _logger.WriteLine( $"What is the f'ing deal here.", Color.Red );
+        _logger.WriteLineAsync( $"Any file check {_monsterInsideBattleStartup}, {_monsterInsideBattleRedirects}, {_monsterInsideBattleMain}, {_monsterInsideBattleSub}", Color.Orange );
+        if ( _monsterInsideBattleStartup ) {
+            _logger.WriteLineAsync( $"Inside File Checking for Monsters", Color.Orange );
+
+            if ( filename.Contains( "_bt.tex" ) && filename.Contains( "mf2\\data\\mon" ) ) {
+                
+                _monsterInsideBattleRedirects--;
+                _logger.WriteLineAsync( $"Inside File Checking Decrementing redirects {_monsterInsideBattleRedirects}", Color.Orange );
+                if ( _monsterInsideBattleRedirects == 0 ) {
+                    RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub );
+                }
+            }
+        }
     }
     #endregion
 
