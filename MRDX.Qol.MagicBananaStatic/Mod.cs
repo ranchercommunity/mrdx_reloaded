@@ -290,13 +290,13 @@ public class Mod : ModBase // <= Do not Remove.
 
         if ( _monsterInsideBattleStartup ) { 
             _monsterInsideBattleRedirects++; 
-            if ( _monsterInsideBattleRedirects == 1 ) {
+            if ( _monsterInsideBattleRedirects == 2 ) {
                 _monsterInsideBattleMain = breedIdMain;
                 _monsterInsideBattleSub = breedIdSub;
             }
         }
 
-        if ( !_monsterInsideBattleStartup || _monsterInsideBattleRedirects == 2 ) {
+        if ( !_monsterInsideBattleStartup || _monsterInsideBattleRedirects == 1 ) {
             RedirectFromID( breedIdMain, breedIdSub );
         }
 
@@ -345,14 +345,14 @@ public class Mod : ModBase // <= Do not Remove.
         _logger.WriteLineAsync( $"Any file check {_monsterInsideBattleStartup}, {_monsterInsideBattleRedirects}, {_monsterInsideBattleMain}, {_monsterInsideBattleSub}", Color.Orange );
         if ( _monsterInsideBattleStartup ) {
             _logger.WriteLineAsync( $"Inside File Checking for Monsters", Color.Orange );
+            if ( _monsterInsideBattleRedirects == 1 ) {
+                RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub );
+            }
 
             if ( filename.Contains( "_bt.tex" ) && filename.Contains( "mf2\\data\\mon" ) ) {
                 
                 _monsterInsideBattleRedirects--;
                 _logger.WriteLineAsync( $"Inside File Checking Decrementing redirects {_monsterInsideBattleRedirects}", Color.Orange );
-                if ( _monsterInsideBattleRedirects == 0 ) {
-                    RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub );
-                }
             }
         }
     }
