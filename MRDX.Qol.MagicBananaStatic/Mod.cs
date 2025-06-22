@@ -57,19 +57,6 @@ public class Mod : ModBase // <= Do not Remove.
 
     public bool _snapshotUpdate = true;
 
-
-    private uint _monsterLastId = 999999 ;
-    private IHook<H_MonsterID> _hook_monsterID;
-    private IHook<H_LoadEnemyMonsterData> _hook_loadEMData;
-    private IHook<H_BattleStarting> _hook_battleStarting;
-    private bool _monsterInsideBattleStartup = false;
-    private uint _monsterInsideBattleRedirects = 0;
-    private uint _monsterInsideBattleMain = 0;
-    private uint _monsterInsideBattleSub = 0;
-    private bool _monsterInsideEnemySetup = false;
-    public bool monsterReplaceEnabled = false;
-    public bool retriggerReplacement = false;
-
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -119,23 +106,10 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_ItemUsed>(SetupHookItemUsed)
             .ContinueWith(result => _hook_itemUsed = result.Result);
 
-
-
         _monsterCurrent = iGame.Monster;
         iGame.OnMonsterChanged += MonsterChanged;
 
         extract.ExtractComplete.Subscribe(RedirectorBananaTextAndTextures);
-
-
-        _iHooks.AddHook<H_MonsterID>( SetupHookMonsterID ).ContinueWith( result => _hook_monsterID = result.Result );
-        _iHooks.AddHook<H_LoadEnemyMonsterData>( SetupHookLoadEMData ).ContinueWith( result => _hook_loadEMData = result.Result );
-        _iHooks.AddHook<H_BattleStarting>( SetupBattleStarting ).ContinueWith( result => _hook_battleStarting = result.Result );
-
-
-        WeakReference<IRedirectorController> _redirectorx = _modLoader.GetController<IRedirectorController>();
-        _redirectorx.TryGetTarget( out var redirect );
-        if ( redirect == null ) { _logger.WriteLine( $"[{_modConfig.ModId}] Failed to get redirection controller.", Color.Red ); return; }
-        else { redirect.Loading += ProcessReloadedFileLoad; }
     }
 
     #region For Exports, Serialization etc.
@@ -190,7 +164,6 @@ public class Mod : ModBase // <= Do not Remove.
         }
     }
 
-
     private void SetupHookGenericUpdate(nint parent)
     {
         _hook_genericUpdate!.OriginalFunction(parent);
@@ -239,8 +212,6 @@ public class Mod : ModBase // <= Do not Remove.
         _itemGiveHookCount = 0;
     }
 
-
-
     private void StaticBananas()
     {
         if (!_itemHandleMagicBananas) return;
@@ -281,82 +252,6 @@ public class Mod : ModBase // <= Do not Remove.
 
         _itemHandleMagicBananas = false;
     }
-
-    #region MOnster ID Stuff
-
-    private int SetupHookMonsterID ( uint breedIdMain, uint breedIdSub ) {
-
-        _logger.WriteLineAsync( $"$Getting Monster ID: {breedIdMain} : {breedIdSub} : C{_monsterLastId}", Color.Aqua );
-
-        if ( _monsterInsideBattleStartup ) { 
-            _monsterInsideBattleRedirects++; 
-            if ( _monsterInsideBattleRedirects == 2 ) {
-                _monsterInsideBattleMain = breedIdMain;
-                _monsterInsideBattleSub = breedIdSub;
-            }
-        }
-
-        if ( !_monsterInsideBattleStartup || _monsterInsideBattleRedirects == 1 ) {
-            RedirectFromID( breedIdMain, breedIdSub );
-        }
-
-        if ( breedIdMain == 8 && breedIdSub == 5 ) {
-            return _hook_monsterID!.OriginalFunction( breedIdMain, 10 );
-        }
-
-        return _hook_monsterID!.OriginalFunction( breedIdMain, breedIdSub );
-
-    }
-
-    private void RedirectFromID ( uint breedIdMain, uint breedIdSub ) {
-        _logger.WriteLineAsync( $"Running Redirect Script: {breedIdMain}/{breedIdSub}", Color.Lime );
-        if ( breedIdMain == 8 && breedIdSub == 5 ) {
-            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex",
-                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf.tex" );
-            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km_bt.tex",
-                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf_bt.tex" );
-        }
-
-        else if ( breedIdMain == 8 && breedIdSub == 10 ) {
-            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex" );
-            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km_bt.tex" );
-        }
-    }
-
-    private void SetupHookLoadEMData ( nuint self, uint p2, int p3, int p4 ) {
-        _logger.WriteLineAsync( $"Loading EM Data: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
-        _monsterInsideEnemySetup = true;
-
-        _hook_loadEMData!.OriginalFunction( self, p2, p3, p4 );
-        _logger.WriteLineAsync( $"EM Data Call Done: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
-        _monsterInsideEnemySetup = false;
-    }
-
-    private void SetupBattleStarting ( nuint self ) {
-        _monsterInsideBattleStartup = true;
-        _monsterInsideBattleRedirects = 0;
-        _logger.WriteLineAsync( $"BATTLE STARTING!!!!!!!!!!!!!!!!!!!!!", Color.Red );
-
-        _hook_battleStarting!.OriginalFunction( self );
-        _logger.WriteLineAsync( $"BATTLE STARTING OVER !!!!!!!!!!!!!!", Color.Red );
-        _monsterInsideBattleStartup = false;
-    }
-    private void ProcessReloadedFileLoad ( string filename ) {
-        _logger.WriteLineAsync( $"Any file check {_monsterInsideBattleStartup}, {_monsterInsideBattleRedirects}, {_monsterInsideBattleMain}, {_monsterInsideBattleSub}", Color.Orange );
-        if ( _monsterInsideBattleStartup ) {
-            _logger.WriteLineAsync( $"Inside File Checking for Monsters", Color.Orange );
-            if ( _monsterInsideBattleRedirects == 1 ) {
-                RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub );
-            }
-
-            if ( filename.Contains( "_bt.tex" ) && filename.Contains( "mf2\\data\\mon" ) ) {
-                
-                _monsterInsideBattleRedirects--;
-                _logger.WriteLineAsync( $"Inside File Checking Decrementing redirects {_monsterInsideBattleRedirects}", Color.Orange );
-            }
-        }
-    }
-    #endregion
 
     #region Standard Overrides
 
