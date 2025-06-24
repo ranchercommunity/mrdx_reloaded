@@ -147,6 +147,22 @@ public class Mod : ModBase // <= Do not Remove.
             return _hook_monsterID!.OriginalFunction( breedIdMain, 10 );
         }
 
+        else if ( breedIdMain == 8 && breedIdSub == 29 ) {
+            return _hook_monsterID!.OriginalFunction( breedIdMain, 1 );
+        }
+
+        else if ( breedIdMain == 17 && breedIdSub == 1 ) { // Zilla - Dragon
+            return _hook_monsterID!.OriginalFunction( breedIdMain, 17 );
+        }
+
+        else if ( breedIdMain == 28 && breedIdSub == 27 ) { // Jell - Gaboo
+            return _hook_monsterID!.OriginalFunction( breedIdMain, 28 );
+        }
+
+        else if ( breedIdMain == 29 && breedIdSub == 1 ) { //Undine - Dragon
+            return _hook_monsterID!.OriginalFunction( breedIdMain, 29 );
+        }
+
         return _hook_monsterID!.OriginalFunction( breedIdMain, breedIdSub );
 
     }
@@ -158,12 +174,60 @@ public class Mod : ModBase // <= Do not Remove.
                 _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf.tex" );
             _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km_bt.tex",
                 _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_kf_bt.tex" );
-            _logger.WriteLineAsync( $"8/5 Setup Complete: {breedIdMain}/{breedIdSub}", Color.Lime );
         }
 
         else if ( breedIdMain == 8 && breedIdSub == 10 ) {
             _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex" );
             _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km_bt.tex" );
+        }
+
+
+        else if ( breedIdMain == 8 && breedIdSub == 29 ) {
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_kb.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_ms.tex" );
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_kb_bt.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\kkro\kk_ms_bt.tex" );
+        }
+
+        else if ( breedIdMain == 8 && breedIdSub == 1 ) {
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_kb.tex" );
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_kb_bt.tex" );
+        }
+
+        else if ( breedIdMain == 17 && breedIdSub == 1 ) {
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\mggjr\mg_mg.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\mggjr\mg_kb.tex" );
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\mggjr\mg_mg_bt.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\mggjr\mg_kb_bt.tex" );
+        }
+
+        else if ( breedIdMain == 17 && breedIdSub == 17 ) {
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\mggjr\mg_mg.tex" );
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\mggjr\mg_mg_bt.tex" );
+        }
+
+        else if ( breedIdMain == 28 && breedIdSub == 27 ) {
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\mrpru\mr_mr.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\mrpru\mr_mq.tex" );
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\mrpru\mr_mr_bt.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\mrpru\mr_mq_bt.tex" );
+        }
+
+        else if ( breedIdMain == 28 && breedIdSub == 28 ) {
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\mrpru\mr_mr.tex" );
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\mrpru\mr_mr_bt.tex" );
+        }
+
+        else if ( breedIdMain == 29 && breedIdSub == 1 ) {
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\msund\ms_ms.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\msund\ms_kb.tex" );
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\msund\ms_ms_bt.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\msund\ms_kb_bt.tex" );
+        }
+
+        else if ( breedIdMain == 29 && breedIdSub == 29 ) {
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\msund\ms_ms.tex" );
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\msund\ms_ms_bt.tex" );
         }
     }
 
