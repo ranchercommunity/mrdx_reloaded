@@ -131,6 +131,9 @@ public class Mod : ModBase // <= Do not Remove.
 
         _logger.WriteLineAsync( $"$Getting Monster ID: {breedIdMain} : {breedIdSub} : C{_monsterLastId}", Color.Aqua );
 
+        MonsterGenus breedMain = (MonsterGenus) breedIdMain;
+        MonsterGenus breedSub = (MonsterGenus) breedIdSub;
+
         if ( _monsterInsideBattleStartup ) { 
             _monsterInsideBattleRedirects++; 
             if ( _monsterInsideBattleRedirects == 2 ) {
@@ -143,23 +146,27 @@ public class Mod : ModBase // <= Do not Remove.
             RedirectFromID( breedIdMain, breedIdSub );
         }
 
-        if ( breedIdMain == 8 && breedIdSub == 5 ) {
+        if ( breedMain == MonsterGenus.Zuum && breedSub == MonsterGenus.Henger ) {
             return _hook_monsterID!.OriginalFunction( breedIdMain, 10 );
         }
 
-        else if ( breedIdMain == 8 && breedIdSub == 29 ) {
+        else if ( breedMain == MonsterGenus.Zuum && breedSub == MonsterGenus.Undine ) {
             return _hook_monsterID!.OriginalFunction( breedIdMain, 1 );
         }
 
-        else if ( breedIdMain == 17 && breedIdSub == 1 ) { // Zilla - Dragon
+        else if ( breedMain == MonsterGenus.Zilla && breedSub == MonsterGenus.Dragon ) { // Zilla - Dragon
             return _hook_monsterID!.OriginalFunction( breedIdMain, 17 );
         }
 
-        else if ( breedIdMain == 28 && breedIdSub == 27 ) { // Jell - Gaboo
+        else if ( breedMain == MonsterGenus.Phoenix && breedSub == MonsterGenus.Dragon ) {
+            return _hook_monsterID!.OriginalFunction( breedIdMain, breedIdMain );
+        }
+
+        else if ( breedMain == MonsterGenus.Jell && breedSub == MonsterGenus.Gaboo ) { // Jell - Gaboo
             return _hook_monsterID!.OriginalFunction( breedIdMain, 28 );
         }
 
-        else if ( breedIdMain == 29 && breedIdSub == 1 ) { //Undine - Dragon
+        else if ( breedMain == MonsterGenus.Undine && breedSub == MonsterGenus.Dragon ) { //Undine - Dragon
             return _hook_monsterID!.OriginalFunction( breedIdMain, 29 );
         }
 
@@ -168,6 +175,9 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     private void RedirectFromID ( uint breedIdMain, uint breedIdSub ) {
+        MonsterGenus breedMain = (MonsterGenus) breedIdMain;
+        MonsterGenus breedSub = (MonsterGenus) breedIdSub;
+
         _logger.WriteLineAsync( $"Running Redirect Script: {breedIdMain}/{breedIdSub}", Color.Lime );
         if ( breedIdMain == 8 && breedIdSub == 5 ) {
             _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\kkro\kk_km.tex",
@@ -204,6 +214,18 @@ public class Mod : ModBase // <= Do not Remove.
         else if ( breedIdMain == 17 && breedIdSub == 17 ) {
             _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\mggjr\mg_mg.tex" );
             _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\mggjr\mg_mg_bt.tex" );
+        }
+
+        else if ( breedMain == MonsterGenus.Phoenix && breedSub == MonsterGenus.Dragon ) {
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\mjfbd\mj_mj.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\mjfbd\mj_kb.tex" );
+            _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\mjfbd\mj_mj_bt.tex",
+                _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\mjfbd\mj_kb_bt.tex" );
+        }
+
+        else if ( breedMain == MonsterGenus.Phoenix && breedSub == MonsterGenus.Phoenix ) {
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\mjfbd\mj_mj.tex" );
+            _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\mjfbd\mj_mj_bt.tex" );
         }
 
         else if ( breedIdMain == 28 && breedIdSub == 27 ) {
