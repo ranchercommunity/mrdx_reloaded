@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.Mod.Interfaces;
@@ -33,6 +34,10 @@ public delegate void H_PreShrineCreation ( nint self, int p1, int p2, int p3, in
 [HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 8B 81 ?? ?? ?? ??")]
 [Function( CallingConventions.MicrosoftThiscall )]
 public delegate void H_MysteryShrine ( nuint self, nuint p2 );
+
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 EC 28 0F B6 41 ??" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void H_WriteSDATAMemory ( nuint self );
 
 [ HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 50 A1 ?? ?? ?? ?? 33 C5 89 45 ?? 53 56 57 50 8D 45 ?? 64 A3 ?? ?? ?? ?? 8B F9" )]
 [Function( CallingConventions.MicrosoftThiscall )]
@@ -78,12 +83,15 @@ public class Mod : ModBase // <= Do not Remove.
     public bool retriggerReplacement = false;
 
     //private IHook<H_PreShrineCreation> _hook_preShrineCreation;
-    private IHook<H_MysteryShrine> _hook_mysteryShrine;
+    //private IHook<H_MysteryShrine> _hook_mysteryShrine;
     private IHook<H_EarlyShrine> _hook_earlyShrine;
-    private IHook<H_ReadSDATA> _hook_readSDATA;
+    private IHook<H_WriteSDATAMemory> _hook_writeSDATAMemory;
+    //private IHook<H_ReadSDATA> _hook_readSDATA;
     private IHook<H_MysteryStatUpdate> _hook_statUpdate;
 
     public bool shrineReplacementActive = false;
+    private uint _shrineReplaceMain = 0;
+    private uint _shrineReplaceSub = 0;
     private readonly IMonster _monsterCurrent;
 
 
@@ -137,10 +145,13 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_MonsterID>( SetupHookMonsterID ).ContinueWith( result => _hook_monsterID = result.Result );
         _iHooks.AddHook<H_LoadEnemyMonsterData>( SetupHookLoadEMData ).ContinueWith( result => _hook_loadEMData = result.Result );
         _iHooks.AddHook<H_BattleStarting>( SetupBattleStarting ).ContinueWith( result => _hook_battleStarting = result.Result );
+
+
         //_iHooks.AddHook<H_PreShrineCreation>( SetupPreShrineCreation ).ContinueWith( result => _hook_preShrineCreation = result.Result );
-        _iHooks.AddHook<H_MysteryShrine>( SetupMysteryShrine ).ContinueWith( result => _hook_mysteryShrine = result.Result );
+        //_iHooks.AddHook<H_MysteryShrine>( SetupMysteryShrine ).ContinueWith( result => _hook_mysteryShrine = result.Result );
         _iHooks.AddHook<H_EarlyShrine>( SetupEarlyShrine ).ContinueWith( result => _hook_earlyShrine = result.Result );
-        _iHooks.AddHook<H_ReadSDATA>( SetupReadSData ).ContinueWith( result => _hook_readSDATA = result.Result );
+        _iHooks.AddHook<H_WriteSDATAMemory>(SetupOverwriteSDATA).ContinueWith( result => _hook_writeSDATAMemory = result.Result );
+        //_iHooks.AddHook<H_ReadSDATA>( SetupReadSData ).ContinueWith( result => _hook_readSDATA = result.Result );
         _iHooks.AddHook<H_MysteryStatUpdate>( SetupMysteryStat ).ContinueWith( result => _hook_statUpdate = result.Result );
 
 
@@ -169,7 +180,7 @@ public class Mod : ModBase // <= Do not Remove.
         _logger.WriteLineAsync( $"Getting Monster ID: {breedIdMain} : {breedIdSub} : C{_monsterLastId}", Color.Aqua );
 
         if ( shrineReplacementActive ) { // TODO MAKE THIS GOOD
-            breedIdMain = 8; breedIdSub = 5;
+            breedIdMain = _shrineReplaceMain; breedIdSub = _shrineReplaceSub;
         }
 
         MonsterGenus breedMain = (MonsterGenus) breedIdMain;
@@ -330,10 +341,12 @@ public class Mod : ModBase // <= Do not Remove.
         _hook_preShrineCreation!.OriginalFunction( self, p1, p2, p3, p4 );
     }*/
 
-    private void SetupMysteryShrine (nuint self, nuint p2 ) {
+    /*private void SetupMysteryShrine (nuint self, nuint p2 ) {
         _logger.WriteLine( $"MYSHRINE: {self} {p2}", Color.Yellow);
         _hook_mysteryShrine!.OriginalFunction( self, p2 );
-    }
+    }*/
+
+
 
     private void SetupEarlyShrine ( nuint self, nuint p2 ) {
         
@@ -342,10 +355,50 @@ public class Mod : ModBase // <= Do not Remove.
         Memory.Instance.Read( nuint.Add( self, 0xcc ), out int songID );
         _logger.WriteLineAsync( $"ESHRINE: {self} {p2} {songID}", Color.Yellow );
 
-        if ( songID == 672776 ) { shrineReplacementActive = true; }
+        if ( songID == 672776 ) {
+            shrineReplacementActive = true;
+            _shrineReplaceMain = 8;
+            _shrineReplaceSub = 5;
+        }
+
+        else if ( songID == 1272396 ) {
+            shrineReplacementActive = true;
+            _shrineReplaceMain = (uint) MonsterGenus.Zuum;
+            _shrineReplaceSub = (uint) MonsterGenus.Undine;
+        }
+
+        else if ( songID == 1272397 ) {
+            shrineReplacementActive = true;
+            _shrineReplaceMain = (uint) MonsterGenus.Zilla;
+            _shrineReplaceSub = (uint) MonsterGenus.Dragon;
+        }
+
+        else if ( songID == 1272398 ) {
+            shrineReplacementActive = true;
+            _shrineReplaceMain = (uint) MonsterGenus.Jell;
+            _shrineReplaceSub = (uint) MonsterGenus.Gaboo;
+        }
+
+        else if ( songID == 1272397 ) {
+            shrineReplacementActive = true;
+            _shrineReplaceMain = (uint) MonsterGenus.Undine;
+            _shrineReplaceSub = (uint) MonsterGenus.Dragon;
+        }
     }
 
-    private int SetupReadSData ( nuint self, int p1 ) {
+    private void SetupOverwriteSDATA ( nuint self ) {
+
+        
+        _hook_writeSDATAMemory!.OriginalFunction( self );
+        if ( shrineReplacementActive ) {
+            
+            Memory.Instance.Read( nuint.Add(self, 0x44), out nuint breedLoc );
+            Memory.Instance.Write( breedLoc + 0x48, (byte) _shrineReplaceMain );
+            Memory.Instance.Write( breedLoc + 0x49, (byte) _shrineReplaceSub );
+        }
+    }
+
+    /*private int SetupReadSData ( nuint self, int p1 ) {
         
         var ret = _hook_readSDATA!.OriginalFunction( self, p1 );
         _logger.WriteLine( $"RSDAT: {self} {p1} {ret}", Color.Azure );
@@ -355,16 +408,20 @@ public class Mod : ModBase // <= Do not Remove.
         _monsterCurrent.Life = 999;
 
         return ret;
-    }
+    }*/
 
     private int SetupMysteryStat ( nuint self) {
 
         var ret = _hook_statUpdate!.OriginalFunction( self );
 
-        _monsterCurrent.GenusMain = MonsterGenus.Zuum;
-        _monsterCurrent.GenusSub = MonsterGenus.Henger;
-        _monsterCurrent.Life = 999;
+        if ( shrineReplacementActive ) {
 
+            _monsterCurrent.GenusMain = MonsterGenus.Zuum;
+            _monsterCurrent.GenusSub = MonsterGenus.Henger;
+            _monsterCurrent.Life = 999;
+
+            shrineReplacementActive = false;
+        }
         return ret;
     }
 
