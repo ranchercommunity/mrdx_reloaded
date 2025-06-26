@@ -97,7 +97,7 @@ public class Mod : ModBase // <= Do not Remove.
 
     public Mod(ModContext context)
     {
-        Debugger.Launch();
+        //Debugger.Launch();
         _modLoader = context.ModLoader;
         _hooks = context.Hooks;
         _logger = context.Logger;
@@ -379,7 +379,7 @@ public class Mod : ModBase // <= Do not Remove.
             _shrineReplaceSub = (uint) MonsterGenus.Gaboo;
         }
 
-        else if ( songID == 1272397 ) {
+        else if ( songID == 1272399 ) {
             shrineReplacementActive = true;
             _shrineReplaceMain = (uint) MonsterGenus.Undine;
             _shrineReplaceSub = (uint) MonsterGenus.Dragon;
@@ -416,9 +416,9 @@ public class Mod : ModBase // <= Do not Remove.
 
         if ( shrineReplacementActive ) {
 
-            _monsterCurrent.GenusMain = MonsterGenus.Zuum;
-            _monsterCurrent.GenusSub = MonsterGenus.Henger;
-            _monsterCurrent.Life = 999;
+            _monsterCurrent.GenusMain = (MonsterGenus) _shrineReplaceMain;
+            _monsterCurrent.GenusSub = (MonsterGenus) _shrineReplaceSub;
+            //_monsterCurrent.Life = 999;
 
             shrineReplacementActive = false;
         }
