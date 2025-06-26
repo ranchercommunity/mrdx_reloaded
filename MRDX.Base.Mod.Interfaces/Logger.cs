@@ -66,6 +66,6 @@ public static class Logger
     {
         var baseLevel = LogLevels.GetValueOrDefault(tag, GlobalLogLevel);
         if ((int)level > (int)baseLevel) return;
-        LoggerInternal?.WriteLineAsync($"[{tag}] {level.ToString()}: {message}", c);
+        LoggerInternal?.WriteLine($"[{tag}] {level.ToString()}: {message}", c);
     }
 }
