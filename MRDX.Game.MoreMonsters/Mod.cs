@@ -14,7 +14,7 @@ using CallingConventions = Reloaded.Hooks.Definitions.X86.CallingConventions;
 namespace MRDX.Game.MoreMonsters;
 
 
-[HookDef( BaseGame.Mr2, Region.Us, "53 56 57 8B F9 8B DA 8B 0D ?? ?? ?? ??" )]
+[ HookDef( BaseGame.Mr2, Region.Us, "53 56 57 8B F9 8B DA 8B 0D ?? ?? ?? ??" )]
 [Function( CallingConventions.Fastcall )]
 public delegate int H_MonsterID ( uint p1, uint p2 );
 
@@ -26,6 +26,25 @@ public delegate void H_LoadEnemyMonsterData ( nuint self, uint p2, int p3, int p
 [Function( CallingConventions.Fastcall )]
 public delegate void H_BattleStarting ( nuint self );
 
+/*[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 53 56 8B 35 ?? ?? ?? ?? 57" )]
+[Function( CallingConventions.MicrosoftThiscall )]
+public delegate void H_PreShrineCreation ( nint self, int p1, int p2, int p3, int p4 );*/
+
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 8B 81 ?? ?? ?? ??")]
+[Function( CallingConventions.MicrosoftThiscall )]
+public delegate void H_MysteryShrine ( nuint self, nuint p2 );
+
+[ HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 50 A1 ?? ?? ?? ?? 33 C5 89 45 ?? 53 56 57 50 8D 45 ?? 64 A3 ?? ?? ?? ?? 8B F9" )]
+[Function( CallingConventions.MicrosoftThiscall )]
+public delegate void H_EarlyShrine ( nuint self, nuint p2 );
+
+[HookDef( BaseGame.Mr2, Region.Us, "56 8B F1 8B 46 ?? 8B 08 83 F9 2E" )]
+[Function( CallingConventions.Fastcall )]
+public delegate int H_ReadSDATA ( nuint self, int p1 );
+
+[HookDef( BaseGame.Mr2, Region.Us, "56 8B F1 57 8A 86 ?? ?? ?? ??")]
+[Function( CallingConventions.Fastcall )]
+public delegate int H_MysteryStatUpdate ( nuint self );
 
 public class Mod : ModBase // <= Do not Remove.
 {
@@ -58,8 +77,19 @@ public class Mod : ModBase // <= Do not Remove.
     public bool monsterReplaceEnabled = false;
     public bool retriggerReplacement = false;
 
+    //private IHook<H_PreShrineCreation> _hook_preShrineCreation;
+    private IHook<H_MysteryShrine> _hook_mysteryShrine;
+    private IHook<H_EarlyShrine> _hook_earlyShrine;
+    private IHook<H_ReadSDATA> _hook_readSDATA;
+    private IHook<H_MysteryStatUpdate> _hook_statUpdate;
+
+    public bool shrineReplacementActive = false;
+    private readonly IMonster _monsterCurrent;
+
+
     public Mod(ModContext context)
     {
+        Debugger.Launch();
         _modLoader = context.ModLoader;
         _hooks = context.Hooks;
         _logger = context.Logger;
@@ -102,9 +132,16 @@ public class Mod : ModBase // <= Do not Remove.
             return;
         }
 
+        _monsterCurrent = iGame.Monster;
+
         _iHooks.AddHook<H_MonsterID>( SetupHookMonsterID ).ContinueWith( result => _hook_monsterID = result.Result );
         _iHooks.AddHook<H_LoadEnemyMonsterData>( SetupHookLoadEMData ).ContinueWith( result => _hook_loadEMData = result.Result );
         _iHooks.AddHook<H_BattleStarting>( SetupBattleStarting ).ContinueWith( result => _hook_battleStarting = result.Result );
+        //_iHooks.AddHook<H_PreShrineCreation>( SetupPreShrineCreation ).ContinueWith( result => _hook_preShrineCreation = result.Result );
+        _iHooks.AddHook<H_MysteryShrine>( SetupMysteryShrine ).ContinueWith( result => _hook_mysteryShrine = result.Result );
+        _iHooks.AddHook<H_EarlyShrine>( SetupEarlyShrine ).ContinueWith( result => _hook_earlyShrine = result.Result );
+        _iHooks.AddHook<H_ReadSDATA>( SetupReadSData ).ContinueWith( result => _hook_readSDATA = result.Result );
+        _iHooks.AddHook<H_MysteryStatUpdate>( SetupMysteryStat ).ContinueWith( result => _hook_statUpdate = result.Result );
 
 
         WeakReference<IRedirectorController> _redirectorx = _modLoader.GetController<IRedirectorController>();
@@ -129,10 +166,15 @@ public class Mod : ModBase // <= Do not Remove.
 
     private int SetupHookMonsterID ( uint breedIdMain, uint breedIdSub ) {
 
-        _logger.WriteLineAsync( $"$Getting Monster ID: {breedIdMain} : {breedIdSub} : C{_monsterLastId}", Color.Aqua );
+        _logger.WriteLineAsync( $"Getting Monster ID: {breedIdMain} : {breedIdSub} : C{_monsterLastId}", Color.Aqua );
+
+        if ( shrineReplacementActive ) { // TODO MAKE THIS GOOD
+            breedIdMain = 8; breedIdSub = 5;
+        }
 
         MonsterGenus breedMain = (MonsterGenus) breedIdMain;
         MonsterGenus breedSub = (MonsterGenus) breedIdSub;
+
 
         if ( _monsterInsideBattleStartup ) { 
             _monsterInsideBattleRedirects++; 
@@ -253,6 +295,13 @@ public class Mod : ModBase // <= Do not Remove.
         }
     }
 
+    /// <summary>
+    /// This function is called when enemy monster data is being loaded and we need to swap redirects.
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="p2"></param>
+    /// <param name="p3"></param>
+    /// <param name="p4"></param>
     private void SetupHookLoadEMData ( nuint self, uint p2, int p3, int p4 ) {
         //_logger.WriteLineAsync( $"Loading EM Data: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
         _monsterInsideEnemySetup = true;
@@ -262,6 +311,10 @@ public class Mod : ModBase // <= Do not Remove.
         _monsterInsideEnemySetup = false;
     }
 
+    /// <summary>
+    /// This function is called at the beginning of battle preparation. We can use it to know exactly when multiple monster models will be loaded and to start scanning filereads appropriately.
+    /// </summary>
+    /// <param name="self"></param>
     private void SetupBattleStarting ( nuint self ) {
         _monsterInsideBattleStartup = true;
         _monsterInsideBattleRedirects = 0;
@@ -271,6 +324,50 @@ public class Mod : ModBase // <= Do not Remove.
         //_logger.WriteLineAsync( $"BATTLE STARTING OVER !!!!!!!!!!!!!!", Color.Red );
         _monsterInsideBattleStartup = false;
     }
+
+    /*private void SetupPreShrineCreation (nint self, int p1, int p2, int p3, int p4 ) {
+        _logger.WriteLineAsync( $"PSC: {self} {p1} {p2} {p3} {p4}" );
+        _hook_preShrineCreation!.OriginalFunction( self, p1, p2, p3, p4 );
+    }*/
+
+    private void SetupMysteryShrine (nuint self, nuint p2 ) {
+        _logger.WriteLine( $"MYSHRINE: {self} {p2}", Color.Yellow);
+        _hook_mysteryShrine!.OriginalFunction( self, p2 );
+    }
+
+    private void SetupEarlyShrine ( nuint self, nuint p2 ) {
+        
+        _logger.WriteLineAsync( $"ESHRINE: {self} {p2}", Color.Yellow );
+        _hook_earlyShrine!.OriginalFunction( self, p2 );
+        Memory.Instance.Read( nuint.Add( self, 0xcc ), out int songID );
+        _logger.WriteLineAsync( $"ESHRINE: {self} {p2} {songID}", Color.Yellow );
+
+        if ( songID == 672776 ) { shrineReplacementActive = true; }
+    }
+
+    private int SetupReadSData ( nuint self, int p1 ) {
+        
+        var ret = _hook_readSDATA!.OriginalFunction( self, p1 );
+        _logger.WriteLine( $"RSDAT: {self} {p1} {ret}", Color.Azure );
+
+        _monsterCurrent.GenusMain = MonsterGenus.Zuum;
+        _monsterCurrent.GenusSub = MonsterGenus.Henger;
+        _monsterCurrent.Life = 999;
+
+        return ret;
+    }
+
+    private int SetupMysteryStat ( nuint self) {
+
+        var ret = _hook_statUpdate!.OriginalFunction( self );
+
+        _monsterCurrent.GenusMain = MonsterGenus.Zuum;
+        _monsterCurrent.GenusSub = MonsterGenus.Henger;
+        _monsterCurrent.Life = 999;
+
+        return ret;
+    }
+
     private void ProcessReloadedFileLoad ( string filename ) {
         //_logger.WriteLineAsync( $"Any file check {_monsterInsideBattleStartup}, {_monsterInsideBattleRedirects}, {_monsterInsideBattleMain}, {_monsterInsideBattleSub}", Color.Orange );
         if ( _monsterInsideBattleStartup ) {
