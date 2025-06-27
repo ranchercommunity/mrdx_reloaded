@@ -17,12 +17,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Redirector\**" />
-    <EmbeddedResource Remove="Redirector\**" />
-    <None Remove="Redirector\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ReloadedLinkRoots Include="MRDX.Game.MoreMonsters" />
     <!-- Add assemblies to be trimmed. You might need to add their dependencies too!  -->
     <!-- <ReloadedLinkAssemblies Include="Reloaded.Memory" /> -->
@@ -38,6 +32,7 @@
     <None Remove="BuildLinked.ps1" />
     <None Remove="Reloaded.Trimming.targets" />
     <None Remove="Reloaded.Checks.targets" />
+	<None Update="Redirector\**\*" CopyToOutputDirectory="PreserveNewest" />
 	<None Update="ManualRedirector\**\*" CopyToOutputDirectory="PreserveNewest" />
 	
   </ItemGroup>
@@ -52,7 +47,6 @@
   </ItemGroup>
 
 <ItemGroup>
-		<Folder Include="ManualRedirector\" />
 	</ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MRDX.Base.ExtractDataBin.Interface\MRDX.Base.ExtractDataBin.Interface.csproj" />
