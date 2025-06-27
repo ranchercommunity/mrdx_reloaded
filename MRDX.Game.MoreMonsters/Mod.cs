@@ -234,8 +234,20 @@ public class Mod : ModBase // <= Do not Remove.
         _songIDMapping.Add( 1262740, breed );
         _monsterBreeds.Add( breed );
 
+        breed = new MMBreed( MonsterGenus.Monol, MonsterGenus.Mock, MonsterGenus.Monol, MonsterGenus.Monol );
+        breed.NewVariant( 280, -70, LifeType.Sustainable,
+            105, 110, 175, 175, 130, 70,
+            1, 2, 4, 4, 2, 0,
+            3, 9, 3, 11, 16 );
+        _songIDMapping.Add( 1262743, breed );
+        _monsterBreeds.Add( breed );
+
         // TODO : Monster Moves and Battle Specials seem to be non-functioning?
 
+        /*Songs to use
+         * 1262745	1262749	1262752	1262762	1262766	1262768	1262770	1262783	1262789	989884
+         * 989885 989886 989887 989888 989889  989890 989891 989892 989893 989894 
+         * 989895 989896 989897 989898 989899 989900*/
     }
 
     private int SetupHookMonsterID ( uint breedIdMain, uint breedIdSub ) {
