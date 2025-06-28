@@ -162,8 +162,8 @@ param (
     $UseScriptDirectory=$True,
 
     ## => User Config <= ## 
-    $ProjectPath = "MRDX.Qol.MagicBananaStatic.csproj",
-    $PackageName = "MRDX.Qol.MagicBananaStatic",
+    $ProjectPath = "MRDX.Game.MoreMonsters.csproj",
+    $PackageName = "MRDX.Game.MoreMonsters",
     $PublishOutputDir = "Publish/ToUpload",
 
     ## => User: Delta Config
@@ -180,7 +180,7 @@ param (
 
     $GameBananaItemId = 333681, # From mod page URL.
 
-    $NuGetPackageId = "MRDX.Qol.MagicBananaStatic",
+    $NuGetPackageId = "MRDX.Game.MoreMonsters",
     $NuGetFeedUrl = "http://packages.sewer56.moe:5000/v3/index.json",
     $NuGetAllowUnlisted = $False,
 

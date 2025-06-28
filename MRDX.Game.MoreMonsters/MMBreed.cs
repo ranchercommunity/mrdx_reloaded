@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MRDX.Base.Mod;
 using MRDX.Base.Mod.Interfaces;
 
 namespace MRDX.Game.MoreMonsters
@@ -21,7 +20,7 @@ namespace MRDX.Game.MoreMonsters
         public readonly string _filepathBase;
         public readonly string _filepathNew;
 
-        public List<IMonster> _monsterVariants;
+        public List<MMBreedVariant> _monsterVariants;
 
         public MMBreed ( MonsterGenus newMain, MonsterGenus newSub, MonsterGenus baseMain, MonsterGenus baseSub ) {
             _genusNewMain = newMain;
@@ -37,7 +36,7 @@ namespace MRDX.Game.MoreMonsters
             _filepathBase = baseMainInfo.ShortName + @"\" + baseMainInfo.ShortName[ ..2 ] + "_" + baseSubInfo.ShortName[ ..2 ];
             _filepathNew = newMainInfo.ShortName + @"\" + newMainInfo.ShortName[ ..2 ] + "_" + newSubInfo.ShortName[ ..2 ];
 
-            _monsterVariants = new List<IMonster>();
+            _monsterVariants = new List<MMBreedVariant>();
         }
 
         public bool MatchNewBreed ( MonsterGenus main, MonsterGenus sub ) {
@@ -53,7 +52,7 @@ namespace MRDX.Game.MoreMonsters
             byte glif, byte gpow, byte gint, byte gski, byte gspe, byte gdef,
             byte arena, byte guts, int battlespec, int moves, ushort trainbonuses ) {
 
-            MRDX.Base.Mod.MonsterCache monster = new MonsterCache();
+            MMBreedVariant monster = new MMBreedVariant();
 
             monster.GenusMain = _genusNewMain;
             monster.GenusSub = _genusNewSub;
@@ -90,4 +89,28 @@ namespace MRDX.Game.MoreMonsters
         }
     }
     
+    public class MMBreedVariant() {
+        public MonsterGenus GenusMain { get; set; }
+        public MonsterGenus GenusSub { get; set; }
+        public ushort Lifespan { get; set; }
+        public ushort InitalLifespan { get; set; }
+        public short NatureRaw { get; set; }
+        public sbyte NatureBase { get; set; }
+        public LifeType LifeType { get; set; }
+        public ushort Life { get; set; }
+        public ushort Power { get; set; }
+        public ushort Intelligence { get; set; }
+        public ushort Skill { get; set; }
+        public ushort Speed { get; set; }
+        public ushort Defense { get; set; }
+        public byte GrowthRateLife { get; set; }
+        public byte GrowthRatePower { get; set; }
+        public byte GrowthRateIntelligence { get; set; }
+        public byte GrowthRateSkill { get; set; }
+        public byte GrowthRateSpeed { get; set; }
+        public byte GrowthRateDefense { get; set; }
+        public ushort TrainBoost { get; set; }
+        public byte ArenaSpeed { get; set; }
+        public byte GutsRate { get; set; }
+    }
 }

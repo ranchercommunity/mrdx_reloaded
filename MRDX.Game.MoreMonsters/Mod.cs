@@ -104,7 +104,6 @@ public class Mod : ModBase // <= Do not Remove.
 
     public Mod(ModContext context)
     {
-        Debugger.Launch();
         _modLoader = context.ModLoader;
         _hooks = context.Hooks;
         _logger = context.Logger;
@@ -399,7 +398,6 @@ public class Mod : ModBase // <= Do not Remove.
             _monsterCurrent.Skill = variant.Skill;
             _monsterCurrent.Speed = variant.Speed;
             _monsterCurrent.Defense = variant.Defense;
-
 
             _monsterCurrent.GrowthRateLife = variant.GrowthRateLife;
             _monsterCurrent.GrowthRatePower = variant.GrowthRatePower;
