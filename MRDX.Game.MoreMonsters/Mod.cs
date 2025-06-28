@@ -65,6 +65,10 @@ public delegate void H_CombinationListGenerationStarted( nuint self );
 [ Function( CallingConventions.Fastcall )]
 public delegate void H_CombinationListGenerationFinished ( nuint self );
 
+[HookDef( BaseGame.Mr2, Region.Us, "8B D1 80 BA ?? ?? ?? ?? FF" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void H_CombinationRenameFirstChoice ( nuint self );
+
 public class Mod : ModBase // <= Do not Remove.
 {
     private readonly IHooks _iHooks;
@@ -113,8 +117,12 @@ public class Mod : ModBase // <= Do not Remove.
     private Dictionary<int, MMBreed> _songIDMapping = new Dictionary<int, MMBreed>();
 
     /* Combination Variables */
+    private nuint _address_game;
+    private nuint _address_freezer;
+    private IHook<H_CombinationRenameFirstChoice> _hook_combinationRenameFirstChoice;
     private IHook<H_CombinationListGenerationStarted> _hook_combinationListGenerationStarted;
     private IHook<H_CombinationListGenerationFinished> _hook_combinationListGenerationFinished;
+    private nuint _combinationChosenMonsterAddress;
     private nuint _combinationListAddress;
 
     public Mod(ModContext context)
@@ -176,12 +184,17 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_MysteryStatUpdate>( SetupMysteryStat ).ContinueWith( result => _hook_statUpdate = result.Result );
         _iHooks.AddHook<H_CombinationListGenerationStarted>( SetupCombinationListGenerationStarted ).ContinueWith( result => _hook_combinationListGenerationStarted = result.Result );
         _iHooks.AddHook<H_CombinationListGenerationFinished>( SetupCombinationListGenerationFinished ).ContinueWith( result => _hook_combinationListGenerationFinished = result.Result );
+        _iHooks.AddHook<H_CombinationRenameFirstChoice>( SetupCombinationRenameFirstChoice ).ContinueWith( result => _hook_combinationRenameFirstChoice = result.Result );
 
 
         WeakReference<IRedirectorController> _redirectorx = _modLoader.GetController<IRedirectorController>();
         _redirectorx.TryGetTarget( out var redirect );
         if ( redirect == null ) { _logger.WriteLine( $"[{_modConfig.ModId}] Failed to get redirection controller.", Color.Red ); return; }
         else { redirect.Loading += ProcessReloadedFileLoad; }
+
+        var exeBaseAddress = module.BaseAddress.ToInt64();
+        _address_game = (nuint) exeBaseAddress;
+        _address_freezer = (nuint) _address_game + 0x3768BC;
     }
 
     #region For Exports, Serialization etc.
@@ -200,6 +213,13 @@ public class Mod : ModBase // <= Do not Remove.
         _hook_combinationListGenerationStarted!.OriginalFunction( self );
     }
 
+    private void SetupCombinationRenameFirstChoice ( nuint self ) {
+        _combinationChosenMonsterAddress = self + 0x180;
+        _logger.WriteLine( $"MonsterChoice Started: {self} | {_combinationChosenMonsterAddress}", Color.OrangeRed );
+        _hook_combinationRenameFirstChoice!.OriginalFunction( self );
+    }
+
+
     private void SetupCombinationListGenerationFinished(nuint self) {
         _logger.WriteLine( $"Generation Finished: {self} | {_combinationListAddress}", Color.OrangeRed );
         _hook_combinationListGenerationFinished!.OriginalFunction( self );
@@ -212,13 +232,17 @@ public class Mod : ModBase // <= Do not Remove.
             Memory.Instance.Write( cAddr + 0x8, (byte) 0x2e );
         }
 
-        var p1Main = MonsterGenus.Zuum;
-        var p1Sub = MonsterGenus.Henger;
+        Memory.Instance.Read( _combinationChosenMonsterAddress, out byte p1Freezer );
+        Memory.Instance.Read( _combinationChosenMonsterAddress + 0x4, out byte p2Freezer );
 
-        var p2Main = MonsterGenus.Zilla;
-        var p2Sub = MonsterGenus.Dragon;
+        // Freezer 3768BC
+        // 524 is the length of a single freezer entry.
+        Memory.Instance.Read( _address_freezer + ( (nuint) p1Freezer * 524 ) + 0x8, out MonsterGenus p1Main );
+        Memory.Instance.Read( _address_freezer + ( (nuint) p1Freezer * 524 ) + 0xc, out MonsterGenus p1Sub );
+        Memory.Instance.Read( _address_freezer + ( (nuint) p2Freezer * 524 ) + 0x8, out MonsterGenus p2Main );
+        Memory.Instance.Read( _address_freezer + ( (nuint) p2Freezer * 524 ) + 0xc, out MonsterGenus p2Sub );
 
-        MonsterGenus[] parents = { MonsterGenus.Zuum, MonsterGenus.Zuum, MonsterGenus.Henger, MonsterGenus.Zilla, MonsterGenus.Zilla, MonsterGenus.Dragon };
+        MonsterGenus[] parents = { p1Main, p1Main, p1Sub, p2Main, p2Main, p2Sub };
         Dictionary<MonsterBreed, int> comboResults = new Dictionary<MonsterBreed, int>();
 
         for ( var i = 0; i < 6; i++ ) {
