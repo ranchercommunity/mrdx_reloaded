@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text.RegularExpressions;
+using System.Xml.Schema;
 using Microsoft.VisualBasic;
 using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.Mod.Interfaces;
@@ -56,6 +57,14 @@ public delegate int H_ReadSDATA ( nuint self, int p1 );
 [Function( CallingConventions.Fastcall )]
 public delegate int H_MysteryStatUpdate ( nuint self );
 
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 83 EC 34 A1 ?? ?? ?? ?? 33 C4 89 44 24 ?? A1 ?? ?? ?? ??" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void H_CombinationListGenerationStarted( nuint self );
+
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 81 EC D0 00 00 00 A1 ?? ?? ?? ?? 33 C5 89 45 ?? A1 ?? ?? ?? ?? 56")]
+[ Function( CallingConventions.Fastcall )]
+public delegate void H_CombinationListGenerationFinished ( nuint self );
+
 public class Mod : ModBase // <= Do not Remove.
 {
     private readonly IHooks _iHooks;
@@ -93,6 +102,8 @@ public class Mod : ModBase // <= Do not Remove.
     //private IHook<H_ReadSDATA> _hook_readSDATA;
     private IHook<H_MysteryStatUpdate> _hook_statUpdate;
 
+    
+
     public bool shrineReplacementActive = false;
     private MMBreed _shrineReplacementMonster;
     private readonly IMonster _monsterCurrent;
@@ -100,6 +111,10 @@ public class Mod : ModBase // <= Do not Remove.
     private List<MMBreed> _monsterBreeds = new List<MMBreed>();
     private Dictionary<int, MMBreed> _songIDMapping = new Dictionary<int, MMBreed>();
 
+    /* Combination Variables */
+    private IHook<H_CombinationListGenerationStarted> _hook_combinationListGenerationStarted;
+    private IHook<H_CombinationListGenerationFinished> _hook_combinationListGenerationFinished;
+    private nuint _combinationListAddress;
 
     public Mod(ModContext context)
     {
@@ -155,6 +170,8 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_EarlyShrine>( SetupEarlyShrine ).ContinueWith( result => _hook_earlyShrine = result.Result );
         _iHooks.AddHook<H_WriteSDATAMemory>(SetupOverwriteSDATA).ContinueWith( result => _hook_writeSDATAMemory = result.Result );
         _iHooks.AddHook<H_MysteryStatUpdate>( SetupMysteryStat ).ContinueWith( result => _hook_statUpdate = result.Result );
+        _iHooks.AddHook<H_CombinationListGenerationStarted>( SetupCombinationListGenerationStarted ).ContinueWith( result => _hook_combinationListGenerationStarted = result.Result );
+        _iHooks.AddHook<H_CombinationListGenerationFinished>( SetupCombinationListGenerationFinished ).ContinueWith( result => _hook_combinationListGenerationFinished = result.Result );
 
 
         WeakReference<IRedirectorController> _redirectorx = _modLoader.GetController<IRedirectorController>();
@@ -174,6 +191,23 @@ public class Mod : ModBase // <= Do not Remove.
 #pragma warning restore CS8618
 
     #endregion
+
+    private void SetupCombinationListGenerationStarted(nuint self) {
+        _combinationListAddress = self + 0x94 - 0x8;
+        _logger.WriteLine( $"Generation Started: {self} | {_combinationListAddress}", Color.OrangeRed );
+        _hook_combinationListGenerationStarted!.OriginalFunction( self );
+    }
+
+    private void SetupCombinationListGenerationFinished(nuint self) {
+        _logger.WriteLine( $"Generation Finished: {self} | {_combinationListAddress}", Color.OrangeRed );
+        _hook_combinationListGenerationFinished!.OriginalFunction( self );
+        
+        Memory.Instance.Write( _combinationListAddress, (byte) 8 );
+        Memory.Instance.Write( _combinationListAddress + 0x4, (byte) 5 );
+        Memory.Instance.Write( _combinationListAddress + 0x8, (byte) 100 );
+
+        // 2E = Value 46 is the 'No combination byte'
+    }
 
     private void RedirectorSetupDataPath ( string? extractedPath ) {
         _dataPath = extractedPath;
