@@ -74,7 +74,6 @@ public class Mod : ModBase // <= Do not Remove.
 
     public bool _snapshotUpdate = true;
 
-
     private uint _monsterLastId = 999999 ;
     private IHook<H_MonsterID> _hook_monsterID;
     private IHook<H_LoadEnemyMonsterData> _hook_loadEMData;

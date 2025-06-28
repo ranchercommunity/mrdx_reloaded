@@ -48,7 +48,6 @@
   <ItemGroup>
     <ProjectReference Include="..\MRDX.Base.ExtractDataBin.Interface\MRDX.Base.ExtractDataBin.Interface.csproj" />
     <ProjectReference Include="..\MRDX.Base.Mod.Interfaces\MRDX.Base.Mod.Interfaces.csproj" />
-    <ProjectReference Include="..\MRDX.Base.Mod\MRDX.Base.Mod.csproj" />
   </ItemGroup>
 
 	<Target Name="Replace" BeforeTargets="BeforeBuild;BeforeRebuild">
