@@ -69,6 +69,7 @@ public class Mod : ModBase // <= Do not Remove.
 {
     private readonly IHooks _iHooks;
     private readonly string? _modPath;
+    private readonly IGame _iGame;
 
     private readonly IRedirectorController _redirector;
 
@@ -129,7 +130,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         _modLoader.GetController<IRedirectorController>().TryGetTarget(out _redirector);
         _modLoader.GetController<IHooks>().TryGetTarget(out _iHooks);
-        _modLoader.GetController<IGame>().TryGetTarget(out var iGame);
+        _modLoader.GetController<IGame>().TryGetTarget(out _iGame);
         _modLoader.GetController<IExtractDataBin>().TryGetTarget(out var extract);
 
         if (extract == null)
@@ -154,13 +155,16 @@ public class Mod : ModBase // <= Do not Remove.
             return;
         }
 
-        if (iGame == null)
+        if (_iGame == null)
         {
             _logger.WriteLine($"[{_modConfig.ModId}] Could not get iGame controller.", Color.Red);
             return;
         }
 
-        _monsterCurrent = iGame.Monster;
+        _iGame.OnMonsterBreedsLoaded.Subscribe( InitializeNewMonsters );
+
+
+        _monsterCurrent = _iGame.Monster;
 
         _iHooks.AddHook<H_MonsterID>( SetupHookMonsterID ).ContinueWith( result => _hook_monsterID = result.Result );
         _iHooks.AddHook<H_LoadEnemyMonsterData>( SetupHookLoadEMData ).ContinueWith( result => _hook_loadEMData = result.Result );
@@ -178,8 +182,6 @@ public class Mod : ModBase // <= Do not Remove.
         _redirectorx.TryGetTarget( out var redirect );
         if ( redirect == null ) { _logger.WriteLine( $"[{_modConfig.ModId}] Failed to get redirection controller.", Color.Red ); return; }
         else { redirect.Loading += ProcessReloadedFileLoad; }
-
-        InitializeNewMonsters();
     }
 
     #region For Exports, Serialization etc.
@@ -202,11 +204,64 @@ public class Mod : ModBase // <= Do not Remove.
         _logger.WriteLine( $"Generation Finished: {self} | {_combinationListAddress}", Color.OrangeRed );
         _hook_combinationListGenerationFinished!.OriginalFunction( self );
         
-        Memory.Instance.Write( _combinationListAddress, (byte) 8 );
-        Memory.Instance.Write( _combinationListAddress + 0x4, (byte) 5 );
-        Memory.Instance.Write( _combinationListAddress + 0x8, (byte) 100 );
+        // Clear All Possibilities
+        for ( var i = 0; i < 14; i++ ) {
+            var cAddr = _combinationListAddress + ( (nuint) i * 12 );
+            Memory.Instance.Write( cAddr, (byte) 0x2e );
+            Memory.Instance.Write( cAddr + 0x4, (byte) 0x2e );
+            Memory.Instance.Write( cAddr + 0x8, (byte) 0x2e );
+        }
+
+        var p1Main = MonsterGenus.Zuum;
+        var p1Sub = MonsterGenus.Henger;
+
+        var p2Main = MonsterGenus.Zilla;
+        var p2Sub = MonsterGenus.Dragon;
+
+        MonsterGenus[] parents = { MonsterGenus.Zuum, MonsterGenus.Zuum, MonsterGenus.Henger, MonsterGenus.Zilla, MonsterGenus.Zilla, MonsterGenus.Dragon };
+        Dictionary<MonsterBreed, int> comboResults = new Dictionary<MonsterBreed, int>();
+
+        for ( var i = 0; i < 6; i++ ) {
+            for ( var j = i; j < 6; j++ ) {
+                MonsterBreed? breed = MonsterBreed.GetBreed( parents[ i ], parents[ j ] );
+
+                if ( breed != null ) {
+                    if ( comboResults.ContainsKey(breed) ) {
+                        comboResults[ breed ] = comboResults[ breed ] + 1;
+                    } else {
+                        comboResults.Add( breed, 1 );
+                    }
+                }
+            }
+        }
+
+        var comboSorted = comboResults.ToList();
+        comboSorted.Sort( ( pair1, pair2 ) => pair2.Value.CompareTo( pair1.Value ) );
+
+        for ( var i = 0; i < Math.Min(14, comboSorted.Count) ; i++ ) {
+            var cAddr = _combinationListAddress + ( (nuint) i * 12 );
+            Memory.Instance.Write( cAddr, (byte) comboSorted[i].Key.Main );
+            Memory.Instance.Write( cAddr + 0x4, (byte) comboSorted[ i ].Key.Sub );
+            Memory.Instance.Write( cAddr + 0x8, (byte) (byte) comboSorted[ i ].Value );
+        }
+        /*
+        nuint curCombOffset = 0;
+        Memory.Instance.Write( _combinationListAddress + curCombOffset, (byte) p1Main );
+        Memory.Instance.Write( _combinationListAddress + curCombOffset + 0x4, (byte) p1Sub );
+        Memory.Instance.Write( _combinationListAddress + curCombOffset + 0x8, (byte) 5 );
+
+        curCombOffset += 12;
+        Memory.Instance.Write( _combinationListAddress + curCombOffset, (byte) p1Main );
+        Memory.Instance.Write( _combinationListAddress + curCombOffset + 0x4, (byte) p1Sub );
+        Memory.Instance.Write( _combinationListAddress + curCombOffset + 0x8, (byte) 5 );
+        */
+
+
+
 
         // 2E = Value 46 is the 'No combination byte'
+
+
     }
 
     private void RedirectorSetupDataPath ( string? extractedPath ) {
@@ -216,10 +271,10 @@ public class Mod : ModBase // <= Do not Remove.
     /// <summary>
     ///  This function should eventually read from a file or some equivalent.
     /// </summary>
-    private void InitializeNewMonsters () {
+    private void InitializeNewMonsters ( bool unused ) {
         // Zuum-Henger
         MMBreed breed = new MMBreed( MonsterGenus.Zuum, MonsterGenus.Henger, MonsterGenus.Zuum, MonsterGenus.Arrowhead );
-        breed.NewVariant( 330, 45, LifeType.Normal, 
+        breed.NewBaseBreed( "Zuugar", 330, 45, LifeType.Normal, 
             120, 130, 90, 150, 120, 110, 
             2, 2, 2, 3, 2, 1, 
             2, 14, -1, -1, 12 );
@@ -227,7 +282,7 @@ public class Mod : ModBase // <= Do not Remove.
         _monsterBreeds.Add( breed );
 
         breed = new MMBreed( MonsterGenus.Zuum, MonsterGenus.Undine, MonsterGenus.Zuum, MonsterGenus.Dragon );
-        breed.NewVariant( 330, 50, LifeType.Sustainable, 
+        breed.NewBaseBreed( "Leviathan", 330, 50, LifeType.Sustainable, 
             100, 85, 100, 150, 115, 70, 
             2, 1, 2, 4, 2, 1, 
             3, 11, 3, 10001, 6 );
@@ -235,7 +290,7 @@ public class Mod : ModBase // <= Do not Remove.
         _monsterBreeds.Add( breed );
 
         breed = new MMBreed( MonsterGenus.Zilla, MonsterGenus.Dragon, MonsterGenus.Zilla, MonsterGenus.Zilla );
-        breed.NewVariant( 320, -45, LifeType.Precocious, 
+        breed.NewBaseBreed( "Zillagon", 320, -45, LifeType.Precocious, 
             210, 180, 130, 100, 70, 130,
             4, 4, 3, 1, 0, 3, 0, 
             19, 3, 1001, 1024 );
@@ -243,7 +298,7 @@ public class Mod : ModBase // <= Do not Remove.
         _monsterBreeds.Add( breed );
 
         breed = new MMBreed( MonsterGenus.Jell, MonsterGenus.Gaboo, MonsterGenus.Jell, MonsterGenus.Jell );
-        breed.NewVariant( 350, 15, LifeType.Sustainable,
+        breed.NewBaseBreed( "Jellboo", 350, 15, LifeType.Sustainable,
             145, 125, 60, 95, 115, 110,
             3, 3, 1, 2, 1, 3,
             2, 14, 3, 10001, 32 );
@@ -251,7 +306,7 @@ public class Mod : ModBase // <= Do not Remove.
         _monsterBreeds.Add( breed );
 
         breed = new MMBreed( MonsterGenus.Undine, MonsterGenus.Dragon, MonsterGenus.Undine, MonsterGenus.Undine );
-        breed.NewVariant( 280, -35, LifeType.Precocious,
+        breed.NewBaseBreed( "Fireman", 280, -35, LifeType.Precocious,
             90, 130, 145, 135, 100, 70,
             2, 3, 3, 3, 2, 2,
             2, 13, 3, 10000001, 2 );
@@ -259,7 +314,7 @@ public class Mod : ModBase // <= Do not Remove.
         _monsterBreeds.Add( breed );
 
         breed = new MMBreed( MonsterGenus.Ghost, MonsterGenus.Joker, MonsterGenus.Ghost, MonsterGenus.Ghost );
-        breed.NewVariant( 280, -70, LifeType.Sustainable,
+        breed.NewBaseBreed( "Poltergeist", 280, -70, LifeType.Sustainable,
             105, 110, 175, 175, 130, 70,
             1, 2, 4, 4, 2, 0,
             3, 9, 3, 11, 16);
@@ -267,7 +322,7 @@ public class Mod : ModBase // <= Do not Remove.
         _monsterBreeds.Add( breed );
 
         breed = new MMBreed( MonsterGenus.Monol, MonsterGenus.Mock, MonsterGenus.Monol, MonsterGenus.Monol );
-        breed.NewVariant( 280, -70, LifeType.Sustainable,
+        breed.NewBaseBreed( "Revenge", 280, -70, LifeType.Sustainable,
             105, 110, 175, 175, 130, 70,
             1, 2, 4, 4, 2, 0,
             3, 9, 3, 11, 16 );

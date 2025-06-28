@@ -47,12 +47,45 @@ namespace MRDX.Game.MoreMonsters
             return ( _genusBaseMain == main && _genusBaseSub == sub );
         }
 
-        public void NewVariant ( ushort lifespan, short nature, LifeType growthpat,
+        /// <summary>
+        /// Creates a new breed in the MonsterBreed.AllBreeds tables and a new variant internal to MMBreeds.
+        /// </summary>
+        public void NewBaseBreed( string name, ushort lifespan, short nature, LifeType growthpat,
+            ushort slif, ushort spow, ushort sint, ushort sski, ushort sspe, ushort sdef,
+            byte glif, byte gpow, byte gint, byte gski, byte gspe, byte gdef,
+            byte arena, byte guts, int battlespec, int moves, ushort trainbonuses ) {
+
+            NewVariant( name, lifespan, nature, growthpat,
+                slif, spow, sint, sski, sspe, sdef,
+                glif, gpow, gint, gski, gspe, gdef,
+                arena, guts, battlespec, moves, trainbonuses );
+
+            string[] svalues = { name, $"{lifespan}", $"{nature}", $"{growthpat}", 
+                $"{slif}", $"{spow}", $"{sint}", $"{sski}", $"{sspe}", $"{sdef}", 
+                $"{glif}", $"{gpow}", $"{gint}", $"{gski}", $"{gspe}", $"{gdef}",
+                $"{arena}", $"{guts}", $"{battlespec}", $"{moves}", $"{0}", $"{0}", $"{trainbonuses}", 
+                $"{(slif + spow + sint + sski + sspe + sdef)}", $"{0}", $"{0}" };
+
+            MonsterBreed b = new MonsterBreed {
+                Main = _genusNewMain,
+                Sub = _genusNewSub,
+                Name = name,
+                BreedIdentifier = IMonster.AllMonsters[ (int) _genusNewMain ].ShortName[ ..2 ] + "_" + IMonster.AllMonsters[ (int) _genusNewSub ].ShortName[ ..2 ],
+                TechList = MonsterBreed.GetBreed( _genusNewMain, _genusNewMain ).TechList,
+                SDATAValues = svalues
+            };
+
+            MonsterBreed.AllBreeds.Add( b );
+        }
+
+        public void NewVariant ( string name, ushort lifespan, short nature, LifeType growthpat,
             ushort slif, ushort spow, ushort sint, ushort sski, ushort sspe, ushort sdef,
             byte glif, byte gpow, byte gint, byte gski, byte gspe, byte gdef,
             byte arena, byte guts, int battlespec, int moves, ushort trainbonuses ) {
 
             MMBreedVariant monster = new MMBreedVariant();
+
+            monster.Name = name;
 
             monster.GenusMain = _genusNewMain;
             monster.GenusSub = _genusNewSub;
@@ -72,7 +105,6 @@ namespace MRDX.Game.MoreMonsters
             monster.Speed = sspe;
             monster.Defense = sdef;
 
-
             monster.GrowthRateLife = glif;
             monster.GrowthRatePower = gpow;
             monster.GrowthRateIntelligence = gint;
@@ -90,6 +122,7 @@ namespace MRDX.Game.MoreMonsters
     }
     
     public class MMBreedVariant() {
+        public string? Name { get; set; }
         public MonsterGenus GenusMain { get; set; }
         public MonsterGenus GenusSub { get; set; }
         public ushort Lifespan { get; set; }
