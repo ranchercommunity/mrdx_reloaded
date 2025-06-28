@@ -1,0 +1,35 @@
+{
+    "ModId": "MRDX.Game.MoreMonsters",
+    "ModName": "More Monsters",
+    "ModAuthor": "ArchbishopDave",
+    "ModVersion": "{{ MOD_VERSION }}",
+    "ModDescription": "Adds additional species combinations to the game!",
+    "ModDll": "MRDX.Game.MoreMonsters.dll",
+    "ModIcon": "Preview.png",
+    "ModR2RManagedDll32": "x86/MRDX.Game.MoreMonsters.dll",
+    "ModR2RManagedDll64": "x64/MRDX.Game.MoreMonsters.dll",
+    "ModNativeDll32": "",
+    "ModNativeDll64": "",
+    "IsLibrary": false,
+    "ReleaseMetadataFileName": "MRDX.Game.MoreMonsters.ReleaseMetadata.json",
+    "PluginData": {
+        "GitHubRelease": {
+            "UserName": "ranchercommunity",
+            "RepositoryName": "mrdx_reloaded",
+            "UseReleaseTag": false,
+            "AssetFileName": "Mod.zip"
+        }
+    },
+    "IsUniversalMod": false,
+    "ModDependencies": [
+        "reloaded.sharedlib.hooks",
+        "reloaded.universal.redirector",
+        "MRDX.Base.Mod",
+        "MRDX.Base.ExtractDataBin"
+    ],
+    "OptionalDependencies": [],
+    "SupportedAppId": [
+        "mf2.exe"
+    ],
+    "ProjectUrl": "https://github.com/ranchercommunity/mrdx_reloaded"
+}

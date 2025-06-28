@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Base.BattleSimulator",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Qol.MagicBananaStatic", "MRDX.Qol.MagicBananaStatic\MRDX.Qol.MagicBananaStatic.csproj", "{A226A302-4318-77B9-D947-0CAEF0859DBE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Game.MoreMonsters", "MRDX.Game.MoreMonsters\MRDX.Game.MoreMonsters.csproj", "{FD5AE5CE-15A0-136B-3E3D-55888A182C04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +113,10 @@ Global
 		{A226A302-4318-77B9-D947-0CAEF0859DBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A226A302-4318-77B9-D947-0CAEF0859DBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A226A302-4318-77B9-D947-0CAEF0859DBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD5AE5CE-15A0-136B-3E3D-55888A182C04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD5AE5CE-15A0-136B-3E3D-55888A182C04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD5AE5CE-15A0-136B-3E3D-55888A182C04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD5AE5CE-15A0-136B-3E3D-55888A182C04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

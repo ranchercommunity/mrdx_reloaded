@@ -15,7 +15,7 @@ namespace MRDX.Qol.MagicBananaStatic;
 
 [HookDef(BaseGame.Mr2, Region.Us, "55 8B EC B9 01 00 00 00 83 EC 18")]
 [Function(CallingConventions.Cdecl)]
-public delegate void H_ItemUsed(int p1, uint p2, uint p3);
+public delegate void H_ItemUsed(int p1, uint p2, uint p3 );
 
 public class Mod : ModBase // <= Do not Remove.
 {
@@ -150,7 +150,6 @@ public class Mod : ModBase // <= Do not Remove.
             _snapshotUpdate = false;
         }
     }
-
 
     private void SetupHookGenericUpdate(nint parent)
     {
