@@ -17,19 +17,6 @@ namespace MRDX.Qol.MagicBananaStatic;
 [Function(CallingConventions.Cdecl)]
 public delegate void H_ItemUsed(int p1, uint p2, uint p3 );
 
-[HookDef( BaseGame.Mr2, Region.Us, "53 56 57 8B F9 8B DA 8B 0D ?? ?? ?? ??" )]
-[Function( CallingConventions.Fastcall )]
-public delegate int H_MonsterID ( uint p1, uint p2 );
-
-
-[HookDef( BaseGame.Mr2, Region.Us, "53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B ?? 89 6C 24 ?? 8B EC 83 EC 10" )]
-[Function( CallingConventions.Fastcall)]
-public delegate void H_LoadEnemyMonsterData ( nuint self, uint p2, int p3, int p4 );
-
-[HookDef( BaseGame.Mr2, Region.Us, "8A 15 ?? ?? ?? ?? 56 8B F1 57" )]
-[Function( CallingConventions.Fastcall )]
-public delegate void H_BattleStarting ( nuint self );
-
 public class Mod : ModBase // <= Do not Remove.
 {
     private readonly IHooks _iHooks;
