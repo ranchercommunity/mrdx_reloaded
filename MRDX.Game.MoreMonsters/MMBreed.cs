@@ -20,6 +20,7 @@ namespace MRDX.Game.MoreMonsters
         public readonly string _filepathBase;
         public readonly string _filepathNew;
 
+        public static List<MMBreed> NewBreeds = new List<MMBreed>();
         public List<MMBreedVariant> _monsterVariants;
 
         public MMBreed ( MonsterGenus newMain, MonsterGenus newSub, MonsterGenus baseMain, MonsterGenus baseSub ) {
@@ -37,6 +38,7 @@ namespace MRDX.Game.MoreMonsters
             _filepathNew = newMainInfo.ShortName + @"\" + newMainInfo.ShortName[ ..2 ] + "_" + newSubInfo.ShortName[ ..2 ];
 
             _monsterVariants = new List<MMBreedVariant>();
+            NewBreeds.Add( this );
         }
 
         public bool MatchNewBreed ( MonsterGenus main, MonsterGenus sub ) {
@@ -86,6 +88,17 @@ namespace MRDX.Game.MoreMonsters
             MMBreedVariant monster = new MMBreedVariant();
 
             monster.Name = name;
+            monster.NameRaw = new byte[27];
+
+            var nmr2 = name.AsMr2();
+            for ( var i = 0; i < 27; i++ ) {
+                monster.NameRaw[ i ] = 0xFF;
+            }
+
+            for ( var i = 0; i < nmr2.Length; i++ ) {
+                monster.NameRaw[ (i * 2) ] = (byte) ( nmr2[ i ] >> 8 );
+                monster.NameRaw[ (i * 2) + 1 ] = (byte) ( nmr2[ i ] & 255 );
+            }
 
             monster.GenusMain = _genusNewMain;
             monster.GenusSub = _genusNewSub;
@@ -119,9 +132,14 @@ namespace MRDX.Game.MoreMonsters
 
             _monsterVariants.Add( monster );
         }
+
+        public static MMBreed? GetBreed( MonsterGenus main, MonsterGenus sub ) {
+            return NewBreeds.Find( m => m._genusNewMain == main && m._genusNewSub == sub );
+        }
     }
     
     public class MMBreedVariant() {
+        public byte[] NameRaw { get; set; }
         public string? Name { get; set; }
         public MonsterGenus GenusMain { get; set; }
         public MonsterGenus GenusSub { get; set; }
