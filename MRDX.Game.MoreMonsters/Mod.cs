@@ -384,6 +384,13 @@ public class Mod : ModBase // <= Do not Remove.
             2, 11, 19, 10000001, 2 );
         _songIDMapping.Add( 1262749, breed );
 
+        breed = new MMBreed( MonsterGenus.Phoenix, MonsterGenus.Jill, MonsterGenus.Phoenix, MonsterGenus.Phoenix );
+        breed.NewBaseBreed( "Arctic Wind", 320, 40, LifeType.Sustainable, // STATS NOT DONE
+            120, 105, 65, 105, 125, 50,
+            3, 3, 1, 2, 3, 1,
+            2, 11, 19, 10000001, 2 );
+        _songIDMapping.Add( 1262752, breed );
+
         // TODO : Monster Moves and Battle Specials seem to be non-functioning?
 
         /*Songs to use
