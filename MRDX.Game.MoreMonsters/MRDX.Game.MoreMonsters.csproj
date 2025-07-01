@@ -49,6 +49,46 @@
     <ProjectReference Include="..\MRDX.Base.ExtractDataBin.Interface\MRDX.Base.ExtractDataBin.Interface.csproj" />
     <ProjectReference Include="..\MRDX.Base.Mod.Interfaces\MRDX.Base.Mod.Interfaces.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\kapi\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\kbdr\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\kckn\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\kdro\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\kebe\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\kfhe\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\khcy\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\kigo\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\kkro\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\klyo\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\kmto\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\marig\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mbhop\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mcham\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mdbak\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\megar\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mfakr\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mggjr\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mhlam\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\minya\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mjfbd\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mkgho\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mlspm\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mmxsu\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mnsnm\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mochy\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mpjok\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mqnen\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mrpru\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\msund\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mtgai\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\muoku\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mvdak\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mwpla\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mxris\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mylau\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\mzmus\" />
+    <Folder Include="Redirector\Resources\data\mf2\data\mon\naaga\" />
+  </ItemGroup>
 
 	<Target Name="Replace" BeforeTargets="BeforeBuild;BeforeRebuild">
 		<PropertyGroup>
