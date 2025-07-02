@@ -401,16 +401,31 @@ public class Mod : ModBase // <= Do not Remove.
         _songIDMapping.Add( 1262752, breed );
 
         breed = new MMBreed( MonsterGenus.Monol, MonsterGenus.ColorPandora, MonsterGenus.Monol, MonsterGenus.Monol, 2 );
-        breed.NewBaseBreed( "Mono Pandora", 280, -70, LifeType.Sustainable, // STATS NOT DONE
+        breed.NewBaseBreed( "Pandora's Box", 280, -70, LifeType.Sustainable, // STATS NOT DONE
             105, 110, 175, 175, 130, 70,
             1, 2, 4, 4, 2, 0,
             3, 9, 3, 11, 16 );
         _songIDMapping.Add( 1262762, breed );
 
+        breed = new MMBreed( MonsterGenus.Monol, MonsterGenus.YY, MonsterGenus.Monol, MonsterGenus.Monol, 2 );
+        breed.NewBaseBreed( "MR3 Monodora", 280, -70, LifeType.Sustainable, // STATS NOT DONE
+            105, 110, 175, 175, 130, 70,
+            1, 2, 4, 4, 2, 0,
+            3, 9, 3, 11, 16 );
+        _songIDMapping.Add( 1262766, breed );
+
+        //3	32	370	50	3	140	70	100	115	125	55	3.0	2.0	2.0	3.0	2.0	1.0	1	11	4355	101			0	605.0
+        breed = new MMBreed( MonsterGenus.ColorPandora, MonsterGenus.Ducken, MonsterGenus.ColorPandora, MonsterGenus.ColorPandora );
+        breed.NewBaseBreed( "Kapukkoro", 370, 50, LifeType.Sustainable, // STATS NOT DONE
+            140, 70, 100, 115, 125, 55 
+            3, 2, 2, 3, 2, 1,
+            1, 11, 4335, 101, 0 );
+        _songIDMapping.Add( 1262768, breed );
+
         // TODO : Monster Moves and Battle Specials seem to be non-functioning?
 
         /*Songs to use
-         * 1262766	1262768	1262770	1262783	1262789	989884
+         * 		1262770	1262783	1262789	989884
          * 989885 989886 989887 989888 989889  989890 989891 989892 989893 989894 
          * 989895 989896 989897 989898 989899 989900*/
     }
