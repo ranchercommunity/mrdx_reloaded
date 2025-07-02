@@ -9,6 +9,8 @@ namespace MRDX.Game.MoreMonsters
 {
     public class MMBreed {
 
+        public static List<MMBreed> NewBreeds = new List<MMBreed>();
+
         public readonly MonsterGenus _genusNewMain;
         public readonly MonsterGenus _genusNewSub;
 
@@ -17,13 +19,14 @@ namespace MRDX.Game.MoreMonsters
 
         // Filepath values are represented as [shortname\ssMain_ssSub].
         // Examples include 'kkro\kk_kf' and 'mggjr\mg_kb', used to precalculate the monster type specific filepaths for redirects.
-        public readonly string _filepathBase;
-        public readonly string _filepathNew;
+        private readonly string _filepathBase;
+        private readonly string _filepathNew;
 
-        public static List<MMBreed> NewBreeds = new List<MMBreed>();
+        public readonly int _variantCount = 0;
+
         public List<MMBreedVariant> _monsterVariants;
 
-        public MMBreed ( MonsterGenus newMain, MonsterGenus newSub, MonsterGenus baseMain, MonsterGenus baseSub ) {
+        public MMBreed ( MonsterGenus newMain, MonsterGenus newSub, MonsterGenus baseMain, MonsterGenus baseSub, int variantCount = 0 ) {
             _genusNewMain = newMain;
             _genusNewSub = newSub;
             _genusBaseMain = baseMain;
@@ -37,6 +40,8 @@ namespace MRDX.Game.MoreMonsters
             _filepathBase = baseMainInfo.ShortName + @"\" + baseMainInfo.ShortName[ ..2 ] + "_" + baseSubInfo.ShortName[ ..2 ];
             _filepathNew = newMainInfo.ShortName + @"\" + newMainInfo.ShortName[ ..2 ] + "_" + newSubInfo.ShortName[ ..2 ];
 
+            _variantCount = variantCount;
+            
             _monsterVariants = new List<MMBreedVariant>();
             NewBreeds.Add( this );
         }
@@ -49,6 +54,13 @@ namespace MRDX.Game.MoreMonsters
             return ( _genusBaseMain == main && _genusBaseSub == sub );
         }
 
+        public string FilepathBase( int variantID = 0) {
+            return variantID == 0 ? _filepathBase : _filepathBase + $"_{variantID}";
+        }
+
+        public string FilepathNew ( int variantID = 0 ) {
+            return variantID == 0 ? _filepathNew : _filepathNew + $"_{variantID}";
+        }
         /// <summary>
         /// Creates a new breed in the MonsterBreed.AllBreeds tables and a new variant internal to MMBreeds.
         /// </summary>

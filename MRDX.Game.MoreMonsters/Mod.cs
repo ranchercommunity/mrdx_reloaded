@@ -72,7 +72,18 @@ public delegate void H_CombinationRenameFirstChoice ( nuint self );
 // MonsterIDFromBreeds - Takes in a Main/Sub and returns the Monster ID
 [HookDef( BaseGame.Mr2, Region.Us, "51 56 8B F1 8B 0D ?? ?? ?? ??" )]
 [Function( CallingConventions.Fastcall )]
-public delegate int H_Names ( nuint unk1, nuint unk2 );
+public delegate int H_GetMonsterBreedName ( nuint mainID, nuint subID );
+
+// Called when transferring monster stats into the freezer.
+[HookDef( BaseGame.Mr2, Region.Us, "56 33 D2 8B F1" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void H_FreezerWriteFreezer ( nuint self, int unk1, int unk2 );
+
+// Called when transferring freezer stats into the monster. Also called when resetting a monster.
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 8B 45 ?? 33 D2" )]
+[Function( CallingConventions.MicrosoftThiscall )]
+public delegate void H_FreezerWriteMonster ( nuint self, nuint unk1, int unk2 );
+
 
 public class Mod : ModBase // <= Do not Remove.
 {
@@ -84,16 +95,10 @@ public class Mod : ModBase // <= Do not Remove.
 
     private string? _dataPath;
 
-    public byte _itemGiveHookCount;
-    public bool _itemGivenSuccess;
+    private nuint _address_game;
+    private nuint _address_monster;
+    private nuint _address_freezer;
 
-    public bool _itemHandleMagicBananas;
-    public byte _itemIdGiven = 0;
-    public byte _itemOriginalIdGiven;
-
-    public bool _snapshotUpdate = true;
-
-    private uint _monsterLastId = 999999 ;
     private IHook<H_MonsterID> _hook_monsterID;
     private IHook<H_LoadEnemyMonsterData> _hook_loadEMData;
     private IHook<H_BattleStarting> _hook_battleStarting;
@@ -105,33 +110,31 @@ public class Mod : ModBase // <= Do not Remove.
     public bool monsterReplaceEnabled = false;
     public bool retriggerReplacement = false;
 
-    //private IHook<H_PreShrineCreation> _hook_preShrineCreation;
-    //private IHook<H_MysteryShrine> _hook_mysteryShrine;
     private IHook<H_EarlyShrine> _hook_earlyShrine;
     private IHook<H_WriteSDATAMemory> _hook_writeSDATAMemory;
-    //private IHook<H_ReadSDATA> _hook_readSDATA;
     private IHook<H_MysteryStatUpdate> _hook_statUpdate;
-
-    
 
     public bool shrineReplacementActive = false;
     private MMBreed _shrineReplacementMonster;
+    private int _shrineColorVariant;
     private readonly IMonster _monsterCurrent;
 
     private Dictionary<int, MMBreed> _songIDMapping = new Dictionary<int, MMBreed>();
 
     /* Combination Variables */
-    private nuint _address_game;
-    private nuint _address_freezer;
+
     private IHook<H_CombinationRenameFirstChoice> _hook_combinationRenameFirstChoice;
     private IHook<H_CombinationListGenerationStarted> _hook_combinationListGenerationStarted;
     private IHook<H_CombinationListGenerationFinished> _hook_combinationListGenerationFinished;
     private nuint _combinationChosenMonsterAddress;
     private nuint _combinationListAddress;
+    private uint _combinationColorVariant;
 
-    private IHook<H_Names> _hook_names;
+    private IHook<H_GetMonsterBreedName> _hook_monsterBreedNames;
 
-    private IHook<ParseTextWithCommandCodes> _hook_parseTextWithCommandCodes;
+    private IHook<H_FreezerWriteFreezer> _hook_freezerWriteFreezer;
+    private IHook<H_FreezerWriteMonster> _hook_freezerWriteMonster;
+    private bool _freezerResetExtraMonsterData = false;
 
     public Mod(ModContext context)
     {
@@ -194,8 +197,10 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_CombinationListGenerationFinished>( SetupCombinationListGenerationFinished ).ContinueWith( result => _hook_combinationListGenerationFinished = result.Result );
         _iHooks.AddHook<H_CombinationRenameFirstChoice>( SetupCombinationRenameFirstChoice ).ContinueWith( result => _hook_combinationRenameFirstChoice = result.Result );
 
-        _iHooks.AddHook<H_Names>( SetupNames ).ContinueWith( result => _hook_names = result.Result );
+        _iHooks.AddHook<H_GetMonsterBreedName>( SetupGetMonsterBreedName ).ContinueWith( result => _hook_monsterBreedNames = result.Result );
 
+        _iHooks.AddHook<H_FreezerWriteFreezer>( SetupFreezerWriteFreezer ).ContinueWith( result => _hook_freezerWriteFreezer = result.Result );
+        _iHooks.AddHook<H_FreezerWriteMonster>( SetupFreezerWriteMonster ).ContinueWith( result => _hook_freezerWriteMonster = result.Result );
         //_iHooks.AddHook<ParseTextWithCommandCodes>( SetupParseTextCommmandCodes ).ContinueWith(result => _hook_parseTextWithCommandCodes = result.Result.Activate());
 
 
@@ -206,7 +211,10 @@ public class Mod : ModBase // <= Do not Remove.
 
         var exeBaseAddress = module.BaseAddress.ToInt64();
         _address_game = (nuint) exeBaseAddress;
+        _address_monster = (nuint) _address_game + 0x37667C; // This is super jank. This is not technically where the monster starts, but instead where in my CT table it starts. May not align with the Monster class but it doesn't give me an address to use!
         _address_freezer = (nuint) _address_game + 0x3768BC;
+
+        Logger.SetLogLevel( Logger.LogLevel.Info );
     }
 
     #region For Exports, Serialization etc.
@@ -218,9 +226,10 @@ public class Mod : ModBase // <= Do not Remove.
 #pragma warning restore CS8618
 
     #endregion
-    private void SetupParseTextCommmandCodes(nint input, nint output, nint unk3 ) {
-        _logger.WriteLine( $"ParseTextStart: {input} | {output} | {unk3}", Color.Red );
-        _hook_parseTextWithCommandCodes!.OriginalFunction( input, output, unk3 );
+   
+    private int GetPlayerMonsterVariantData() {
+        Memory.Instance.Read( _address_monster + 0x164, out int variantID );
+        return variantID;
     }
 
 
@@ -231,7 +240,7 @@ public class Mod : ModBase // <= Do not Remove.
     /// <param name="mainBreedID"></param>
     /// <param name="subBreedID"></param>
     /// <returns>monsterBreedID (Card ID)</returns>
-    private int SetupNames(nuint mainBreedID, nuint subBreedID ) {
+    private int SetupGetMonsterBreedName(nuint mainBreedID, nuint subBreedID ) {
         //_logger.WriteLine( $"NamesStart: {mainBreedID} | {subBreedID}", Color.OrangeRed );
         var newBreed = MMBreed.GetBreed( (MonsterGenus) mainBreedID, (MonsterGenus) subBreedID );
 
@@ -242,7 +251,7 @@ public class Mod : ModBase // <= Do not Remove.
             Memory.Instance.Write( nuint.Add( _address_game, 0x354E45 ), bn ); // Combination References
             //_logger.WriteLine( $"Wrote : {newBreed._monsterVariants[ 0 ].Name} to {nuint.Add( _address_game, 0x3492A6 )}", Color.OrangeRed );
         }
-        int ret = _hook_names!.OriginalFunction( mainBreedID, subBreedID );
+        int ret = _hook_monsterBreedNames!.OriginalFunction( mainBreedID, subBreedID );
 
         //_logger.WriteLine( $"NamesEd: {unk1} | {unk2} | {ret}", Color.OrangeRed );
         return ret;
@@ -391,7 +400,7 @@ public class Mod : ModBase // <= Do not Remove.
             2, 11, 19, 10000001, 2 );
         _songIDMapping.Add( 1262752, breed );
 
-        breed = new MMBreed( MonsterGenus.Monol, MonsterGenus.ColorPandora, MonsterGenus.Monol, MonsterGenus.Monol );
+        breed = new MMBreed( MonsterGenus.Monol, MonsterGenus.ColorPandora, MonsterGenus.Monol, MonsterGenus.Monol, 2 );
         breed.NewBaseBreed( "Mono Pandora", 280, -70, LifeType.Sustainable, // STATS NOT DONE
             105, 110, 175, 175, 130, 70,
             1, 2, 4, 4, 2, 0,
@@ -408,11 +417,18 @@ public class Mod : ModBase // <= Do not Remove.
 
     private int SetupHookMonsterID ( uint breedIdMain, uint breedIdSub ) {
 
-        //_logger.WriteLineAsync( $"Getting Monster ID: {breedIdMain} : {breedIdSub} : C{_monsterLastId}", Color.Aqua );
+        int variantID = 0;
+
+        Logger.Debug( $"Getting Monster ID: {breedIdMain} : {breedIdSub}", Color.Aqua );
 
         if ( shrineReplacementActive ) {
             breedIdMain = (uint) _shrineReplacementMonster._genusNewMain;
             breedIdSub = (uint) _shrineReplacementMonster._genusNewSub;
+            variantID = _shrineColorVariant;
+        }
+
+        else {
+            variantID = GetPlayerMonsterVariantData();
         }
 
         MonsterGenus breedMain = (MonsterGenus) breedIdMain;
@@ -428,7 +444,7 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         if ( !_monsterInsideBattleStartup || _monsterInsideBattleRedirects == 1 ) {
-            RedirectFromID( breedIdMain, breedIdSub );
+            RedirectFromID( breedIdMain, breedIdSub, variantID );
         }
 
         foreach ( MMBreed breed in MMBreed.NewBreeds ) {
@@ -436,11 +452,18 @@ public class Mod : ModBase // <= Do not Remove.
                 return _hook_monsterID!.OriginalFunction( (uint) breed._genusBaseMain, (uint) breed._genusBaseSub );
             }
         }
+
         return _hook_monsterID!.OriginalFunction( breedIdMain, breedIdSub );
 
     }
 
-    private void RedirectFromID ( uint breedIdMain, uint breedIdSub ) {
+    /// <summary>
+    /// Sets up the redirects required for a monster on the fly, disabling or enabling as needed.
+    /// </summary>
+    /// <param name="breedIdMain"></param>
+    /// <param name="breedIdSub"></param>
+    /// <param name="variant"></param>
+    private void RedirectFromID ( uint breedIdMain, uint breedIdSub, int variant = 0 ) {
         MonsterGenus breedMain = (MonsterGenus) breedIdMain;
         MonsterGenus breedSub = (MonsterGenus) breedIdSub;
 
@@ -448,16 +471,16 @@ public class Mod : ModBase // <= Do not Remove.
 
         foreach ( MMBreed breed in MMBreed.NewBreeds ) {
             if ( breed.MatchNewBreed(breedMain, breedSub ) ) {
-                _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\" + breed._filepathBase + ".tex",
-                    _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\" + breed._filepathNew + ".tex" );
-                _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\" + breed._filepathBase + "_bt.tex",
-                    _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\" + breed._filepathNew + "_bt.tex" );
+                _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + ".tex",
+                    _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\" + breed.FilepathNew( variant ) + ".tex" );
+                _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + "_bt.tex",
+                    _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\" + breed.FilepathNew( variant ) + "_bt.tex" );
                 return;
             }
 
             if ( breed.MatchBaseBreed(breedMain, breedSub) ) {
-                _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\" + breed._filepathBase + ".tex");
-                _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\" + breed._filepathBase + "_bt.tex" );
+                _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + ".tex");
+                _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + "_bt.tex" );
                 return;
             }
         }
@@ -512,6 +535,7 @@ public class Mod : ModBase // <= Do not Remove.
             if ( songID == songMap.Key ) {
                 shrineReplacementActive = true;
                 _shrineReplacementMonster = songMap.Value;
+                _shrineColorVariant = Random.Shared.Next( _shrineReplacementMonster._variantCount == 0 ? 0 : _shrineReplacementMonster._variantCount + 1 );
             }
         }
     }
@@ -520,6 +544,7 @@ public class Mod : ModBase // <= Do not Remove.
     /// This function is called right before performing the shrine animation. Once
     /// complete, the monster is created. Here we overwrite where the monster breed
     /// sub is written to so that the correct model/texture is used.
+    /// We also determine which color variant is used.
     /// </summary>
     /// <param name="self"></param>
     private void SetupOverwriteSDATA ( nuint self ) {
@@ -550,7 +575,7 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     /// <param name="self"></param>
     /// <returns></returns>
-    private int SetupMysteryStat ( nuint self) {
+    private int SetupMysteryStat ( nuint self ) {
 
         var ret = _hook_statUpdate!.OriginalFunction( self );
 
@@ -589,9 +614,64 @@ public class Mod : ModBase // <= Do not Remove.
 
             // Battle Specials and Moves not supported yet.
 
+            Memory.Instance.Write( _address_monster + 0x164, _shrineColorVariant );
+
             shrineReplacementActive = false;
         }
         return ret;
+    }
+
+    private void SetupFreezerWriteFreezer( nuint self, int freezerID, int unk2 ) {
+        Logger.Warn( $"Freezer Writing:{self} {freezerID} {unk2}" );
+
+        nuint freezerIDx = 0;
+        for ( freezerIDx = 0; freezerIDx <= 19; freezerIDx++ ) {
+            // This is similar logic the function itself uses. Except for checking for a mystery bit that I don't understand, check for the name.
+            Memory.Instance.Read( _address_freezer + 0x170 + ( (nuint) 524 * freezerIDx ), out byte openSlot );
+            if ( openSlot != 0xFF ) { break; }
+        }
+
+        _hook_freezerWriteFreezer!.OriginalFunction( self, freezerID, unk2 );
+
+        byte[] unused = { 0, 0, 0, 0 };
+        Memory.Instance.ReadRaw(_address_game + 0x37667C + 0x164, out unused, 4);
+        Memory.Instance.WriteRaw( _address_freezer + 0x16c + ( (nuint) 524 * (nuint) freezerIDx ), unused );
+
+        _freezerResetExtraMonsterData = true;
+
+        //Memory.Instance.Read( nuint.Add( self, 0x60 ), out nuint redir1 );
+        //Memory.Instance.Read( nuint.Add( redir1, 0x98 ), out nuint redir2 );
+        //Memory.Instance.Read( nuint.Add( redir2, 0xc), out nuint final);
+
+        //Logger.Warn( $"Freezer Final Values: {redir1}, {redir2}, {final}" );
+
+        //Memory.Instance.Read( nuint.Add( self, 0x60 ), out nuint redir1 );
+        //Memory.Instance.Read( nuint.Add( redir1, 0x9c ), out nuint redir2 );
+        //Memory.Instance.Read( nuint.Add( redir2, 0x8), out nuint final);
+
+        //Logger.Warn( $"Freezer Final Values: {redir1}, {redir2}, {final}" );
+
+        
+
+    }
+
+    /// <summary>
+    /// We hook this function only to see if we just froze a monster (FreezerWriteFreezer is called first), to determine if 
+    /// we need to reset the extar monster data bytes, located in the four bytes just prior to the Monster's name.
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="unk1"></param>
+    /// <param name="unk2"></param>
+    private void SetupFreezerWriteMonster ( nuint self, nuint unk1, int unk2 ) {
+
+        _hook_freezerWriteMonster!.OriginalFunction( self, unk1, unk2 );
+
+        if ( _freezerResetExtraMonsterData ) {
+            byte[] unused = { 0, 0, 0, 0 };
+            Memory.Instance.WriteRaw( _address_game + 0x37667C + 0x164, unused );
+        }
+
+        _freezerResetExtraMonsterData = false;
     }
 
     private void ProcessReloadedFileLoad ( string filename ) {
@@ -599,7 +679,8 @@ public class Mod : ModBase // <= Do not Remove.
         if ( _monsterInsideBattleStartup ) {
             //_logger.WriteLineAsync( $"Inside File Checking for Monsters", Color.Orange );
             if ( _monsterInsideBattleRedirects == 1 ) {
-                RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub );
+                RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub ); 
+                // Load the tournament monsters? I think?
             }
 
             if ( filename.Contains( "_bt.tex" ) && filename.Contains( "mf2\\data\\mon" ) ) {
