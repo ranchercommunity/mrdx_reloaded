@@ -328,8 +328,60 @@ public class Mod : ModBase // <= Do not Remove.
     ///  This function should eventually read from a file or some equivalent.
     /// </summary>
     private void InitializeNewMonsters ( bool unused ) {
+
+        // Reads in a slightly modified version of SDATA
+        var moreMonstersDataList = new Dictionary<int, string[]>();
+        var mdata = File.ReadAllLines( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER.csv" ) );
+        foreach ( var r in mdata ) {
+            var row = r.Split( "," );
+
+            int songID = int.Parse(row[ 0 ]);
+            string name = row[ 1 ];
+            MonsterGenus newMain = (MonsterGenus) int.Parse( row[ 2 ] );
+            MonsterGenus newSub = (MonsterGenus) int.Parse( row[ 3 ] );
+
+            MonsterGenus baseMain = (MonsterGenus) int.Parse( row[ 4 ] );
+            MonsterGenus baseSub = (MonsterGenus) int.Parse( row[ 5 ] );
+
+            ushort lifespan = ushort.Parse( row[ 6 ] );
+            short nature = short.Parse( row[ 7 ] );
+            LifeType growthPattern = (LifeType) int.Parse( row[ 8 ] );
+
+            ushort slif = ushort.Parse( row[ 9 ] );
+            ushort spow = ushort.Parse( row[ 10 ] );
+            ushort sint = ushort.Parse( row[ 11 ] );
+            ushort sski = ushort.Parse( row[ 12 ] );
+            ushort sspd = ushort.Parse( row[ 13 ] );
+            ushort sdef = ushort.Parse( row[ 14 ] );
+
+            byte glif = byte.Parse( row[ 15 ] );
+            byte gpow = byte.Parse( row[ 16 ] );
+            byte gint = byte.Parse( row[ 17 ] );
+            byte gski = byte.Parse( row[ 18 ] );
+            byte gspd = byte.Parse( row[ 19 ] );
+            byte gdef = byte.Parse( row[ 20 ] );
+
+            byte arenaspeed = byte.Parse( row[ 21 ] );
+            byte gutsrate = byte.Parse( row[ 22 ] );
+            int battlespecials = int.Parse( row[ 23 ] );
+            int techniques = int.Parse( row[ 24 ] );
+
+            ushort trainbonuses = ushort.Parse( row[ 25 ] );
+
+            MMBreed? breed = MMBreed.GetBreed( newMain, newSub );
+            if ( MMBreed.GetBreed(newMain, newSub) == null ) {
+                breed = new MMBreed( newMain, newSub, baseMain, baseSub );
+                breed.NewBaseBreed( name, lifespan, nature, growthPattern,
+                    slif, spow, sint, sski, sspd, sdef,
+                    glif, gpow, gint, gski, gspd, gdef,
+                    arenaspeed, gutsrate, battlespecials, techniques, trainbonuses );
+                _songIDMapping.Add( songID, breed );
+            }
+        }
+
         // Zuum-Henger
-        MMBreed breed = new MMBreed( MonsterGenus.Zuum, MonsterGenus.Henger, MonsterGenus.Zuum, MonsterGenus.Arrowhead );
+        //MMBreed breed = new MMBreed( MonsterGenus.Zuum, MonsterGenus.Henger, MonsterGenus.Zuum, MonsterGenus.Arrowhead );
+        /*
         breed.NewBaseBreed( "Zuugar", 330, 45, LifeType.Normal, 
             120, 130, 90, 150, 120, 110, 
             2, 2, 2, 3, 2, 1, 
@@ -415,7 +467,7 @@ public class Mod : ModBase // <= Do not Remove.
         _songIDMapping.Add( 1262766, breed );
 
         //3	32	370	50	3	140	70	100	115	125	55	3.0	2.0	2.0	3.0	2.0	1.0	1	11	4355	101			0	605.0
-        breed = new MMBreed( MonsterGenus.ColorPandora, MonsterGenus.Ducken, MonsterGenus.ColorPandora, MonsterGenus.ColorPandora );
+        breed = new MMBreed( MonsterGenus.Golem, MonsterGenus.Ducken, MonsterGenus.ColorPandora, MonsterGenus.ColorPandora );
         breed.NewBaseBreed( "Kapukkoro", 370, 50, LifeType.Sustainable,
             140, 70, 100, 115, 125, 55,
             3, 2, 2, 3, 2, 1,
@@ -427,7 +479,7 @@ public class Mod : ModBase // <= Do not Remove.
             110, 60, 65, 110, 150, 55,
             3, 2, 1, 2, 3, 1,
             1, 9, 4335, 101, 0 );
-        _songIDMapping.Add( 1262770, breed );
+        _songIDMapping.Add( 1262770, breed );*/
 
         // TODO : Monster Moves and Battle Specials seem to be non-functioning?
 
