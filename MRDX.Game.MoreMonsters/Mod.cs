@@ -416,16 +416,23 @@ public class Mod : ModBase // <= Do not Remove.
 
         //3	32	370	50	3	140	70	100	115	125	55	3.0	2.0	2.0	3.0	2.0	1.0	1	11	4355	101			0	605.0
         breed = new MMBreed( MonsterGenus.ColorPandora, MonsterGenus.Ducken, MonsterGenus.ColorPandora, MonsterGenus.ColorPandora );
-        breed.NewBaseBreed( "Kapukkoro", 370, 50, LifeType.Sustainable, // STATS NOT DONE
-            140, 70, 100, 115, 125, 55 
+        breed.NewBaseBreed( "Kapukkoro", 370, 50, LifeType.Sustainable,
+            140, 70, 100, 115, 125, 55,
             3, 2, 2, 3, 2, 1,
             1, 11, 4335, 101, 0 );
         _songIDMapping.Add( 1262768, breed );
 
+        breed = new MMBreed( MonsterGenus.Ducken, MonsterGenus.ColorPandora, MonsterGenus.Ducken, MonsterGenus.Ducken );
+        breed.NewBaseBreed( "Pandoraken", 330, 55, LifeType.LateBloom,
+            110, 60, 65, 110, 150, 55,
+            3, 2, 1, 2, 3, 1,
+            1, 9, 4335, 101, 0 );
+        _songIDMapping.Add( 1262770, breed );
+
         // TODO : Monster Moves and Battle Specials seem to be non-functioning?
 
         /*Songs to use
-         * 		1262770	1262783	1262789	989884
+         * 			1262783	1262789	989884
          * 989885 989886 989887 989888 989889  989890 989891 989892 989893 989894 
          * 989895 989896 989897 989898 989899 989900*/
     }
