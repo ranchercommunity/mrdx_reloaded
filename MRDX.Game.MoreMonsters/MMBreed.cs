@@ -67,17 +67,17 @@ namespace MRDX.Game.MoreMonsters
         public void NewBaseBreed( string name, ushort lifespan, short nature, LifeType growthpat,
             ushort slif, ushort spow, ushort sint, ushort sski, ushort sspe, ushort sdef,
             byte glif, byte gpow, byte gint, byte gski, byte gspe, byte gdef,
-            byte arena, byte guts, int battlespec, int moves, ushort trainbonuses ) {
+            byte arena, byte guts, int battlespec, long techniques, ushort trainbonuses ) {
 
             NewVariant( name, lifespan, nature, growthpat,
                 slif, spow, sint, sski, sspe, sdef,
                 glif, gpow, gint, gski, gspe, gdef,
-                arena, guts, battlespec, moves, trainbonuses );
+                arena, guts, battlespec, techniques, trainbonuses );
 
             string[] svalues = { name, $"{lifespan}", $"{nature}", $"{growthpat}", 
                 $"{slif}", $"{spow}", $"{sint}", $"{sski}", $"{sspe}", $"{sdef}", 
                 $"{glif}", $"{gpow}", $"{gint}", $"{gski}", $"{gspe}", $"{gdef}",
-                $"{arena}", $"{guts}", $"{battlespec}", $"{moves}", $"{0}", $"{0}", $"{trainbonuses}", 
+                $"{arena}", $"{guts}", $"{battlespec}", $"{techniques}", $"{0}", $"{0}", $"{trainbonuses}", 
                 $"{(slif + spow + sint + sski + sspe + sdef)}", $"{0}", $"{0}" };
 
             MonsterBreed b = new MonsterBreed {
@@ -95,7 +95,7 @@ namespace MRDX.Game.MoreMonsters
         public void NewVariant ( string name, ushort lifespan, short nature, LifeType growthpat,
             ushort slif, ushort spow, ushort sint, ushort sski, ushort sspe, ushort sdef,
             byte glif, byte gpow, byte gint, byte gski, byte gspe, byte gdef,
-            byte arena, byte guts, int battlespec, int moves, ushort trainbonuses ) {
+            byte arena, byte guts, int battlespec, long techniques, ushort trainbonuses ) {
 
             MMBreedVariant monster = new MMBreedVariant();
 
@@ -142,6 +142,7 @@ namespace MRDX.Game.MoreMonsters
 
             monster.TrainBoost = trainbonuses;
 
+            // TODO: Techniques and Battlespecials
             _monsterVariants.Add( monster );
         }
 

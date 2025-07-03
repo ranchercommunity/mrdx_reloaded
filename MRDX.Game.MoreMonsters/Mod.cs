@@ -364,7 +364,7 @@ public class Mod : ModBase // <= Do not Remove.
             byte arenaspeed = byte.Parse( row[ 21 ] );
             byte gutsrate = byte.Parse( row[ 22 ] );
             int battlespecials = int.Parse( row[ 23 ] );
-            int techniques = int.Parse( row[ 24 ] );
+            long techniques = long.Parse( row[ 24 ] );
 
             ushort trainbonuses = ushort.Parse( row[ 25 ] );
 
