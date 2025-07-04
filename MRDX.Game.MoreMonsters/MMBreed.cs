@@ -74,7 +74,8 @@ namespace MRDX.Game.MoreMonsters
                 glif, gpow, gint, gski, gspe, gdef,
                 arena, guts, battlespec, techniques, trainbonuses );
 
-            string[] svalues = { name, $"{lifespan}", $"{nature}", $"{growthpat}", 
+            string[] svalues = { $"{0}", name, $"{(byte) _genusNewMain}", $"{(byte) _genusNewSub}",
+                $"{lifespan}", $"{nature}", $"{growthpat}", 
                 $"{slif}", $"{spow}", $"{sint}", $"{sski}", $"{sspe}", $"{sdef}", 
                 $"{glif}", $"{gpow}", $"{gint}", $"{gski}", $"{gspe}", $"{gdef}",
                 $"{arena}", $"{guts}", $"{battlespec}", $"{techniques}", $"{0}", $"{0}", $"{trainbonuses}", 
