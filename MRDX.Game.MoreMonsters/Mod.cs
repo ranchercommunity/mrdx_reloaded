@@ -214,7 +214,7 @@ public class Mod : ModBase // <= Do not Remove.
         _address_monster = (nuint) _address_game + 0x37667C; // This is super jank. This is not technically where the monster starts, but instead where in my CT table it starts. May not align with the Monster class but it doesn't give me an address to use!
         _address_freezer = (nuint) _address_game + 0x3768BC;
 
-        Logger.SetLogLevel( Logger.LogLevel.Info );
+        Logger.SetLogLevel( Logger.LogLevel.Debug );
     }
 
     #region For Exports, Serialization etc.
@@ -241,7 +241,7 @@ public class Mod : ModBase // <= Do not Remove.
     /// <param name="subBreedID"></param>
     /// <returns>monsterBreedID (Card ID)</returns>
     private int SetupGetMonsterBreedName(nuint mainBreedID, nuint subBreedID ) {
-        //_logger.WriteLine( $"NamesStart: {mainBreedID} | {subBreedID}", Color.OrangeRed );
+        Logger.Trace( $"NamesStart: {mainBreedID} | {subBreedID}", Color.OrangeRed );
         var newBreed = MMBreed.GetBreed( (MonsterGenus) mainBreedID, (MonsterGenus) subBreedID );
 
         if ( newBreed != null ) {
@@ -249,7 +249,7 @@ public class Mod : ModBase // <= Do not Remove.
 
             Memory.Instance.Write( nuint.Add( _address_game, 0x3492A5 ), bn ); // Monster Species Pages
             Memory.Instance.Write( nuint.Add( _address_game, 0x354E45 ), bn ); // Combination References
-            //_logger.WriteLine( $"Wrote : {newBreed._monsterVariants[ 0 ].Name} to {nuint.Add( _address_game, 0x3492A6 )}", Color.OrangeRed );
+            Logger.Trace( $"Wrote : {newBreed._monsterVariants[ 0 ].Name} to {nuint.Add( _address_game, 0x3492A6 )}", Color.OrangeRed );
         }
         int ret = _hook_monsterBreedNames!.OriginalFunction( mainBreedID, subBreedID );
 
@@ -376,117 +376,9 @@ public class Mod : ModBase // <= Do not Remove.
                     glif, gpow, gint, gski, gspd, gdef,
                     arenaspeed, gutsrate, battlespecials, techniques, trainbonuses );
                 _songIDMapping.Add( songID, breed );
+                Logger.Info( $"New Monster Combination Found: {newMain}, {newSub} for songID {songID}." );
             }
         }
-
-        // Zuum-Henger
-        //MMBreed breed = new MMBreed( MonsterGenus.Zuum, MonsterGenus.Henger, MonsterGenus.Zuum, MonsterGenus.Arrowhead );
-        /*
-        breed.NewBaseBreed( "Zuugar", 330, 45, LifeType.Normal, 
-            120, 130, 90, 150, 120, 110, 
-            2, 2, 2, 3, 2, 1, 
-            2, 14, -1, -1, 12 );
-        _songIDMapping.Add( 1262719, breed );
-
-        breed = new MMBreed( MonsterGenus.Zuum, MonsterGenus.Undine, MonsterGenus.Zuum, MonsterGenus.Dragon );
-        breed.NewBaseBreed( "Leviathan", 330, 50, LifeType.Sustainable, 
-            100, 85, 100, 150, 115, 70, 
-            2, 1, 2, 4, 2, 1, 
-            3, 11, 3, 10001, 6 );
-        _songIDMapping.Add( 1262724, breed );
-
-        breed = new MMBreed( MonsterGenus.Zilla, MonsterGenus.Dragon, MonsterGenus.Zilla, MonsterGenus.Zilla );
-        breed.NewBaseBreed( "Zillagon", 320, -45, LifeType.Precocious, 
-            210, 180, 130, 100, 70, 130,
-            4, 4, 3, 1, 0, 3, 0, 
-            19, 3, 1001, 1024 );
-        _songIDMapping.Add( 1262729, breed );
-
-        breed = new MMBreed( MonsterGenus.Jell, MonsterGenus.Gaboo, MonsterGenus.Jell, MonsterGenus.Jell );
-        breed.NewBaseBreed( "Jellboo", 350, 15, LifeType.Sustainable,
-            145, 125, 60, 95, 115, 110,
-            3, 3, 1, 2, 1, 3,
-            2, 14, 3, 10001, 32 );
-        _songIDMapping.Add( 1262737, breed );
-
-        breed = new MMBreed( MonsterGenus.Undine, MonsterGenus.Dragon, MonsterGenus.Undine, MonsterGenus.Undine );
-        breed.NewBaseBreed( "Fireman", 280, -35, LifeType.Precocious,
-            90, 130, 145, 135, 100, 70,
-            2, 3, 3, 3, 2, 2,
-            2, 13, 3, 10000001, 2 );
-        _songIDMapping.Add( 1262738, breed );
-
-        breed = new MMBreed( MonsterGenus.Ghost, MonsterGenus.Joker, MonsterGenus.Ghost, MonsterGenus.Ghost );
-        breed.NewBaseBreed( "Poltergeist", 280, -70, LifeType.Sustainable,
-            105, 110, 175, 175, 130, 70,
-            1, 2, 4, 4, 2, 0,
-            3, 9, 3, 11, 16);
-        _songIDMapping.Add( 1262740, breed );
-
-        breed = new MMBreed( MonsterGenus.Monol, MonsterGenus.Mock, MonsterGenus.Monol, MonsterGenus.Monol );
-        breed.NewBaseBreed( "Revenge", 280, -70, LifeType.Sustainable, // STATS NOT DONE
-            105, 110, 175, 175, 130, 70,
-            1, 2, 4, 4, 2, 0,
-            3, 9, 3, 11, 16 );
-        _songIDMapping.Add( 1262743, breed );
-
-        
-        breed = new MMBreed( MonsterGenus.Undine, MonsterGenus.Gaboo, MonsterGenus.Undine, MonsterGenus.Undine );
-        breed.NewBaseBreed( "Madlena", 320, 40, LifeType.Sustainable,
-            120, 105, 65, 105, 125, 50,
-            3, 3, 1, 2, 3, 1,
-            2, 11, 19, 10000001, 2 );
-        _songIDMapping.Add( 1262745, breed );
-
-        breed = new MMBreed( MonsterGenus.Phoenix, MonsterGenus.Undine, MonsterGenus.Phoenix, MonsterGenus.Phoenix );
-        breed.NewBaseBreed( "Waterbird", 320, 40, LifeType.Sustainable, // STATS NOT DONE
-            120, 105, 65, 105, 125, 50,
-            3, 3, 1, 2, 3, 1,
-            2, 11, 19, 10000001, 2 );
-        _songIDMapping.Add( 1262749, breed );
-
-        breed = new MMBreed( MonsterGenus.Phoenix, MonsterGenus.Jill, MonsterGenus.Phoenix, MonsterGenus.Phoenix );
-        breed.NewBaseBreed( "Arctic Wind", 320, 40, LifeType.Sustainable, // STATS NOT DONE
-            120, 105, 65, 105, 125, 50,
-            3, 3, 1, 2, 3, 1,
-            2, 11, 19, 10000001, 2 );
-        _songIDMapping.Add( 1262752, breed );
-
-        breed = new MMBreed( MonsterGenus.Monol, MonsterGenus.ColorPandora, MonsterGenus.Monol, MonsterGenus.Monol, 2 );
-        breed.NewBaseBreed( "Pandora's Box", 280, -70, LifeType.Sustainable, // STATS NOT DONE
-            105, 110, 175, 175, 130, 70,
-            1, 2, 4, 4, 2, 0,
-            3, 9, 3, 11, 16 );
-        _songIDMapping.Add( 1262762, breed );
-
-        breed = new MMBreed( MonsterGenus.Monol, MonsterGenus.YY, MonsterGenus.Monol, MonsterGenus.Monol, 2 );
-        breed.NewBaseBreed( "MR3 Monodora", 280, -70, LifeType.Sustainable, // STATS NOT DONE
-            105, 110, 175, 175, 130, 70,
-            1, 2, 4, 4, 2, 0,
-            3, 9, 3, 11, 16 );
-        _songIDMapping.Add( 1262766, breed );
-
-        //3	32	370	50	3	140	70	100	115	125	55	3.0	2.0	2.0	3.0	2.0	1.0	1	11	4355	101			0	605.0
-        breed = new MMBreed( MonsterGenus.Golem, MonsterGenus.Ducken, MonsterGenus.ColorPandora, MonsterGenus.ColorPandora );
-        breed.NewBaseBreed( "Kapukkoro", 370, 50, LifeType.Sustainable,
-            140, 70, 100, 115, 125, 55,
-            3, 2, 2, 3, 2, 1,
-            1, 11, 4335, 101, 0 );
-        _songIDMapping.Add( 1262768, breed );
-
-        breed = new MMBreed( MonsterGenus.Ducken, MonsterGenus.ColorPandora, MonsterGenus.Ducken, MonsterGenus.Ducken );
-        breed.NewBaseBreed( "Pandoraken", 330, 55, LifeType.LateBloom,
-            110, 60, 65, 110, 150, 55,
-            3, 2, 1, 2, 3, 1,
-            1, 9, 4335, 101, 0 );
-        _songIDMapping.Add( 1262770, breed );*/
-
-        // TODO : Monster Moves and Battle Specials seem to be non-functioning?
-
-        /*Songs to use
-         * 			1262783	1262789	989884
-         * 989885 989886 989887 989888 989889  989890 989891 989892 989893 989894 
-         * 989895 989896 989897 989898 989899 989900*/
     }
 
     private int SetupHookMonsterID ( uint breedIdMain, uint breedIdSub ) {
