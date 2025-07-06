@@ -214,7 +214,7 @@ public class Mod : ModBase // <= Do not Remove.
         _address_monster = (nuint) _address_game + 0x37667C; // This is super jank. This is not technically where the monster starts, but instead where in my CT table it starts. May not align with the Monster class but it doesn't give me an address to use!
         _address_freezer = (nuint) _address_game + 0x3768BC;
 
-        Logger.SetLogLevel( Logger.LogLevel.Debug );
+        Logger.SetLogLevel( Logger.LogLevel.Trace );
     }
 
     #region For Exports, Serialization etc.
@@ -234,8 +234,9 @@ public class Mod : ModBase // <= Do not Remove.
 
 
     /// <summary>
-    /// Called when monster names are being looked for. Replaces the dummy error location with the correct text if we should 
-    /// have a name from the pool of added monsters.
+    /// Called when monster names are being looked for. The return value is the ID of the monster, which then is used to pull the name
+    /// data from the table. Writing over the -1 index in the combination table is safe, but those values hold pointer addresses
+    /// for the main table so we have to instead overwrite Pixie's name data and return an ID of 0 if it's for a new monster.
     /// </summary>
     /// <param name="mainBreedID"></param>
     /// <param name="subBreedID"></param>
@@ -247,31 +248,39 @@ public class Mod : ModBase // <= Do not Remove.
         if ( newBreed != null ) {
             var bn = newBreed._monsterVariants[ 0 ].NameRaw;
 
-            Memory.Instance.Write( nuint.Add( _address_game, 0x3492A5 ), bn ); // Monster Species Pages
-            Memory.Instance.Write( nuint.Add( _address_game, 0x354E45 ), bn ); // Combination References
+            Memory.Instance.Write( nuint.Add( _address_game, 0x3492A5 + 27 ), bn ); // Monster Species Pages
+            Memory.Instance.Write( nuint.Add( _address_game, 0x354E45 + 27), bn ); // Combination References
             Logger.Trace( $"Wrote : {newBreed._monsterVariants[ 0 ].Name} to {nuint.Add( _address_game, 0x3492A6 )}", Color.OrangeRed );
         }
+
+        // Rewrite Pixie's Data
+        else if ( mainBreedID == 0 && subBreedID == 0 ) {
+            byte[] pixieData = { 0xb5, 0x0f, 0xb5, 0x22, 0xb5, 0x31, 0xb5, 0x22, 0xb5, 0x1e, 0xff };
+            Memory.Instance.Write( nuint.Add( _address_game, 0x3492A5 + 27 ), pixieData ); // Monster Species Pages
+            Memory.Instance.Write( nuint.Add( _address_game, 0x354E45 + 27 ), pixieData ); // Combination References                                              
+        }
+
         int ret = _hook_monsterBreedNames!.OriginalFunction( mainBreedID, subBreedID );
 
-        //_logger.WriteLine( $"NamesEd: {unk1} | {unk2} | {ret}", Color.OrangeRed );
-        return ret;
+        Logger.Info( $"Name Overwritten: {mainBreedID} | {subBreedID} | {ret}", Color.OrangeRed );
+        return (ret == -1 ? 0 : ret); // We now overwrite and read from Pixie's data slot. 
     }
 
     private void SetupCombinationListGenerationStarted(nuint self) {
         _combinationListAddress = self + 0x94 - 0x8;
-        //_logger.WriteLine( $"Generation Started: {self} | {_combinationListAddress}", Color.OrangeRed );
+        Logger.Info( $"Generation Started: {self} | {_combinationListAddress}", Color.OrangeRed );
         _hook_combinationListGenerationStarted!.OriginalFunction( self );
     }
 
     private void SetupCombinationRenameFirstChoice ( nuint self ) {
         _combinationChosenMonsterAddress = self + 0x180;
-        //_logger.WriteLine( $"MonsterChoice Started: {self} | {_combinationChosenMonsterAddress}", Color.OrangeRed );
+        Logger.Info( $"Monster Combination Choice Started: {self} | {_combinationChosenMonsterAddress}", Color.OrangeRed );
         _hook_combinationRenameFirstChoice!.OriginalFunction( self );
     }
 
 
     private void SetupCombinationListGenerationFinished(nuint self) {
-        //_logger.WriteLine( $"Generation Finished: {self} | {_combinationListAddress}", Color.OrangeRed );
+        Logger.Info( $"Generation Finished: {self} | {_combinationListAddress}", Color.OrangeRed );
         _hook_combinationListGenerationFinished!.OriginalFunction( self );
 
         // Clear All Possibilities - 2E = Value 46 is the 'No combination byte'
@@ -433,7 +442,7 @@ public class Mod : ModBase // <= Do not Remove.
         MonsterGenus breedMain = (MonsterGenus) breedIdMain;
         MonsterGenus breedSub = (MonsterGenus) breedIdSub;
 
-        //_logger.WriteLineAsync( $"Running Redirect Script: {breedIdMain}/{breedIdSub}", Color.Lime );
+        Logger.Info( $"Running Redirect Script: {breedIdMain}/{breedIdSub}", Color.Lime );
 
         foreach ( MMBreed breed in MMBreed.NewBreeds ) {
             if ( breed.MatchNewBreed(breedMain, breedSub ) ) {
@@ -460,11 +469,11 @@ public class Mod : ModBase // <= Do not Remove.
     /// <param name="p3"></param>
     /// <param name="p4"></param>
     private void SetupHookLoadEMData ( nuint self, uint p2, int p3, int p4 ) {
-        //_logger.WriteLineAsync( $"Loading EM Data: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
+        Logger.Trace( $"Loading EM Data: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
         _monsterInsideEnemySetup = true;
 
         _hook_loadEMData!.OriginalFunction( self, p2, p3, p4 );
-        //_logger.WriteLineAsync( $"EM Data Call Done: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
+        Logger.Trace( $"EM Data Call Done: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
         _monsterInsideEnemySetup = false;
     }
 
@@ -475,10 +484,10 @@ public class Mod : ModBase // <= Do not Remove.
     private void SetupBattleStarting ( nuint self ) {
         _monsterInsideBattleStartup = true;
         _monsterInsideBattleRedirects = 0;
-        //_logger.WriteLineAsync( $"BATTLE STARTING!!!!!!!!!!!!!!!!!!!!!", Color.Red );
+        Logger.Trace( $"BATTLE STARTING!!!!!!!!!!!!!!!!!!!!!", Color.Red );
 
         _hook_battleStarting!.OriginalFunction( self );
-        //_logger.WriteLineAsync( $"BATTLE STARTING OVER !!!!!!!!!!!!!!", Color.Red );
+        Logger.Trace( $"BATTLE STARTING OVER !!!!!!!!!!!!!!", Color.Red );
         _monsterInsideBattleStartup = false;
     }
 
@@ -492,10 +501,10 @@ public class Mod : ModBase // <= Do not Remove.
     /// <param name="p2"></param>
     private void SetupEarlyShrine ( nuint self, nuint p2 ) {
         
-        //_logger.WriteLineAsync( $"ESHRINE: {self} {p2}", Color.Yellow );
+        Logger.Trace( $"ESHRINE: {self} {p2}", Color.Yellow );
         _hook_earlyShrine!.OriginalFunction( self, p2 );
         Memory.Instance.Read( nuint.Add( self, 0xcc ), out int songID );
-        //_logger.WriteLineAsync( $"ESHRINE: {self} {p2} {songID}", Color.Yellow );
+        Logger.Info( $"ESHRINE Post Setup: {self} {p2} {songID}", Color.Yellow );
 
         foreach ( var songMap in _songIDMapping ) {
             if ( songID == songMap.Key ) {
@@ -543,6 +552,7 @@ public class Mod : ModBase // <= Do not Remove.
     /// <returns></returns>
     private int SetupMysteryStat ( nuint self ) {
 
+        Logger.Info( "Updating Monster Stats to new base variant stats." );
         var ret = _hook_statUpdate!.OriginalFunction( self );
 
         if ( shrineReplacementActive ) {
