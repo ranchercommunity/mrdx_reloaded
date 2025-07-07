@@ -57,6 +57,7 @@ public delegate int H_ReadSDATA ( nuint self, int p1 );
 [Function( CallingConventions.Fastcall )]
 public delegate int H_MysteryStatUpdate ( nuint self );
 
+
 [HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 83 EC 34 A1 ?? ?? ?? ?? 33 C4 89 44 24 ?? A1 ?? ?? ?? ??" )]
 [Function( CallingConventions.Fastcall )]
 public delegate void H_CombinationListGenerationStarted( nuint self );
@@ -69,8 +70,12 @@ public delegate void H_CombinationListGenerationFinished ( nuint self );
 [Function( CallingConventions.Fastcall )]
 public delegate void H_CombinationRenameFirstChoice ( nuint self );
 
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 EC 0C 53 8B D9 56 57 8B 83 ?? ?? ?? ??" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void H_CombinationFinalStatsUpdate ( nuint unk1 );
+
 // MonsterIDFromBreeds - Takes in a Main/Sub and returns the Monster ID
-[HookDef( BaseGame.Mr2, Region.Us, "51 56 8B F1 8B 0D ?? ?? ?? ??" )]
+[ HookDef( BaseGame.Mr2, Region.Us, "51 56 8B F1 8B 0D ?? ?? ?? ??" )]
 [Function( CallingConventions.Fastcall )]
 public delegate int H_GetMonsterBreedName ( nuint mainID, nuint subID );
 
@@ -126,6 +131,7 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<H_CombinationRenameFirstChoice> _hook_combinationRenameFirstChoice;
     private IHook<H_CombinationListGenerationStarted> _hook_combinationListGenerationStarted;
     private IHook<H_CombinationListGenerationFinished> _hook_combinationListGenerationFinished;
+    private IHook<H_CombinationFinalStatsUpdate> _hook_combinationFinalStatsUpdate;
     private nuint _combinationChosenMonsterAddress;
     private nuint _combinationListAddress;
     private uint _combinationColorVariant;
@@ -196,6 +202,7 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_CombinationListGenerationStarted>( SetupCombinationListGenerationStarted ).ContinueWith( result => _hook_combinationListGenerationStarted = result.Result );
         _iHooks.AddHook<H_CombinationListGenerationFinished>( SetupCombinationListGenerationFinished ).ContinueWith( result => _hook_combinationListGenerationFinished = result.Result );
         _iHooks.AddHook<H_CombinationRenameFirstChoice>( SetupCombinationRenameFirstChoice ).ContinueWith( result => _hook_combinationRenameFirstChoice = result.Result );
+        _iHooks.AddHook<H_CombinationFinalStatsUpdate> ( SetupCombinationFinalStatsUpdate ).ContinueWith( result => _hook_combinationFinalStatsUpdate = result.Result );
 
         _iHooks.AddHook<H_GetMonsterBreedName>( SetupGetMonsterBreedName ).ContinueWith( result => _hook_monsterBreedNames = result.Result );
 
@@ -214,7 +221,7 @@ public class Mod : ModBase // <= Do not Remove.
         _address_monster = (nuint) _address_game + 0x37667C; // This is super jank. This is not technically where the monster starts, but instead where in my CT table it starts. May not align with the Monster class but it doesn't give me an address to use!
         _address_freezer = (nuint) _address_game + 0x3768BC;
 
-        Logger.SetLogLevel( Logger.LogLevel.Trace );
+        Logger.SetLogLevel( Logger.LogLevel.Info );
     }
 
     #region For Exports, Serialization etc.
@@ -245,6 +252,7 @@ public class Mod : ModBase // <= Do not Remove.
         Logger.Trace( $"NamesStart: {mainBreedID} | {subBreedID}", Color.OrangeRed );
         var newBreed = MMBreed.GetBreed( (MonsterGenus) mainBreedID, (MonsterGenus) subBreedID );
 
+        // Write New Monster Data
         if ( newBreed != null ) {
             var bn = newBreed._monsterVariants[ 0 ].NameRaw;
 
@@ -261,9 +269,10 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         int ret = _hook_monsterBreedNames!.OriginalFunction( mainBreedID, subBreedID );
+        ret = ( ret == -1 ? 0 : ret );
+        Logger.Debug( $"Name Overwritten: {mainBreedID} | {subBreedID} | {ret}", Color.OrangeRed );
 
-        Logger.Info( $"Name Overwritten: {mainBreedID} | {subBreedID} | {ret}", Color.OrangeRed );
-        return (ret == -1 ? 0 : ret); // We now overwrite and read from Pixie's data slot. 
+        return ret;  
     }
 
     private void SetupCombinationListGenerationStarted(nuint self) {
@@ -315,6 +324,16 @@ public class Mod : ModBase // <= Do not Remove.
                         comboResults.Add( breed, 1 );
                     }
                 }
+
+                breed = MonsterBreed.GetBreed( parents[ j ], parents[ i ] );
+                if ( breed != null ) {
+                    if ( comboResults.ContainsKey( breed ) ) {
+                        comboResults[ breed ] = comboResults[ breed ] + 1;
+                    }
+                    else {
+                        comboResults.Add( breed, 1 );
+                    }
+                }
             }
         }
 
@@ -326,6 +345,16 @@ public class Mod : ModBase // <= Do not Remove.
             Memory.Instance.Write( cAddr, (byte) comboSorted[i].Key.Main );
             Memory.Instance.Write( cAddr + 0x4, (byte) comboSorted[ i ].Key.Sub );
             Memory.Instance.Write( cAddr + 0x8, (byte) (byte) comboSorted[ i ].Value );
+        }
+    }
+
+    private void SetupCombinationFinalStatsUpdate ( nuint unk1 ) {
+        Logger.Info( $"Overwriting Combination Monster Status {unk1}", Color.OrangeRed );
+        _hook_combinationFinalStatsUpdate!.OriginalFunction( unk1 );
+
+        var breed = MMBreed.GetBreed( _monsterCurrent.GenusMain, _monsterCurrent.GenusSub );
+        if ( breed != null ) {
+            WriteMonsterData( breed._monsterVariants[ 0 ] );
         }
     }
 
@@ -373,7 +402,7 @@ public class Mod : ModBase // <= Do not Remove.
             byte arenaspeed = byte.Parse( row[ 21 ] );
             byte gutsrate = byte.Parse( row[ 22 ] );
             int battlespecials = int.Parse( row[ 23 ] );
-            long techniques = long.Parse( row[ 24 ] );
+            string techniques = row[ 24 ];
 
             ushort trainbonuses = ushort.Parse( row[ 25 ] );
 
@@ -394,7 +423,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         int variantID = 0;
 
-        Logger.Debug( $"Getting Monster ID: {breedIdMain} : {breedIdSub}", Color.Aqua );
+        Logger.Info( $"Getting Monster ID: {breedIdMain} : {breedIdSub}", Color.Aqua );
 
         if ( shrineReplacementActive ) {
             breedIdMain = (uint) _shrineReplacementMonster._genusNewMain;
@@ -469,11 +498,11 @@ public class Mod : ModBase // <= Do not Remove.
     /// <param name="p3"></param>
     /// <param name="p4"></param>
     private void SetupHookLoadEMData ( nuint self, uint p2, int p3, int p4 ) {
-        Logger.Trace( $"Loading EM Data: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
+        Logger.Debug( $"Loading EM Data: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
         _monsterInsideEnemySetup = true;
 
         _hook_loadEMData!.OriginalFunction( self, p2, p3, p4 );
-        Logger.Trace( $"EM Data Call Done: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
+        Logger.Debug( $"EM Data Call Done: {self} : {p2} : {p3} : {p4}", Color.GreenYellow );
         _monsterInsideEnemySetup = false;
     }
 
@@ -484,10 +513,10 @@ public class Mod : ModBase // <= Do not Remove.
     private void SetupBattleStarting ( nuint self ) {
         _monsterInsideBattleStartup = true;
         _monsterInsideBattleRedirects = 0;
-        Logger.Trace( $"BATTLE STARTING!!!!!!!!!!!!!!!!!!!!!", Color.Red );
+        Logger.Debug( $"BATTLE STARTING!!!!!!!!!!!!!!!!!!!!!", Color.Red );
 
         _hook_battleStarting!.OriginalFunction( self );
-        Logger.Trace( $"BATTLE STARTING OVER !!!!!!!!!!!!!!", Color.Red );
+        Logger.Debug( $"BATTLE STARTING OVER !!!!!!!!!!!!!!", Color.Red );
         _monsterInsideBattleStartup = false;
     }
 
@@ -501,10 +530,10 @@ public class Mod : ModBase // <= Do not Remove.
     /// <param name="p2"></param>
     private void SetupEarlyShrine ( nuint self, nuint p2 ) {
         
-        Logger.Trace( $"ESHRINE: {self} {p2}", Color.Yellow );
+        Logger.Debug( $"ESHRINE: {self} {p2}", Color.Yellow );
         _hook_earlyShrine!.OriginalFunction( self, p2 );
         Memory.Instance.Read( nuint.Add( self, 0xcc ), out int songID );
-        Logger.Info( $"ESHRINE Post Setup: {self} {p2} {songID}", Color.Yellow );
+        Logger.Debug( $"ESHRINE Post Setup: {self} {p2} {songID}", Color.Yellow );
 
         foreach ( var songMap in _songIDMapping ) {
             if ( songID == songMap.Key ) {
@@ -558,37 +587,7 @@ public class Mod : ModBase // <= Do not Remove.
         if ( shrineReplacementActive ) {
             // TODO - Choose Random Variant or something akin to that.
             var variant = _shrineReplacementMonster._monsterVariants[ 0 ];
-            _monsterCurrent.GenusMain = variant.GenusMain;
-            _monsterCurrent.GenusSub = variant.GenusSub;
-
-            _monsterCurrent.Lifespan = variant.Lifespan;
-            _monsterCurrent.InitalLifespan = variant.InitalLifespan;
-
-            _monsterCurrent.NatureRaw = variant.NatureRaw;
-            _monsterCurrent.NatureBase = variant.NatureBase;
-
-            _monsterCurrent.LifeType = variant.LifeType;
-
-            _monsterCurrent.Life = variant.Life;
-            _monsterCurrent.Power = variant.Power;
-            _monsterCurrent.Intelligence = variant.Intelligence;
-            _monsterCurrent.Skill = variant.Skill;
-            _monsterCurrent.Speed = variant.Speed;
-            _monsterCurrent.Defense = variant.Defense;
-
-            _monsterCurrent.GrowthRateLife = variant.GrowthRateLife;
-            _monsterCurrent.GrowthRatePower = variant.GrowthRatePower;
-            _monsterCurrent.GrowthRateIntelligence = variant.GrowthRateIntelligence;
-            _monsterCurrent.GrowthRateSkill = variant.GrowthRateSkill;
-            _monsterCurrent.GrowthRateSpeed = variant.GrowthRateSpeed;
-            _monsterCurrent.GrowthRateDefense = variant.GrowthRateDefense;
-
-            _monsterCurrent.ArenaSpeed = variant.ArenaSpeed;
-            _monsterCurrent.GutsRate = variant.GutsRate;
-
-            _monsterCurrent.TrainBoost = variant.TrainBoost;
-
-            // Battle Specials and Moves not supported yet.
+            WriteMonsterData( variant );
 
             Memory.Instance.Write( _address_monster + 0x164, _shrineColorVariant );
 
@@ -597,6 +596,42 @@ public class Mod : ModBase // <= Do not Remove.
         return ret;
     }
 
+    private void WriteMonsterData(MMBreedVariant variant) {
+        _monsterCurrent.GenusMain = variant.GenusMain;
+        _monsterCurrent.GenusSub = variant.GenusSub;
+
+        _monsterCurrent.Lifespan = variant.Lifespan;
+        _monsterCurrent.InitalLifespan = variant.InitalLifespan;
+
+        _monsterCurrent.NatureRaw = variant.NatureRaw;
+        _monsterCurrent.NatureBase = variant.NatureBase;
+
+        _monsterCurrent.LifeType = variant.LifeType;
+
+        _monsterCurrent.Life = variant.Life;
+        _monsterCurrent.Power = variant.Power;
+        _monsterCurrent.Intelligence = variant.Intelligence;
+        _monsterCurrent.Skill = variant.Skill;
+        _monsterCurrent.Speed = variant.Speed;
+        _monsterCurrent.Defense = variant.Defense;
+
+        _monsterCurrent.GrowthRateLife = variant.GrowthRateLife;
+        _monsterCurrent.GrowthRatePower = variant.GrowthRatePower;
+        _monsterCurrent.GrowthRateIntelligence = variant.GrowthRateIntelligence;
+        _monsterCurrent.GrowthRateSkill = variant.GrowthRateSkill;
+        _monsterCurrent.GrowthRateSpeed = variant.GrowthRateSpeed;
+        _monsterCurrent.GrowthRateDefense = variant.GrowthRateDefense;
+
+        _monsterCurrent.ArenaSpeed = variant.ArenaSpeed;
+        _monsterCurrent.GutsRate = variant.GutsRate;
+
+        Memory.Instance.WriteRaw( nuint.Add( _address_monster, 0x1D0 ), BitConverter.GetBytes(variant.BattleSpecialsRaw) );
+
+        _monsterCurrent.TrainBoost = variant.TrainBoost;
+
+        Memory.Instance.WriteRaw( nuint.Add( _address_monster, 0x192 ), variant.TechniquesRaw );
+
+    }
     private void SetupFreezerWriteFreezer( nuint self, int freezerID, int unk2 ) {
         Logger.Warn( $"Freezer Writing:{self} {freezerID} {unk2}" );
 

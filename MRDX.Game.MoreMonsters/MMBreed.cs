@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -67,7 +68,7 @@ namespace MRDX.Game.MoreMonsters
         public void NewBaseBreed( string name, ushort lifespan, short nature, LifeType growthpat,
             ushort slif, ushort spow, ushort sint, ushort sski, ushort sspe, ushort sdef,
             byte glif, byte gpow, byte gint, byte gski, byte gspe, byte gdef,
-            byte arena, byte guts, int battlespec, long techniques, ushort trainbonuses ) {
+            byte arena, byte guts, int battlespec, string techniques, ushort trainbonuses ) {
 
             NewVariant( name, lifespan, nature, growthpat,
                 slif, spow, sint, sski, sspe, sdef,
@@ -96,7 +97,7 @@ namespace MRDX.Game.MoreMonsters
         public void NewVariant ( string name, ushort lifespan, short nature, LifeType growthpat,
             ushort slif, ushort spow, ushort sint, ushort sski, ushort sspe, ushort sdef,
             byte glif, byte gpow, byte gint, byte gski, byte gspe, byte gdef,
-            byte arena, byte guts, int battlespec, long techniques, ushort trainbonuses ) {
+            byte arena, byte guts, int battlespec, string techniques, ushort trainbonuses ) {
 
             MMBreedVariant monster = new MMBreedVariant();
 
@@ -141,6 +142,29 @@ namespace MRDX.Game.MoreMonsters
             monster.ArenaSpeed = arena;
             monster.GutsRate = guts;
 
+            monster.BattleSpecialsRaw = (ushort) battlespec;
+
+            var techList = MonsterBreed.GetBreed( _genusNewMain, _genusNewMain ).TechList;
+            var techSlots = new byte[ 24 ];
+            monster.TechniquesRaw = new byte[ 48 ];
+            var techArray = techniques.ToCharArray();
+
+            for ( var i = techArray.Length - 1; i >= 0; i-- ) {
+                if ( techArray[ i ] == '1' ) {
+                    foreach ( var technique in techList ) {
+                        if ( technique.Id == i ) {
+                            BitArray bArray = new BitArray( [ (int) technique.Slot ] );
+                            for ( var j = 0; j < 32; j++ ) {
+                                if ( bArray[ j ] ) {
+                                    monster.TechniquesRaw[ ( j * 2 ) ] = 1;
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+
             monster.TrainBoost = trainbonuses;
 
             // TODO: Techniques and Battlespecials
@@ -174,8 +198,11 @@ namespace MRDX.Game.MoreMonsters
         public byte GrowthRateSkill { get; set; }
         public byte GrowthRateSpeed { get; set; }
         public byte GrowthRateDefense { get; set; }
-        public ushort TrainBoost { get; set; }
         public byte ArenaSpeed { get; set; }
         public byte GutsRate { get; set; }
+        public ushort BattleSpecialsRaw { get; set; }
+        public byte[] TechniquesRaw { get; set; }
+        public ushort TrainBoost { get; set; }
+
     }
 }

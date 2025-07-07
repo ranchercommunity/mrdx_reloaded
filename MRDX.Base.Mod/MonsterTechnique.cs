@@ -4,10 +4,11 @@ namespace MRDX.Base.Mod;
 
 public record MonsterTechnique : IMonsterTechnique
 {
-    public MonsterTechnique(string atkName, TechSlots slot, Span<byte> data)
+    public MonsterTechnique(string atkName, byte rawId, TechSlots slot, Span<byte> data)
     {
         var dat = data.ToArray();
         Name = atkName;
+        Id = rawId;
         Slot = slot;
         JpnName = dat[..16];
         Type = (ErrantryType)dat[16];
@@ -29,6 +30,7 @@ public record MonsterTechnique : IMonsterTechnique
 
     // Slot is not a real value on the monster tech data, but rather the position in the attack
     // list where it belongs. This way we can build the actual tech list easier.
+    public byte Id { get; set; }
     public TechSlots Slot { get; set; }
 
     public byte[] JpnName { get; set; }

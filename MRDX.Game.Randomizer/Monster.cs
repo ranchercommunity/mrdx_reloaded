@@ -32,7 +32,7 @@ public class Monster
                     continue;
 
                 // Randomizer.Logger?.WriteLine($"[MRDX Randomizer] new attack offset {offset}");
-                Techs.Add(new MonsterTechnique(atkNames[i, j], (TechSlots)(1 << (i * 6 + j)),
+                Techs.Add(new MonsterTechnique(atkNames[i, j], (byte) i, (TechSlots)(1 << (i * 6 + j)),
                     rawStats[offset .. (offset + 0x20)]));
             }
         }
