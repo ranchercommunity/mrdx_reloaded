@@ -18,6 +18,8 @@ public interface IMonsterTechnique
     //     set => Slot = value / 6; Range = value % 6;
     // }
 
+    byte Id { get; set; }
+
     TechSlots Slot { get; set; }
 
     byte[] JpnName { get; set; }
