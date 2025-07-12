@@ -309,6 +309,8 @@ public interface IBattleMonsterData
 
     byte[] Techs { get; set; }
 
+    uint TechsRaw { get; set; }
+
     TechSlots TechSlot
     {
         get => (TechSlots)BitConverter.ToUInt32([Techs[0], Techs[1], Techs[2], 0], 0);
@@ -343,7 +345,9 @@ public interface IBattleMonsterData
         o[41] = Fear;
         o[42] = Spoil;
         o[43] = 0; // This is likely FormRaw
-        Techs.CopyTo(o, 44);
+
+        BitConverter.GetBytes( TechsRaw ).CopyTo( o, 44 );
+        //Techs.CopyTo(o, 44);
         o[48] = ArenaSpeed;
         o[49] = GutsRate;
         o[50] = 0;
@@ -356,24 +360,24 @@ public interface IBattleMonsterData
 
     public static IBattleMonsterData FromBytes(byte[] o)
     {
-        return new BattleMonsterData
-        {
-            Name = o[..26].AsShorts().AsString(),
-            GenusMain = (MonsterGenus)o[26],
-            GenusSub = (MonsterGenus)o[27],
-            Life = BitConverter.ToUInt16(o, 28),
-            Power = BitConverter.ToUInt16(o, 30),
-            Defense = BitConverter.ToUInt16(o, 32),
-            Skill = BitConverter.ToUInt16(o, 34),
-            Speed = BitConverter.ToUInt16(o, 36),
-            Intelligence = BitConverter.ToUInt16(o, 38),
-            Nature = (sbyte)o[40],
-            Fear = o[41],
-            Spoil = o[42],
-            Techs = o[44..47],
-            ArenaSpeed = o[48],
-            GutsRate = o[49],
-            BattleSpecial = (BattleSpecials)BitConverter.ToUInt16(o, 52)
+        return new BattleMonsterData {
+            Name = o[ ..26 ].AsShorts().AsString(),
+            GenusMain = (MonsterGenus) o[ 26 ],
+            GenusSub = (MonsterGenus) o[ 27 ],
+            Life = BitConverter.ToUInt16( o, 28 ),
+            Power = BitConverter.ToUInt16( o, 30 ),
+            Defense = BitConverter.ToUInt16( o, 32 ),
+            Skill = BitConverter.ToUInt16( o, 34 ),
+            Speed = BitConverter.ToUInt16( o, 36 ),
+            Intelligence = BitConverter.ToUInt16( o, 38 ),
+            Nature = (sbyte) o[ 40 ],
+            Fear = o[ 41 ],
+            Spoil = o[ 42 ],
+            Techs = o[ 44..47 ],
+            TechsRaw = BitConverter.ToUInt32( o, 44 ),
+            ArenaSpeed = o[ 48 ],
+            GutsRate = o[ 49 ],
+            BattleSpecial = (BattleSpecials) BitConverter.ToUInt16( o, 52 )
         };
     }
 }
@@ -399,6 +403,7 @@ public class BattleMonsterData : IBattleMonsterData
         Nature = b.Nature;
         Fear = b.Fear;
         Spoil = b.Spoil;
+        TechsRaw = b.TechsRaw;
         Techs = b.Techs;
         ArenaSpeed = b.ArenaSpeed;
         GutsRate = b.GutsRate;
@@ -432,9 +437,11 @@ public class BattleMonsterData : IBattleMonsterData
     public byte Spoil { get; set; }
     public byte Fear { get; set; }
     public byte[] Techs { get; set; } = new byte[3];
+    public uint TechsRaw { get; set; }
     public byte ArenaSpeed { get; set; }
     public byte GutsRate { get; set; }
     public BattleSpecials BattleSpecial { get; set; }
+
 
     public byte[] Serialize()
     {
