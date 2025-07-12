@@ -491,12 +491,16 @@ public class TournamentMonster : BattleMonsterData
 
     public void MonsterAddTechnique(IMonsterTechnique tech)
     {
-        // set the bit at this slot
+        // TODO: Figure out the mapping between slots and IDs, I can't do this right now.
+        TechsRaw |= (uint) ( 1 << tech.Id) ;
+        // set the bit at this slot.
         TechSlot |= tech.Slot;
     }
 
     private void MonsterRemoveTechnique(IMonsterTechnique tech)
     {
+        // TODO: Figure out the mapping between slots and IDs, I can't do this right now.
+        TechsRaw &= (uint) ~( 1 << tech.Id );
         // clear the bit at this slot
         TechSlot &= ~tech.Slot;
     }
