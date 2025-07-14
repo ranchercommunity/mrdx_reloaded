@@ -89,6 +89,11 @@ public delegate void H_FreezerWriteFreezer ( nuint self, int unk1, int unk2 );
 [Function( CallingConventions.MicrosoftThiscall )]
 public delegate void H_FreezerWriteMonster ( nuint self, nuint unk1, int unk2 );
 
+// Called when writing stats for a monster that's being unfrozen.
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 8B 55 ?? 83 EC 10 53" )]
+[Function( CallingConventions.MicrosoftThiscall )]
+public delegate void H_FreezerWriteMonterStats ( int unk1, int unk2 );
+
 
 public class Mod : ModBase // <= Do not Remove.
 {
@@ -103,6 +108,9 @@ public class Mod : ModBase // <= Do not Remove.
     private nuint _address_game;
     private nuint _address_monster;
     private nuint _address_freezer;
+    private nuint _address_monster_mm_variant;
+    private nuint _address_monster_mm_trueguts;
+
 
     private IHook<H_MonsterID> _hook_monsterID;
     private IHook<H_LoadEnemyMonsterData> _hook_loadEMData;
@@ -121,7 +129,8 @@ public class Mod : ModBase // <= Do not Remove.
 
     public bool shrineReplacementActive = false;
     private MMBreed _shrineReplacementMonster;
-    private int _shrineColorVariant;
+    private byte _shrineColorVariant;
+    private byte _shrineMonsterScaling = 0;
     private readonly IMonster _monsterCurrent;
 
     private Dictionary<int, MMBreed> _songIDMapping = new Dictionary<int, MMBreed>();
@@ -140,8 +149,15 @@ public class Mod : ModBase // <= Do not Remove.
 
     private IHook<H_FreezerWriteFreezer> _hook_freezerWriteFreezer;
     private IHook<H_FreezerWriteMonster> _hook_freezerWriteMonster;
+    private IHook<H_FreezerWriteMonterStats> _hook_freezerWriteMonsterStats;
     private bool _freezerResetExtraMonsterData = false;
 
+    /* Scaling Variables */
+    private IHook<UpdateGenericState> _hook_updateGenericState;
+    private nuint _address_monster_mm_scaling;
+
+    private nuint _address_monster_vertex_scaling;
+    private short _vertexScaling;
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -194,7 +210,6 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_LoadEnemyMonsterData>( SetupHookLoadEMData ).ContinueWith( result => _hook_loadEMData = result.Result );
         _iHooks.AddHook<H_BattleStarting>( SetupBattleStarting ).ContinueWith( result => _hook_battleStarting = result.Result );
 
-
         _iHooks.AddHook<H_EarlyShrine>( SetupEarlyShrine ).ContinueWith( result => _hook_earlyShrine = result.Result );
         _iHooks.AddHook<H_WriteSDATAMemory>(SetupOverwriteSDATA).ContinueWith( result => _hook_writeSDATAMemory = result.Result );
         _iHooks.AddHook<H_MysteryStatUpdate>( SetupMysteryStat ).ContinueWith( result => _hook_statUpdate = result.Result );
@@ -206,10 +221,12 @@ public class Mod : ModBase // <= Do not Remove.
 
         _iHooks.AddHook<H_GetMonsterBreedName>( SetupGetMonsterBreedName ).ContinueWith( result => _hook_monsterBreedNames = result.Result );
 
-        _iHooks.AddHook<H_FreezerWriteFreezer>( SetupFreezerWriteFreezer ).ContinueWith( result => _hook_freezerWriteFreezer = result.Result );
-        _iHooks.AddHook<H_FreezerWriteMonster>( SetupFreezerWriteMonster ).ContinueWith( result => _hook_freezerWriteMonster = result.Result );
+        _iHooks.AddHook<H_FreezerWriteFreezer>( FreezerWriteMonsterToFreezer ).ContinueWith( result => _hook_freezerWriteFreezer = result.Result );
+        _iHooks.AddHook<H_FreezerWriteMonster>( FreezerFrozenMonsterClearMMBytes ).ContinueWith( result => _hook_freezerWriteMonster = result.Result );
+        _iHooks.AddHook<H_FreezerWriteMonterStats>( FreezerGutsCorrection ).ContinueWith( result => _hook_freezerWriteMonsterStats = result.Result );
         //_iHooks.AddHook<ParseTextWithCommandCodes>( SetupParseTextCommmandCodes ).ContinueWith(result => _hook_parseTextWithCommandCodes = result.Result.Activate());
 
+        _iHooks.AddHook<UpdateGenericState>( CheckVertexScalingUpdate ).ContinueWith( result => _hook_updateGenericState = result.Result );
 
         WeakReference<IRedirectorController> _redirectorx = _modLoader.GetController<IRedirectorController>();
         _redirectorx.TryGetTarget( out var redirect );
@@ -220,6 +237,12 @@ public class Mod : ModBase // <= Do not Remove.
         _address_game = (nuint) exeBaseAddress;
         _address_monster = (nuint) _address_game + 0x37667C; // This is super jank. This is not technically where the monster starts, but instead where in my CT table it starts. May not align with the Monster class but it doesn't give me an address to use!
         _address_freezer = (nuint) _address_game + 0x3768BC;
+
+        _address_monster_mm_variant = _address_monster + 0x164;
+        _address_monster_mm_trueguts = _address_monster + 0x167;
+
+        _address_monster_mm_scaling = _address_monster + 0x165;
+        _address_monster_vertex_scaling = _address_game + 0x581520;
 
         Logger.SetLogLevel( Logger.LogLevel.Info );
     }
@@ -234,8 +257,8 @@ public class Mod : ModBase // <= Do not Remove.
 
     #endregion
    
-    private int GetPlayerMonsterVariantData() {
-        Memory.Instance.Read( _address_monster + 0x164, out int variantID );
+    private byte GetPlayerMonsterVariantData() {
+        Memory.Instance.Read( _address_monster_mm_variant, out byte variantID );
         return variantID;
     }
 
@@ -525,6 +548,7 @@ public class Mod : ModBase // <= Do not Remove.
     /// This function is called when the player has confirmed which Song they are going
     /// to generate from the shrine. At this point, we can see if the monster needs
     /// to be replaced and enable the mapping.
+    /// We also determine which color variant to use.
     /// </summary>
     /// <param name="self"></param>
     /// <param name="p2"></param>
@@ -539,16 +563,18 @@ public class Mod : ModBase // <= Do not Remove.
             if ( songID == songMap.Key ) {
                 shrineReplacementActive = true;
                 _shrineReplacementMonster = songMap.Value;
-                _shrineColorVariant = Random.Shared.Next( _shrineReplacementMonster._variantCount == 0 ? 0 : _shrineReplacementMonster._variantCount + 1 );
+                _shrineColorVariant = (byte) Random.Shared.Next( _shrineReplacementMonster._variantCount == 0 ? 0 : _shrineReplacementMonster._variantCount + 1 );
+                //_shrineMonsterScaling = (byte) ( ( Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) ) / 4 );
             }
         }
+
+        _shrineMonsterScaling = (byte) ( ( Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) ) / 2 );
     }
 
     /// <summary>
     /// This function is called right before performing the shrine animation. Once
     /// complete, the monster is created. Here we overwrite where the monster breed
     /// sub is written to so that the correct model/texture is used.
-    /// We also determine which color variant is used.
     /// </summary>
     /// <param name="self"></param>
     private void SetupOverwriteSDATA ( nuint self ) {
@@ -558,6 +584,12 @@ public class Mod : ModBase // <= Do not Remove.
             Memory.Instance.Read( nuint.Add(self, 0x44), out nuint breedLoc );
             Memory.Instance.Write( breedLoc + 0x48, (byte) _shrineReplacementMonster._genusNewMain );
             Memory.Instance.Write( breedLoc + 0x49, (byte) _shrineReplacementMonster._genusNewSub );
+
+        }
+
+        if ( _configuration.MonsterSizesEnabled ) {
+            Memory.Instance.Write( _address_monster_mm_scaling, _shrineMonsterScaling );
+            _shrineMonsterScaling = 0;
         }
     }
 
@@ -576,6 +608,7 @@ public class Mod : ModBase // <= Do not Remove.
     /// <summary>
     /// This function is called after all shrine stat setup code is called.
     /// We then replace all of the stats with the chosen variant.
+    /// Also sets up additional information such as color variants and scaling.
     /// </summary>
     /// <param name="self"></param>
     /// <returns></returns>
@@ -589,7 +622,7 @@ public class Mod : ModBase // <= Do not Remove.
             var variant = _shrineReplacementMonster._monsterVariants[ 0 ];
             WriteMonsterData( variant );
 
-            Memory.Instance.Write( _address_monster + 0x164, _shrineColorVariant );
+            Memory.Instance.Write( _address_monster_mm_variant, _shrineColorVariant );
 
             shrineReplacementActive = false;
         }
@@ -632,48 +665,44 @@ public class Mod : ModBase // <= Do not Remove.
         Memory.Instance.WriteRaw( nuint.Add( _address_monster, 0x192 ), variant.TechniquesRaw );
 
     }
-    private void SetupFreezerWriteFreezer( nuint self, int freezerID, int unk2 ) {
+
+
+    private void FreezerWriteMonsterToFreezer( nuint self, int freezerID, int unk2 ) {
         Logger.Warn( $"Freezer Writing:{self} {freezerID} {unk2}" );
 
         nuint freezerIDx = 0;
         for ( freezerIDx = 0; freezerIDx <= 19; freezerIDx++ ) {
+            // Finds the freezer space that will be used.
             // This is similar logic the function itself uses. Except for checking for a mystery bit that I don't understand, check for the name.
             Memory.Instance.Read( _address_freezer + 0x170 + ( (nuint) 524 * freezerIDx ), out byte openSlot );
             if ( openSlot != 0xFF ) { break; }
         }
 
+        // This is where the magic happens for guts.
+        Memory.Instance.WriteRaw( _address_monster_mm_trueguts, [ _monsterCurrent.GutsRate ] );
+        _monsterCurrent.GutsRate = 255;
+
+
         _hook_freezerWriteFreezer!.OriginalFunction( self, freezerID, unk2 );
 
+
+        // Read the monster's MM bytes and write them to the proper freezer space.
         byte[] unused = { 0, 0, 0, 0 };
-        Memory.Instance.ReadRaw(_address_game + 0x37667C + 0x164, out unused, 4);
+        Memory.Instance.ReadRaw(_address_monster + 0x164, out unused, 4);
         Memory.Instance.WriteRaw( _address_freezer + 0x16c + ( (nuint) 524 * (nuint) freezerIDx ), unused );
 
         _freezerResetExtraMonsterData = true;
-
-        //Memory.Instance.Read( nuint.Add( self, 0x60 ), out nuint redir1 );
-        //Memory.Instance.Read( nuint.Add( redir1, 0x98 ), out nuint redir2 );
-        //Memory.Instance.Read( nuint.Add( redir2, 0xc), out nuint final);
-
-        //Logger.Warn( $"Freezer Final Values: {redir1}, {redir2}, {final}" );
-
-        //Memory.Instance.Read( nuint.Add( self, 0x60 ), out nuint redir1 );
-        //Memory.Instance.Read( nuint.Add( redir1, 0x9c ), out nuint redir2 );
-        //Memory.Instance.Read( nuint.Add( redir2, 0x8), out nuint final);
-
-        //Logger.Warn( $"Freezer Final Values: {redir1}, {redir2}, {final}" );
-
-        
 
     }
 
     /// <summary>
     /// We hook this function only to see if we just froze a monster (FreezerWriteFreezer is called first), to determine if 
-    /// we need to reset the extar monster data bytes, located in the four bytes just prior to the Monster's name.
+    /// we need to reset the extra monster data bytes, located in the four bytes just prior to the Monster's name.
     /// </summary>
     /// <param name="self"></param>
     /// <param name="unk1"></param>
     /// <param name="unk2"></param>
-    private void SetupFreezerWriteMonster ( nuint self, nuint unk1, int unk2 ) {
+    private void FreezerFrozenMonsterClearMMBytes ( nuint self, nuint unk1, int unk2 ) {
 
         _hook_freezerWriteMonster!.OriginalFunction( self, unk1, unk2 );
 
@@ -685,6 +714,67 @@ public class Mod : ModBase // <= Do not Remove.
         _freezerResetExtraMonsterData = false;
     }
 
+    /// <summary>
+    /// After the monster's stats are set from the freezer, update the monster's guts to the MM value.
+    /// Values of 0 represent pre-MM Freezes and can be ignored.
+    /// Guts Correction - 
+    /// </summary>
+    /// <param name="unk1"></param>
+    /// <param name="unk2"></param>
+    private void FreezerGutsCorrection( int unk1, int unk2 ) {
+        _hook_freezerWriteMonsterStats!.OriginalFunction( unk1, unk2 );
+
+        Memory.Instance.Read<byte>( _address_monster_mm_trueguts, out byte trueGuts );
+        if ( trueGuts != 0 ) { _monsterCurrent.GutsRate = trueGuts; }
+    }
+
+
+    #region Monster Scaling
+
+    /// <summary>
+    /// Reads the location of the scaling factor in memory for monsters, then applies the configuration options to get a % scaling.
+    /// This location in memory is by default 0, so set it to 1. Monster sizes should be from 1-201.
+    /// </summary>
+    /// <returns></returns>
+    private double GetCurrentMonsterScalingFactor () {
+        byte monsterScaling = _shrineMonsterScaling;
+        if ( monsterScaling == 0 ) {
+            Memory.Instance.Read( _address_monster_mm_scaling, out monsterScaling );
+        }
+
+        if ( monsterScaling == 0 ) { return 1; }
+
+        if ( monsterScaling <= 100 ) { return Single.Lerp( (float) _configuration.MonsterSizeMinimum, (float) 1.0, (((float) monsterScaling)-1) / 99 ); }
+        else if ( monsterScaling == 101 ) { return 1.0; }
+        else { return Single.Lerp( (float) 1.0, (float) _configuration.MonsterSizeMaximum, ( ( (float) monsterScaling ) - 101 ) / 100 ); }
+    }
+
+    /// <summary>
+    /// Only activates if Monster Sizes is enabled in the configuration options.
+    /// Updates the location of the monster's vertex scaling based upon the monster's vertex scaling value.
+    /// Only updates these values if it detects a change from one value to reduce memory writes.
+    /// </summary>
+    /// <param name="parent"></param>
+    private void CheckVertexScalingUpdate ( nint parent ) {
+        _hook_updateGenericState!.OriginalFunction( parent );
+
+        if ( !_configuration.MonsterSizesEnabled ) { return; }
+
+        Memory.Instance.Read( _address_monster_vertex_scaling, out ushort vertexScalingA );
+
+        if ( vertexScalingA != _vertexScaling && vertexScalingA != 0x00 ) {
+            Memory.Instance.Read( _address_monster_vertex_scaling + 0x2, out ushort vertexScalingB );
+            Memory.Instance.Read( _address_monster_vertex_scaling + 0x4, out ushort vertexScalingC );
+
+            double scaling = GetCurrentMonsterScalingFactor();
+            Memory.Instance.WriteRaw( _address_monster_vertex_scaling, BitConverter.GetBytes( (ushort) (vertexScalingA * scaling) ) );
+            Memory.Instance.WriteRaw( _address_monster_vertex_scaling + 0x2, BitConverter.GetBytes( (ushort) ( vertexScalingB * scaling ) ) );
+            Memory.Instance.WriteRaw( _address_monster_vertex_scaling + 0x4, BitConverter.GetBytes( (ushort) ( vertexScalingC * scaling ) ) );
+            _vertexScaling = (short) (vertexScalingA * scaling);
+        }
+    }
+
+    #endregion Monster Scaling
     private void ProcessReloadedFileLoad ( string filename ) {
         //_logger.WriteLineAsync( $"Any file check {_monsterInsideBattleStartup}, {_monsterInsideBattleRedirects}, {_monsterInsideBattleMain}, {_monsterInsideBattleSub}", Color.Orange );
         if ( _monsterInsideBattleStartup ) {
