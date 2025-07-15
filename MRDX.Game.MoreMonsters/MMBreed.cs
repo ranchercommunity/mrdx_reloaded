@@ -62,6 +62,7 @@ namespace MRDX.Game.MoreMonsters
         public string FilepathNew ( int variantID = 0 ) {
             return variantID == 0 ? _filepathNew : _filepathNew + $"_{variantID}";
         }
+
         /// <summary>
         /// Creates a new breed in the MonsterBreed.AllBreeds tables and a new variant internal to MMBreeds.
         /// </summary>
