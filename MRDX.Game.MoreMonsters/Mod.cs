@@ -57,21 +57,7 @@ public delegate int H_ReadSDATA ( nuint self, int p1 );
 public delegate int H_MysteryStatUpdate ( nuint self );
 
 
-[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 83 EC 34 A1 ?? ?? ?? ?? 33 C4 89 44 24 ?? A1 ?? ?? ?? ??" )]
-[Function( CallingConventions.Fastcall )]
-public delegate void H_CombinationListGenerationStarted( nuint self );
 
-[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 81 EC D0 00 00 00 A1 ?? ?? ?? ?? 33 C5 89 45 ?? A1 ?? ?? ?? ?? 56")]
-[ Function( CallingConventions.Fastcall )]
-public delegate void H_CombinationListGenerationFinished ( nuint self );
-
-[HookDef( BaseGame.Mr2, Region.Us, "8B D1 80 BA ?? ?? ?? ?? FF" )]
-[Function( CallingConventions.Fastcall )]
-public delegate void H_CombinationRenameFirstChoice ( nuint self );
-
-[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 EC 0C 53 8B D9 56 57 8B 83 ?? ?? ?? ??" )]
-[Function( CallingConventions.Fastcall )]
-public delegate void H_CombinationFinalStatsUpdate ( nuint unk1 );
 
 // MonsterIDFromBreeds - Takes in a Main/Sub and returns the Monster ID
 [ HookDef( BaseGame.Mr2, Region.Us, "51 56 8B F1 8B 0D ?? ?? ?? ??" )]
@@ -128,13 +114,8 @@ public class Mod : ModBase // <= Do not Remove.
 
     /* Combination Variables */
 
-    private IHook<H_CombinationRenameFirstChoice> _hook_combinationRenameFirstChoice;
-    private IHook<H_CombinationListGenerationStarted> _hook_combinationListGenerationStarted;
-    private IHook<H_CombinationListGenerationFinished> _hook_combinationListGenerationFinished;
-    private IHook<H_CombinationFinalStatsUpdate> _hook_combinationFinalStatsUpdate;
-    private nuint _combinationChosenMonsterAddress;
-    private nuint _combinationListAddress;
-    private uint _combinationColorVariant;
+    private CombinationHandler _combinationHandler;
+
 
     private IHook<H_GetMonsterBreedName> _hook_monsterBreedNames;
 
@@ -201,14 +182,10 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_WriteSDATAMemory>(SetupOverwriteSDATA).ContinueWith( result => _hook_writeSDATAMemory = result.Result );
         _iHooks.AddHook<H_MysteryStatUpdate>( SetupMysteryStat ).ContinueWith( result => _hook_statUpdate = result.Result );
 
-        _iHooks.AddHook<H_CombinationListGenerationStarted>( SetupCombinationListGenerationStarted ).ContinueWith( result => _hook_combinationListGenerationStarted = result.Result );
-        _iHooks.AddHook<H_CombinationListGenerationFinished>( SetupCombinationListGenerationFinished ).ContinueWith( result => _hook_combinationListGenerationFinished = result.Result );
-        _iHooks.AddHook<H_CombinationRenameFirstChoice>( SetupCombinationRenameFirstChoice ).ContinueWith( result => _hook_combinationRenameFirstChoice = result.Result );
-        _iHooks.AddHook<H_CombinationFinalStatsUpdate> ( SetupCombinationFinalStatsUpdate ).ContinueWith( result => _hook_combinationFinalStatsUpdate = result.Result );
-
         _iHooks.AddHook<H_GetMonsterBreedName>( SetupGetMonsterBreedName ).ContinueWith( result => _hook_monsterBreedNames = result.Result );
 
         _freezerHandler = new FreezerHandler( this, _iHooks, _monsterCurrent );
+        _combinationHandler = new CombinationHandler( this, _iHooks, _monsterCurrent );
 
         //_iHooks.AddHook<ParseTextWithCommandCodes>( SetupParseTextCommmandCodes ).ContinueWith(result => _hook_parseTextWithCommandCodes = result.Result.Activate());
 
@@ -277,88 +254,7 @@ public class Mod : ModBase // <= Do not Remove.
         return ret;  
     }
 
-    private void SetupCombinationListGenerationStarted(nuint self) {
-        _combinationListAddress = self + 0x94 - 0x8;
-        Logger.Info( $"Generation Started: {self} | {_combinationListAddress}", Color.OrangeRed );
-        _hook_combinationListGenerationStarted!.OriginalFunction( self );
-    }
-
-    private void SetupCombinationRenameFirstChoice ( nuint self ) {
-        _combinationChosenMonsterAddress = self + 0x180;
-        Logger.Info( $"Monster Combination Choice Started: {self} | {_combinationChosenMonsterAddress}", Color.OrangeRed );
-        _hook_combinationRenameFirstChoice!.OriginalFunction( self );
-    }
-
-
-    private void SetupCombinationListGenerationFinished(nuint self) {
-        Logger.Info( $"Generation Finished: {self} | {_combinationListAddress}", Color.OrangeRed );
-        _hook_combinationListGenerationFinished!.OriginalFunction( self );
-
-        // Clear All Possibilities - 2E = Value 46 is the 'No combination byte'
-        for ( var i = 0; i < 14; i++ ) {
-            var cAddr = _combinationListAddress + ( (nuint) i * 12 );
-            Memory.Instance.Write( cAddr, (byte) 0x2e );
-            Memory.Instance.Write( cAddr + 0x4, (byte) 0x2e );
-            Memory.Instance.Write( cAddr + 0x8, (byte) 0x2e );
-        }
-
-        Memory.Instance.Read( _combinationChosenMonsterAddress, out byte p1Freezer );
-        Memory.Instance.Read( _combinationChosenMonsterAddress + 0x4, out byte p2Freezer );
-
-        // Freezer 3768BC
-        // 524 is the length of a single freezer entry.
-        Memory.Instance.Read( address_freezer + ( (nuint) p1Freezer * 524 ) + 0x8, out MonsterGenus p1Main );
-        Memory.Instance.Read( address_freezer + ( (nuint) p1Freezer * 524 ) + 0xc, out MonsterGenus p1Sub );
-        Memory.Instance.Read( address_freezer + ( (nuint) p2Freezer * 524 ) + 0x8, out MonsterGenus p2Main );
-        Memory.Instance.Read( address_freezer + ( (nuint) p2Freezer * 524 ) + 0xc, out MonsterGenus p2Sub );
-
-        MonsterGenus[] parents = { p1Main, p1Main, p1Sub, p2Main, p2Main, p2Sub };
-        Dictionary<MonsterBreed, int> comboResults = new Dictionary<MonsterBreed, int>();
-
-        for ( var i = 0; i < 6; i++ ) {
-            for ( var j = i; j < 6; j++ ) {
-                MonsterBreed? breed = MonsterBreed.GetBreed( parents[ i ], parents[ j ] );
-
-                if ( breed != null ) {
-                    if ( comboResults.ContainsKey(breed) ) {
-                        comboResults[ breed ] = comboResults[ breed ] + 1;
-                    } else {
-                        comboResults.Add( breed, 1 );
-                    }
-                }
-
-                breed = MonsterBreed.GetBreed( parents[ j ], parents[ i ] );
-                if ( breed != null ) {
-                    if ( comboResults.ContainsKey( breed ) ) {
-                        comboResults[ breed ] = comboResults[ breed ] + 1;
-                    }
-                    else {
-                        comboResults.Add( breed, 1 );
-                    }
-                }
-            }
-        }
-
-        var comboSorted = comboResults.ToList();
-        comboSorted.Sort( ( pair1, pair2 ) => pair2.Value.CompareTo( pair1.Value ) );
-
-        for ( var i = 0; i < Math.Min(14, comboSorted.Count) ; i++ ) {
-            var cAddr = _combinationListAddress + ( (nuint) i * 12 );
-            Memory.Instance.Write( cAddr, (byte) comboSorted[i].Key.Main );
-            Memory.Instance.Write( cAddr + 0x4, (byte) comboSorted[ i ].Key.Sub );
-            Memory.Instance.Write( cAddr + 0x8, (byte) (byte) comboSorted[ i ].Value );
-        }
-    }
-
-    private void SetupCombinationFinalStatsUpdate ( nuint unk1 ) {
-        Logger.Info( $"Overwriting Combination Monster Status {unk1}", Color.OrangeRed );
-        _hook_combinationFinalStatsUpdate!.OriginalFunction( unk1 );
-
-        var breed = MMBreed.GetBreed( _monsterCurrent.GenusMain, _monsterCurrent.GenusSub );
-        if ( breed != null ) {
-            WriteMonsterData( breed._monsterVariants[ 0 ] );
-        }
-    }
+    
 
     private void RedirectorSetupDataPath ( string? extractedPath ) {
         _dataPath = extractedPath;
@@ -607,7 +503,7 @@ public class Mod : ModBase // <= Do not Remove.
         return ret;
     }
 
-    private void WriteMonsterData(MMBreedVariant variant) {
+    public void WriteMonsterData(MMBreedVariant variant) {
         _monsterCurrent.GenusMain = variant.GenusMain;
         _monsterCurrent.GenusSub = variant.GenusSub;
 
