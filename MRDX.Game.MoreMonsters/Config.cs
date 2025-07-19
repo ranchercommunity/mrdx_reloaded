@@ -7,6 +7,30 @@ namespace MRDX.Game.MoreMonsters.Configuration;
 public class Config : Configurable<Config>
 {
 
+    [Category("Monster Sizes")]
+    [DisplayName( "Enable Random Monster Sizes" )]
+    [Description(   "Not all monsters are born the same!\n" +
+                    "Enabling this feature will have all player owned monsters be different sizes.\n" +
+                    "Monster sizes are the average of two random values. Normal monsters are more likely.\n" +
+                    "Note: Setting sizes too small or large will result in unpredictable monster appearances.")]
+    [DefaultValue( true )]
+    public bool MonsterSizesEnabled { get; set; } = true;
+
+    [Category( "Monster Sizes" )]
+    [DisplayName( "Monster Size Minimum" )]
+    [Description( "The minimum multiplier for monster sizes." )]
+    [DefaultValue( 0.65 )]
+    [SliderControlParams( minimum: 0.5, maximum: 1.0, smallChange: 0.01, largeChange: 0.1, tickFrequency: 1,
+        isSnapToTickEnabled: false, showTextField: true, isTextFieldEditable: true )]
+    public double MonsterSizeMinimum { get; set; } = 0.65;
+
+    [Category( "Monster Sizes" )]
+    [DisplayName( "Monster Size Maximum>" )]
+    [Description( "The maximum multiplier for monster sizes." )]
+    [DefaultValue( 1.8 )]
+    [SliderControlParams( minimum: 1.0, maximum: 2.5, smallChange: 0.01, largeChange: 0.1, tickFrequency: 1,
+        isSnapToTickEnabled: false, showTextField: true, isTextFieldEditable: true )]
+    public double MonsterSizeMaximum { get; set; } = 1.8;
     /*
     [DisplayName( "String" )]
     [Description( "This is a string." )]
