@@ -78,7 +78,7 @@ public class Mod : ModBase // <= Do not Remove.
     private string? _dataPath;
 
     public static nuint address_game;
-    public static nuint address_monster { get { return address_game + 0x3768BC; } }
+    public static nuint address_monster { get { return address_game + 0x37667C; } }
     public static nuint address_freezer { get { return address_game + 0x3768BC; } }
     public static nuint address_monster_vertex_scaling { get { return address_game + 0x581520; } }
 
