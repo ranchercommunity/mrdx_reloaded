@@ -46,6 +46,10 @@ class CombinationHandler {
     private nuint _combinationListAddress;
     private uint _combinationColorVariant;
 
+    private nuint _address_combination_secretseasoning { get { return Mod.address_game + 0x376430; } }
+    private byte _secretSeasoning = 0xFF;
+    private bool _overwriteCombinationLogic = false;
+
     private nuint _combinationParent1Address;
     private nuint _combinationParent2Address;
 
@@ -81,6 +85,48 @@ class CombinationHandler {
         Logger.Info( $"Generation Finished: {self} | {_combinationListAddress}", Color.OrangeRed );
         _hook_combinationListGenerationFinished!.OriginalFunction( self );
 
+        var comboMonster = CombinationListGetSecretSeasoning();
+        _overwriteCombinationLogic = !comboMonster.Item1;
+
+        if ( _overwriteCombinationLogic ) { GenerateCombinationListStandard(); } 
+    }
+
+    /// <summary>
+    /// This function checks the secret seasoning and both stores it in a variable, but also determines if
+    /// the monster combination list needs to be overwritten, and with what monster.
+    /// </summary>
+    /// <returns></returns>
+    private (bool, MonsterGenus, MonsterGenus) CombinationListGetSecretSeasoning() {
+        Memory.Instance.Read( _address_combination_secretseasoning, out byte item );
+
+        _secretSeasoning = item;
+
+        if ( item == 79 ) { return (true, MonsterGenus.Pixie, MonsterGenus.XY); } // DNA Red - Mia
+        else if ( item == 80 ) { return (true, MonsterGenus.Pixie, MonsterGenus.XZ); } // DNA Yellow - Poison
+        else if ( item == 81 ) { return (true, MonsterGenus.Mocchi, MonsterGenus.XY); } // DNA Pink - GentleMoch
+        else if ( item == 82 ) { return (true, MonsterGenus.Dragon, MonsterGenus.XX); } // DNA Gray - Moo
+        else if ( item == 83 ) { return (true, MonsterGenus.Mocchi, MonsterGenus.YX); } // DNA White - WhiteMocchi
+        else if ( item == 84 ) { return (true, MonsterGenus.Suezo, MonsterGenus.XZ); } // DNA Green - GoldSuezo
+        else if ( item == 85 ) { return (true, MonsterGenus.Golem, MonsterGenus.XZ); } // DNA Black - DreamGolem
+
+        else if ( item == 90 ) { return (true, MonsterGenus.Dragon, MonsterGenus.Dragon); } // Dragon Tusk
+        else if ( item == 92 ) { return (true, MonsterGenus.Durahan, MonsterGenus.Durahan); } // Double-Edged
+        else if ( item == 93 ) { return (true, MonsterGenus.Bajarl, MonsterGenus.Bajarl); } // Magic Pot
+        else if ( item == 94 ) { return (true, MonsterGenus.Joker, MonsterGenus.Joker); } // Mask
+
+        else if ( item == 96 ) { return (true, MonsterGenus.Jill, MonsterGenus.Jill); } // Big Boots
+        else if ( item == 97 ) { return (true, MonsterGenus.Phoenix, MonsterGenus.Phoenix); } // Fire Feather
+        else if ( item == 100 ) { return (true, MonsterGenus.Zilla, MonsterGenus.Zilla); } // Zilla Beard
+        else if ( item == 103 ) { return (true, MonsterGenus.Ducken, MonsterGenus.Ducken); } // Quack Doll
+
+        else if ( item == 170 ) { return (true, MonsterGenus.Undine, MonsterGenus.Undine); } // Undine Slate
+        else if ( item == 173 ) { return (true, MonsterGenus.Ghost, MonsterGenus.Ghost); } // Stick
+        else if ( item == 175 ) { return (true, MonsterGenus.Centaur, MonsterGenus.Centaur); } // Spear
+
+        else return (false, 0, 0);
+
+    }
+    private void GenerateCombinationListStandard() {
         // Clear All Possibilities - 2E = Value 46 is the 'No combination byte'
         for ( var i = 0; i < 14; i++ ) {
             var cAddr = _combinationListAddress + ( (nuint) i * 12 );
@@ -151,7 +197,7 @@ class CombinationHandler {
         _hook_combinationFinalStatsUpdate!.OriginalFunction( unk1 );
 
         var breed = MMBreed.GetBreed( _monsterCurrent.GenusMain, _monsterCurrent.GenusSub );
-        if ( breed != null ) {
+        if ( _overwriteCombinationLogic && breed != null ) {
             _mod.WriteMonsterData( breed._monsterVariants[0] );
             ApplyParentStatBonuses( breed._monsterVariants[0] );
         }
