@@ -647,7 +647,7 @@ public class Mod : ModBase // <= Do not Remove.
     /// <summary>
     ///     Provides access to this mod's configuration.
     /// </summary>
-    private Config _configuration;
+    public Config _configuration;
 
     /// <summary>
     ///     The configuration of the currently executing mod.

@@ -56,6 +56,9 @@ class CombinationHandler {
     private (byte, int)[] _combinationParent1Offsets;
     private (byte, int)[] _combinationParent2Offsets;
 
+    private byte _combinationParent1Scaling;
+    private byte _combinationParent2Scaling;
+
 
     public CombinationHandler ( Mod mod, IHooks iHooks, IMonster monster ) {
         _mod = mod;
@@ -190,6 +193,10 @@ class CombinationHandler {
 
         _combinationParent1Offsets = GetParentOffsetsInCombinationOrder( _combinationParent1Address );
         _combinationParent2Offsets = GetParentOffsetsInCombinationOrder( _combinationParent2Address );
+
+        // 0x16D is the offset of the scaling value 
+        Memory.Instance.Read( _combinationParent1Address + 0x16D, out _combinationParent1Scaling );
+        Memory.Instance.Read( _combinationParent2Address + 0x16D, out _combinationParent2Scaling );
     }
 
     private void SetupCombinationFinalStatsUpdate ( nuint unk1 ) {
@@ -200,6 +207,10 @@ class CombinationHandler {
         if ( _overwriteCombinationLogic && breed != null ) {
             _mod.WriteMonsterData( breed._monsterVariants[0] );
             ApplyParentStatBonuses( breed._monsterVariants[0] );
+        }
+
+        if ( _mod._configuration.MonsterSizesEnabled ) {
+            ApplyMonsterScaling();
         }
     }
 
@@ -250,6 +261,20 @@ class CombinationHandler {
         _monsterCurrent.Speed +=        (ushort) ( ( ( ( 2 * statOrderP1[ 4 ].Item2 ) + statOrderP2[ 4 ].Item2 ) / 3 ) * 0.85 * statPercentages[ 4 ] );
         _monsterCurrent.Defense +=      (ushort) ( ( ( ( 2 * statOrderP1[ 5 ].Item2 ) + statOrderP2[ 5 ].Item2 ) / 3 ) * 0.85 * statPercentages[ 5 ] );
 
+    }
+
+    /// <summary>
+    /// Applies monster scaling based upon a semi-random weighting between the parents and a random mutation value.
+    /// </summary>
+    private void ApplyMonsterScaling() {
+        var p1strength = _combinationParent1Scaling == 0 ? 0 : Random.Shared.Next( 0, 2 );
+        var p2strength = _combinationParent2Scaling == 0 ? 0 : Random.Shared.Next( 0, 2 );
+        var mustrength = Random.Shared.Next( 1, 201 );
+
+        byte scaling = (byte) 
+            ( ( (p1strength * _combinationParent1Scaling ) +  ( p2strength * _combinationParent2Scaling ) + mustrength ) 
+                / ( 1 + p1strength + p2strength ) );
+        Memory.Instance.Write( Mod.address_monster_mm_scaling, scaling );
     }
 
     /// <summary>
