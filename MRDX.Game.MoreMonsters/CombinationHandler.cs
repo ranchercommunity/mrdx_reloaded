@@ -207,6 +207,7 @@ class CombinationHandler {
         if ( _overwriteCombinationLogic && breed != null ) {
             _mod.WriteMonsterData( breed._monsterVariants[0] );
             ApplyParentStatBonuses( breed._monsterVariants[0] );
+            ApplySecretSeasoning();
         }
 
         if ( _mod._configuration.MonsterSizesEnabled ) {
@@ -263,6 +264,24 @@ class CombinationHandler {
 
     }
 
+    private void ApplySecretSeasoning() {
+        var ss = (Item) _secretSeasoning;
+
+        if ( ss == Item.BigFootstep ) {
+            _monsterCurrent.Life += 10;
+            _monsterCurrent.Defense += 10;
+        }
+
+        else if ( ss == Item.CrabsClaw ) {
+            _monsterCurrent.Skill += 50;
+            _monsterCurrent.Defense += 50;
+        }
+
+        else if ( ss == Item.TaurusHorn ) {
+            _monsterCurrent.NatureRaw += 25;
+            _monsterCurrent.NatureBase += 25;
+        }
+    }
     /// <summary>
     /// Applies monster scaling based upon a semi-random weighting between the parents and a random mutation value.
     /// </summary>
