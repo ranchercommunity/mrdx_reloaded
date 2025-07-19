@@ -83,8 +83,10 @@ public class Mod : ModBase // <= Do not Remove.
     public static nuint address_monster_vertex_scaling { get { return address_game + 0x581520; } }
 
     public static nuint address_monster_mm_variant { get { return address_monster + 0x164; } }
-    public static nuint address_monster_mm_trueguts { get { return address_monster + 0x167; } }
     public static nuint address_monster_mm_scaling { get { return address_monster + 0x165; } }
+    public static nuint address_monster_mm_truesub { get { return address_monster + 0x166; } }
+    public static nuint address_monster_mm_trueguts { get { return address_monster + 0x167; } }
+    
 
     public static int unusedMonsterOffset = 0x1C; // 28 Bytes are safe at a minimum prior to the monster's name.
     

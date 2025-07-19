@@ -49,7 +49,7 @@ class FreezerHandler
 
         _iHooks.AddHook<H_FreezerWriteFreezer>( FreezerWriteMonsterToFreezer ).ContinueWith( result => _hook_freezerWriteFreezer = result.Result );
         _iHooks.AddHook<H_FreezerWriteMonster>( FreezerFrozenMonsterClearMMBytes ).ContinueWith( result => _hook_freezerWriteMonster = result.Result );
-        _iHooks.AddHook<H_FreezerWriteMonterStats>( FreezerGutsCorrection ).ContinueWith( result => _hook_freezerWriteMonsterStats = result.Result );
+        _iHooks.AddHook<H_FreezerWriteMonterStats>( FreezerMonsterCorrection ).ContinueWith( result => _hook_freezerWriteMonsterStats = result.Result );
     }
     private void FreezerWriteMonsterToFreezer ( nuint self, int freezerID, int unk2 ) {
         Logger.Warn( $"Freezer Writing:{self} {freezerID} {unk2}" );
@@ -65,6 +65,9 @@ class FreezerHandler
         // This is where the magic happens for guts.
         Memory.Instance.WriteRaw( Mod.address_monster_mm_trueguts, [ _monsterCurrent.GutsRate ] );
         _monsterCurrent.GutsRate = 255;
+
+        // Write the monster's proper Subbreed
+        Memory.Instance.WriteRaw( Mod.address_monster_mm_truesub, [ (byte) _monsterCurrent.GenusSub ] );
 
 
         _hook_freezerWriteFreezer!.OriginalFunction( self, freezerID, unk2 );
@@ -103,11 +106,10 @@ class FreezerHandler
     /// <summary>
     /// After the monster's stats are set from the freezer, update the monster's guts to the MM value.
     /// Values of 0 represent pre-MM Freezes and can be ignored.
-    /// Guts Correction - 
     /// </summary>
     /// <param name="unk1"></param>
     /// <param name="unk2"></param>
-    private void FreezerGutsCorrection ( int unk1, int unk2 ) {
+    private void FreezerMonsterCorrection ( int unk1, int unk2 ) {
         _hook_freezerWriteMonsterStats!.OriginalFunction( unk1, unk2 );
 
         Memory.Instance.Read<byte>( Mod.address_monster_mm_trueguts, out byte trueGuts );
