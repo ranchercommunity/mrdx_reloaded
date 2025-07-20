@@ -86,6 +86,7 @@ public class MonsterModel : IMonster
     private ushort _speed;
     private sbyte _stress;
     private ushort _trainBoost;
+    private ushort _battleSpecial;
     private bool _usedPeachGold;
     private bool _usedPeachSilver;
 
@@ -332,6 +333,11 @@ public class MonsterModel : IMonster
     {
         get => _gutsRate;
         set => _mon.GutsRate = value;
+    }
+
+    public ushort BattleSpecial {
+        get => _battleSpecial;
+        set => _mon.BattleSpecial = value;
     }
 
     public byte MotivationDomino

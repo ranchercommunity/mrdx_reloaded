@@ -31,6 +31,19 @@ public class Config : Configurable<Config>
     [SliderControlParams( minimum: 1.0, maximum: 2.5, smallChange: 0.01, largeChange: 0.1, tickFrequency: 1,
         isSnapToTickEnabled: false, showTextField: true, isTextFieldEditable: true )]
     public double MonsterSizeMaximum { get; set; } = 1.8;
+
+
+    public enum CombinaitonItems {
+        NoChanges,
+        Modified
+    }
+    [Category( "Combinations" )]
+    [DisplayName( "Combination Item Adjustments" )]
+    [Description( "Determines the properties of combination items when applied to monsters.\n" +
+             "No Changes - Keeps the default behavior of combination items.\n" +
+             "Modified - Improves or adjusts the behavior of combination items to make unappealing items more useful.")]
+    [DefaultValue( CombinaitonItems.Modified )]
+    public CombinaitonItems CombinationItemAdjustment { get; set; } = CombinaitonItems.Modified;
     /*
     [DisplayName( "String" )]
     [Description( "This is a string." )]

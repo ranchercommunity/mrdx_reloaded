@@ -47,7 +47,7 @@ class CombinationHandler {
     private uint _combinationColorVariant;
 
     private nuint _address_combination_secretseasoning { get { return Mod.address_game + 0x376430; } }
-    private byte _secretSeasoning = 0xFF;
+    private Item _secretSeasoning = (Item) 0xFF;
     private bool _overwriteCombinationLogic = false;
 
     private nuint _combinationParent1Address;
@@ -102,29 +102,29 @@ class CombinationHandler {
     private (bool, MonsterGenus, MonsterGenus) CombinationListGetSecretSeasoning() {
         Memory.Instance.Read( _address_combination_secretseasoning, out byte item );
 
-        _secretSeasoning = item;
+        _secretSeasoning = (Item) item;
+ 
+        if ( _secretSeasoning == Item.DnaCapsuleRed ) { return (true, MonsterGenus.Pixie, MonsterGenus.XY); } // DNA Red - Mia
+        else if ( _secretSeasoning == Item.DnaCapsuleYellow ) { return (true, MonsterGenus.Pixie, MonsterGenus.XZ); } // DNA Yellow - Poison
+        else if ( _secretSeasoning == Item.DnaCapsulePink ) { return (true, MonsterGenus.Mocchi, MonsterGenus.XY); } // DNA Pink - GentleMoch
+        else if ( _secretSeasoning == Item.DnaCapsuleGray ) { return (true, MonsterGenus.Dragon, MonsterGenus.XX); } // DNA Gray - Moo
+        else if ( _secretSeasoning == Item.DnaCapsuleWhite ) { return (true, MonsterGenus.Mocchi, MonsterGenus.YX); } // DNA White - WhiteMocchi
+        else if ( _secretSeasoning == Item.DnaCapsuleGreen ) { return (true, MonsterGenus.Suezo, MonsterGenus.XZ); } // DNA Green - GoldSuezo
+        else if ( _secretSeasoning == Item.DnaCapsuleBlack ) { return (true, MonsterGenus.Golem, MonsterGenus.XZ); } // DNA Black - DreamGolem
 
-        if ( item == 79 ) { return (true, MonsterGenus.Pixie, MonsterGenus.XY); } // DNA Red - Mia
-        else if ( item == 80 ) { return (true, MonsterGenus.Pixie, MonsterGenus.XZ); } // DNA Yellow - Poison
-        else if ( item == 81 ) { return (true, MonsterGenus.Mocchi, MonsterGenus.XY); } // DNA Pink - GentleMoch
-        else if ( item == 82 ) { return (true, MonsterGenus.Dragon, MonsterGenus.XX); } // DNA Gray - Moo
-        else if ( item == 83 ) { return (true, MonsterGenus.Mocchi, MonsterGenus.YX); } // DNA White - WhiteMocchi
-        else if ( item == 84 ) { return (true, MonsterGenus.Suezo, MonsterGenus.XZ); } // DNA Green - GoldSuezo
-        else if ( item == 85 ) { return (true, MonsterGenus.Golem, MonsterGenus.XZ); } // DNA Black - DreamGolem
+        else if ( _secretSeasoning == Item.DragonTusk ) { return (true, MonsterGenus.Dragon, MonsterGenus.Dragon); } // Dragon Tusk
+        else if ( _secretSeasoning == Item.DoubleEdged ) { return (true, MonsterGenus.Durahan, MonsterGenus.Durahan); } // Double-Edged
+        else if ( _secretSeasoning == Item.MagicPot ) { return (true, MonsterGenus.Bajarl, MonsterGenus.Bajarl); } // Magic Pot
+        else if ( _secretSeasoning == Item.Mask ) { return (true, MonsterGenus.Joker, MonsterGenus.Joker); } // Mask
 
-        else if ( item == 90 ) { return (true, MonsterGenus.Dragon, MonsterGenus.Dragon); } // Dragon Tusk
-        else if ( item == 92 ) { return (true, MonsterGenus.Durahan, MonsterGenus.Durahan); } // Double-Edged
-        else if ( item == 93 ) { return (true, MonsterGenus.Bajarl, MonsterGenus.Bajarl); } // Magic Pot
-        else if ( item == 94 ) { return (true, MonsterGenus.Joker, MonsterGenus.Joker); } // Mask
+        else if ( _secretSeasoning == Item.BigBoots ) { return (true, MonsterGenus.Jill, MonsterGenus.Jill); } // Big Boots
+        else if ( _secretSeasoning == Item.FireFeather ) { return (true, MonsterGenus.Phoenix, MonsterGenus.Phoenix); } // Fire Feather
+        else if ( _secretSeasoning == Item.ZillaBeard ) { return (true, MonsterGenus.Zilla, MonsterGenus.Zilla); } // Zilla Beard
+        else if ( _secretSeasoning == Item.QuackDoll2 ) { return (true, MonsterGenus.Ducken, MonsterGenus.Ducken); } // Quack Doll
 
-        else if ( item == 96 ) { return (true, MonsterGenus.Jill, MonsterGenus.Jill); } // Big Boots
-        else if ( item == 97 ) { return (true, MonsterGenus.Phoenix, MonsterGenus.Phoenix); } // Fire Feather
-        else if ( item == 100 ) { return (true, MonsterGenus.Zilla, MonsterGenus.Zilla); } // Zilla Beard
-        else if ( item == 103 ) { return (true, MonsterGenus.Ducken, MonsterGenus.Ducken); } // Quack Doll
-
-        else if ( item == 170 ) { return (true, MonsterGenus.Undine, MonsterGenus.Undine); } // Undine Slate
-        else if ( item == 173 ) { return (true, MonsterGenus.Ghost, MonsterGenus.Ghost); } // Stick
-        else if ( item == 175 ) { return (true, MonsterGenus.Centaur, MonsterGenus.Centaur); } // Spear
+        else if ( _secretSeasoning == Item.UndineSlate ) { return (true, MonsterGenus.Undine, MonsterGenus.Undine); } // Undine Slate
+        else if ( _secretSeasoning == Item.StickGreen ) { return (true, MonsterGenus.Ghost, MonsterGenus.Ghost); } // Stick
+        else if ( _secretSeasoning == Item.Spear ) { return (true, MonsterGenus.Centaur, MonsterGenus.Centaur); } // Spear
 
         else return (false, 0, 0);
 
@@ -264,22 +264,179 @@ class CombinationHandler {
 
     }
 
+    /// <summary>
+    /// Applies the secret seasoning stats if they are stat affecting items (i.e., non monster species ones).
+    /// </summary>
     private void ApplySecretSeasoning() {
-        var ss = (Item) _secretSeasoning;
-
-        if ( ss == Item.BigFootstep ) {
-            _monsterCurrent.Life += 10;
-            _monsterCurrent.Defense += 10;
+        bool original = _mod._configuration.CombinationItemAdjustment == Configuration.Config.CombinaitonItems.NoChanges;
+        if ( _secretSeasoning == Item.BigFootstep ) {
+            if ( original ) { _monsterCurrent.Life += 10; _monsterCurrent.Defense += 10; }
+            else { _monsterCurrent.Life += 50; _monsterCurrent.Defense += 50; }
         }
 
-        else if ( ss == Item.CrabsClaw ) {
-            _monsterCurrent.Skill += 50;
+        else if ( _secretSeasoning == Item.CrabsClaw ) {
+            _monsterCurrent.Skill += 50; _monsterCurrent.Defense += 50;
+        }
+
+        else if ( _secretSeasoning == Item.TaurusHorn ) {
+            _monsterCurrent.NatureRaw += 25;
+            if ( !original ) { _monsterCurrent.NatureBase += 25; }
+        }
+
+        else if ( _secretSeasoning == Item.OldSheath ) {
+            _monsterCurrent.Defense -= 10;
+            if ( !original ) { _monsterCurrent.Defense += 20; }
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsApe ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.ParepareJungle;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsArrowhead ) {
+            _monsterCurrent.BattleSpecial |= (ushort) BattleSpecials.Guard;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsBajarl ) {
+            _monsterCurrent.BattleSpecial |= (ushort) BattleSpecials.Vigor;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsBaku ) {
+            _monsterCurrent.Form += 50;
+            if ( !original ) { _monsterCurrent.Life += 25; _monsterCurrent.Power += 25; }
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsBeaclon ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Pull;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsCentaur ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.MandyDesert;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsColorP ) { // TODO: One of these is not going to work.
+            _monsterCurrent.LoyalSpoil += 50;
+            if ( !original ) { _monsterCurrent.Life += 50; }
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsDucken ) {
+            _monsterCurrent.Speed += 50;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsDurahan ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Domino;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsGaboo ) {
+            _monsterCurrent.BattleSpecial |= (ushort) BattleSpecials.Fight;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsGali ) {
+            _monsterCurrent.NatureRaw += 50;
+            if ( !original ) { _monsterCurrent.NatureBase += 50; }
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsGhost ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Dodge;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsGolem ) {
+            _monsterCurrent.Power += 50;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsHare ) {
+            _monsterCurrent.BattleSpecial |= (ushort) BattleSpecials.Grit;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsHenger ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Shoot;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsHopper ) {
+            _monsterCurrent.Form -= 50;
+            if ( !original ) { _monsterCurrent.Skill += 25; _monsterCurrent.Speed += 25; }
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsJell ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Endure;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsJill ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.PapasMountain;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsJoker ) {
+            _monsterCurrent.NatureRaw -= 50;
+            if ( !original ) { _monsterCurrent.NatureBase -= 50; }
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsKato ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Meditate;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsMetalner ) { // TODO: One of these is not going to work.
+            _monsterCurrent.LoyalSpoil += 50;
+            if ( !original ) { _monsterCurrent.Defense += 50; }
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsMew ) {
+            _monsterCurrent.BattleSpecial |= (ushort) BattleSpecials.Hurry;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsMocchi ) { 
+            _monsterCurrent.Fame += 50;
+            if ( !original ) { _monsterCurrent.Lifespan += 5; _monsterCurrent.InitalLifespan += 5; }
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsMock ) {
+            _monsterCurrent.Lifespan += 10; _monsterCurrent.InitalLifespan += 10;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsMonol ) {
             _monsterCurrent.Defense += 50;
         }
 
-        else if ( ss == Item.TaurusHorn ) {
-            _monsterCurrent.NatureRaw += 25;
-            _monsterCurrent.NatureBase += 25;
+        else if ( _secretSeasoning == Item.DiscChipsNaga ) {
+            _monsterCurrent.Skill += 50;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsNiton ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Swim;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsPhoenix ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.KawreaVolcano;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsPixie ) {
+            _monsterCurrent.Intelligence += 50;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsPlant ) {
+            _monsterCurrent.Lifespan += 10; _monsterCurrent.InitalLifespan += 10;
+        }
+        else if ( _secretSeasoning == Item.DiscChipsSuezo ) {
+            _monsterCurrent.BattleSpecial |= (ushort) BattleSpecials.Ease;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsTiger ) {
+            _monsterCurrent.BattleSpecial |= (ushort) BattleSpecials.Will;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsUndine ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Study;
+        }
+
+        else if ( _secretSeasoning == Item.DiscChipsWorm ) {
+            _monsterCurrent.Life += 50;
+        }
+        else if ( _secretSeasoning == Item.DiscChipsWracky ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Leap;
+        }
+        else if ( _secretSeasoning == Item.DiscChipsZilla ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.TorbleSea;
+        }
+        else if ( _secretSeasoning == Item.DiscChipsZuum ) {
+            _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Run;
         }
     }
     /// <summary>

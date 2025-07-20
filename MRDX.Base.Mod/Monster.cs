@@ -295,8 +295,13 @@ public class Monster : BaseObject<Monster>, IMonster
         set => WatchWrite(value);
     }
 
-    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1E)]
+    [BaseOffset( BaseGame.Mr2, Region.Us | Region.Japan, 0x1D4 )]
+    public ushort BattleSpecial {
+        get => Read<ushort>();
+        set => WatchWrite( value );
+    }
 
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1E)]
     public IList<IMonsterTechnique> Moves { get; set; } = new List<IMonsterTechnique>();
 
     public IList<byte> MoveUseCount { get; set; } = new List<byte>();
@@ -468,6 +473,7 @@ public record struct MonsterCache : IMonster
         LifeType = LifeType.Normal;
         ArenaSpeed = 0;
         GutsRate = 0;
+        BattleSpecial = 0;
         MotivationDomino = 0;
         MotivationStudy = 0;
         MotivationRun = 0;
@@ -523,6 +529,7 @@ public record struct MonsterCache : IMonster
         LifeType = mon.LifeType;
         ArenaSpeed = mon.ArenaSpeed;
         GutsRate = mon.GutsRate;
+        BattleSpecial = mon.BattleSpecial;
         Moves = mon.Moves;
         MoveUseCount = mon.MoveUseCount;
         MotivationDomino = mon.MotivationDomino;
@@ -579,6 +586,7 @@ public record struct MonsterCache : IMonster
     public LifeType LifeType { get; set; }
     public byte ArenaSpeed { get; set; }
     public byte GutsRate { get; set; }
+    public ushort BattleSpecial { get; set; }
     public IList<IMonsterTechnique> Moves { get; set; } = new List<IMonsterTechnique>();
     public IList<byte> MoveUseCount { get; set; } = new List<byte>();
     public byte MotivationDomino { get; set; }
@@ -725,4 +733,6 @@ public class ErrantryEnemyMonster(int offset) : BaseObject<ErrantryEnemyMonster>
         get => (BattleSpecials)Read<ushort>();
         set => Write((ushort)value);
     }
+
+ 
 }

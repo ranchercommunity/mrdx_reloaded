@@ -55,6 +55,27 @@ public enum BattleSpecials
     Hax3 = 1 << 15
 }
 
+[Flags]
+public enum TrainingBoosts {
+    None = 0,
+    Domino = 1 << 0,
+    Study = 1 << 1,
+    Run = 1 << 2,
+    Shoot = 1 << 3,
+    Dodge = 1 << 4,
+    Endure = 1 << 5,
+    Pull = 1 << 6,
+    Meditate = 1 << 7,
+    Leap = 1 << 8,
+    Swim = 1 << 9,
+    TorbleSea = 1 << 10,
+    PapasMountain = 1 << 11,
+    MandyDesert = 1 << 12,
+    ParepareJungle = 1 << 13,
+    KawreaVolcano = 1 << 14,
+    Hax1 = 1 << 15
+}
+
 public enum Item : byte
 {
     Potato = 0,
@@ -201,7 +222,7 @@ public enum Item : byte
     Flower = 145,
     DiscChipsPixie = 146,
     DiscChipsDragon = 147,
-    DiscChipsCentuar = 148,
+    DiscChipsCentaur = 148,
     DiscChipsColorP = 149,
     DiscChipsBeaclon = 150,
     DiscChipsHenger = 151,
@@ -229,7 +250,9 @@ public enum Item : byte
     CupJellyD = 174,
     Spear = 175,
     WrackyDoll = 176,
-    QuackDoll3 = 177
+    QuackDoll3 = 177,
+    NoneEmpty = 178,
+    NoneInvalid = 255
 }
 
 public enum MonsterGenus : byte
