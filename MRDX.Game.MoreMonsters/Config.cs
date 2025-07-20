@@ -33,17 +33,29 @@ public class Config : Configurable<Config>
     public double MonsterSizeMaximum { get; set; } = 1.8;
 
 
-    public enum CombinaitonItems {
+
+    public enum CombinaitonSettings {
         NoChanges,
         Modified
     }
+    [Category( "Combinations" )]
+    [DisplayName( "Combination Percent Calculation" )]
+    [Description( "Determines the percentage of potential combinations and its effects.\n" +
+             "No Changes - Keeps the default behavior of combination to include the new species.\n" +
+             "             Maintains the stat bonuses for combining 'rarer' breeds (lower percentages).\n" +
+             "             Bug Fix: 2-3% Combination Chances apply the expected stat bonuses.\n" +
+             "Modified -   Combination chances are flatter and not breed dependent.\n" +
+             "             A flat 85% of parent stat bonuses are used (approximately 2-3%)." )]
+    [DefaultValue( CombinaitonSettings.NoChanges )]
+    public CombinaitonSettings CombinationChanceAdjustment { get; set; } = CombinaitonSettings.NoChanges;
+
     [Category( "Combinations" )]
     [DisplayName( "Combination Item Adjustments" )]
     [Description( "Determines the properties of combination items when applied to monsters.\n" +
              "No Changes - Keeps the default behavior of combination items.\n" +
              "Modified - Improves or adjusts the behavior of combination items to make unappealing items more useful.")]
-    [DefaultValue( CombinaitonItems.Modified )]
-    public CombinaitonItems CombinationItemAdjustment { get; set; } = CombinaitonItems.Modified;
+    [DefaultValue( CombinaitonSettings.Modified )]
+    public CombinaitonSettings CombinationItemAdjustment { get; set; } = CombinaitonSettings.Modified;
     /*
     [DisplayName( "String" )]
     [Description( "This is a string." )]
