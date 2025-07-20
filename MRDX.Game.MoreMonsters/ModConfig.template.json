@@ -1,6 +1,6 @@
 {
     "ModId": "MRDX.Game.MoreMonsters",
-    "ModName": "More Monsters",
+    "ModName": "More Monsters (Alpha)",
     "ModAuthor": "ArchbishopDave",
     "ModVersion": "{{ MOD_VERSION }}",
     "ModDescription": "Adds additional species combinations to the game!",

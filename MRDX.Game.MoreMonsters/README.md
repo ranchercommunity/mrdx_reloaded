@@ -9,6 +9,7 @@ Monsters have size variations, making every monster unique!
 Monsters can have multiple appearances for the same species.
 
 
+
 Monsters can be generated from the shrine or combined from existing monsters.
 
 
@@ -47,7 +48,9 @@ Monster size variations are random from the shrine, and inherited from parents w
 
 ## Latest Update
 
-* v0.1.0 - Beta Test
+* v0.1.0 - Alpha Test
+
+Release the mod to the world!
 
 
 
@@ -57,7 +60,7 @@ Monster size variations are random from the shrine, and inherited from parents w
 * Combination Fixes
 * Stability Improvements
 * Monster Card Data
-* VS Mode Compatability
+* VS Mode Compatibility
 
 
 
@@ -101,7 +104,7 @@ Contributors are listed in order of initial contribution, along with which monst
 
 Arrowhead/Undine, Bajarl/Plant, Baku/Mew, ColorPandora/ColorPandora #2, ColorPandora/Ducken, Ducken/ColorPandora, Ducken/Phoenix, Durahan/Ducken, Gaboo/Ape, Gaboo/Centaur, Gaboo/Centaur #2
 
-Gali/Joker, Ghost/Joker, Golem/Gaboo, Hopper/Gali, Jell/Gaboo, Kato/Hopper, Mew/Monol, Mocchi/Beaclon, Monol/ColorPandora, Monol/Mock, Niton/Suezo, Phoenix/Jill, Phoenix/Undine, 
+Gali/Joker, Ghost/Joker, Golem/Gaboo, Hopper/Gali, Jell/Gaboo, Kato/Hopper, Mew/Monol, Mocchi/Beaclon, Monol/ColorPandora, Monol/Mock, Niton/Suezo, Phoenix/Jill, Phoenix/Undine,
 
 Undine/Dragon, Undine/Gaboo, Worm/Mew, Zuum/Ghost, Zuum/Henger, Zuum/Undine
 
@@ -122,8 +125,4 @@ Monol/??? (ColorPandora MR3)
 #### OriharaSaki
 
 Gaboo/Arrowhead, Gaboo/Suezo, Jell/Ghost, Suezo/Gaboo, Zuum/Gaboo
-
-
-
-
 
