@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Xml.Linq;
 
 namespace MRDX.Base.Mod.Interfaces;
 
@@ -400,20 +403,90 @@ public record GenusInfo
 public record MonsterBreed
 {
     public static List<MonsterBreed> AllBreeds = [];
-    public MonsterGenus Main { get; init; } = 0;
-    public MonsterGenus Sub { get; init; } = 0;
+    public MonsterGenus GenusMain { get; init; } = 0;
+    public MonsterGenus GenusSub { get; init; } = 0;
 
     public string Name { get; init; } = string.Empty;
-
     public string BreedIdentifier { get; init; } = string.Empty;
 
     public string[] SDATAValues { get; init; } = [];
 
+    public ushort Lifespan { get; init; } = 300;
+    public sbyte NatureBase { get; init; } = 0;
+    public LifeType LifeType { get; init; } = LifeType.Normal;
+    public ushort Life { get; init; } = 100;
+    public ushort Power { get; init; } = 100;
+    public ushort Intelligence { get; init; } = 100;
+    public ushort Skill { get; init; } = 100;
+    public ushort Speed { get; init; } = 100;
+    public ushort Defense { get; init; } = 100;
+    public byte GrowthRateLife { get; init; } = 2;
+    public byte GrowthRatePower { get; init; } = 2;
+    public byte GrowthRateIntelligence { get; init; } = 2;
+    public byte GrowthRateSkill { get; init; } = 2;
+    public byte GrowthRateSpeed { get; init; } = 2;
+    public byte GrowthRateDefense { get; init; } = 2;
+    public byte ArenaSpeed { get; init; } = 2;
+    public byte GutsRate { get; init; } = 10;
+    public ushort BattleSpecialsRaw { get; init; } = 3;
+    public byte[] TechniquesRaw { get; set; } // TODO : Not implemented. This is significantly more complicated to do than this method.
+    public ushort TrainBoost { get; init; } = 0; // Slots 23 and 24 are unknown.
+
     public List<IMonsterTechnique> TechList { get; init; } = [];
 
+    public static MonsterBreed NewBreed( MonsterGenus main, MonsterGenus sub, string name, string breedidentifier,
+        List<IMonsterTechnique> techlist, string[] SDATAvalues ) {
+        MonsterBreed newBreed = new MonsterBreed {
+            GenusMain = main,
+            GenusSub = sub,
+            Name = name,
+            BreedIdentifier = breedidentifier,
+            TechList = techlist,
+            SDATAValues = SDATAvalues,
+            Lifespan = UInt16.Parse( SDATAvalues[ 4 ] ),
+            NatureBase = SByte.Parse( SDATAvalues[ 5 ] ),
+            LifeType = (LifeType) Byte.Parse( SDATAvalues[ 6 ] ),
+            Life = UInt16.Parse( SDATAvalues[ 7 ] ),
+            Power = UInt16.Parse( SDATAvalues[ 8 ] ),
+            Intelligence = UInt16.Parse( SDATAvalues[ 9 ] ),
+            Skill = UInt16.Parse( SDATAvalues[ 10 ] ),
+            Speed = UInt16.Parse( SDATAvalues[ 11 ] ),
+            Defense = UInt16.Parse( SDATAvalues[ 12 ] ),
+            GrowthRateLife = Byte.Parse( SDATAvalues[ 13 ] ),
+            GrowthRatePower = Byte.Parse( SDATAvalues[ 14 ] ),
+            GrowthRateIntelligence = Byte.Parse( SDATAvalues[ 15 ] ),
+            GrowthRateSkill = Byte.Parse( SDATAvalues[ 16 ] ),
+            GrowthRateSpeed = Byte.Parse( SDATAvalues[ 17 ] ),
+            GrowthRateDefense = Byte.Parse( SDATAvalues[ 18 ] ),
+            ArenaSpeed = Byte.Parse( SDATAvalues[ 19 ] ),
+            GutsRate = Byte.Parse( SDATAvalues[ 20 ] ),
+            BattleSpecialsRaw = UInt16.Parse( SDATAvalues[ 21 ] ),
+            TechniquesRaw = new byte[48],
+            TrainBoost = UInt16.Parse( SDATAvalues[ 25 ] ), // Slots 23 and 24 are unknown.
+        };
+
+        var techArray = SDATAvalues[22].ToCharArray();
+
+        for ( var i = techArray.Length - 1; i >= 0; i-- ) {
+            if ( techArray[ i ] == '1' ) {
+                foreach ( var technique in techlist ) {
+                    if ( technique.Id == i ) {
+                        BitArray bArray = new BitArray( [ (int) technique.Slot ] );
+                        for ( var j = 0; j < 24; j++ ) {
+                            if ( bArray[ j ] ) {
+                                newBreed.TechniquesRaw[ ( j * 2 ) ] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return newBreed;
+    }
+ 
     public static MonsterBreed? GetBreed(MonsterGenus main, MonsterGenus sub)
     {
         Logger.Trace($"Get Breed: {main}, sub: {sub}");
-        return AllBreeds.Find(m => m.Main == main && m.Sub == sub);
+        return AllBreeds.Find(m => m.GenusMain == main && m.GenusSub == sub);
     }
 }

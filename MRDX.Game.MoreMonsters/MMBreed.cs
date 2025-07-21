@@ -77,22 +77,17 @@ namespace MRDX.Game.MoreMonsters
                 arena, guts, battlespec, techniques, trainbonuses );
 
             string[] svalues = { $"{0}", name, $"{(byte) _genusNewMain}", $"{(byte) _genusNewSub}",
-                $"{lifespan}", $"{nature}", $"{growthpat}", 
+                $"{lifespan}", $"{nature}", $"{(byte) growthpat}", 
                 $"{slif}", $"{spow}", $"{sint}", $"{sski}", $"{sspe}", $"{sdef}", 
                 $"{glif}", $"{gpow}", $"{gint}", $"{gski}", $"{gspe}", $"{gdef}",
                 $"{arena}", $"{guts}", $"{battlespec}", $"{techniques}", $"{0}", $"{0}", $"{trainbonuses}", 
                 $"{(slif + spow + sint + sski + sspe + sdef)}", $"{0}", $"{0}" };
 
-            MonsterBreed b = new MonsterBreed {
-                Main = _genusNewMain,
-                Sub = _genusNewSub,
-                Name = name,
-                BreedIdentifier = IMonster.AllMonsters[ (int) _genusNewMain ].ShortName[ ..2 ] + "_" + IMonster.AllMonsters[ (int) _genusNewSub ].ShortName[ ..2 ],
-                TechList = MonsterBreed.GetBreed( _genusNewMain, _genusNewMain ).TechList,
-                SDATAValues = svalues
-            };
-
-            MonsterBreed.AllBreeds.Add( b );
+            MonsterBreed.AllBreeds.Add( MonsterBreed.NewBreed(
+                _genusNewMain, _genusNewSub, name,
+                IMonster.AllMonsters[ (int) _genusNewMain ].ShortName[ ..2 ] + "_" + IMonster.AllMonsters[ (int) _genusNewSub ].ShortName[ ..2 ],
+                MonsterBreed.GetBreed( _genusNewMain, _genusNewMain ).TechList,
+                svalues ) );
         }
 
         public void NewVariant ( string name, ushort lifespan, short nature, LifeType growthpat,
@@ -155,12 +150,11 @@ namespace MRDX.Game.MoreMonsters
                     foreach ( var technique in techList ) {
                         if ( technique.Id == i ) {
                             BitArray bArray = new BitArray( [ (int) technique.Slot ] );
-                            for ( var j = 0; j < 32; j++ ) {
+                            for ( var j = 0; j < 24; j++ ) {
                                 if ( bArray[ j ] ) {
                                     monster.TechniquesRaw[ ( j * 2 ) ] = 1;
                                 }
                             }
-
                         }
                     }
                 }

@@ -212,8 +212,8 @@ class CombinationHandler {
         // Write Combo List to Memory
         for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {
             var cAddr = _combinationListAddress + ( (nuint) i * 12 );
-            Memory.Instance.Write( cAddr, (byte) comboSorted[ i ].Key.Main );
-            Memory.Instance.Write( cAddr + 0x4, (byte) comboSorted[ i ].Key.Sub );
+            Memory.Instance.Write( cAddr, (byte) comboSorted[ i ].Key.GenusMain );
+            Memory.Instance.Write( cAddr + 0x4, (byte) comboSorted[ i ].Key.GenusSub );
             Memory.Instance.Write( cAddr + 0x8, (byte) (byte) comboSorted[ i ].Value );
         }
 
@@ -287,8 +287,8 @@ class CombinationHandler {
 
         for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {
             var cAddr = _combinationListAddress + ( (nuint) i * 12 );
-            Memory.Instance.Write( cAddr, (byte) comboSorted[ i ].Key.Main );
-            Memory.Instance.Write( cAddr + 0x4, (byte) comboSorted[ i ].Key.Sub );
+            Memory.Instance.Write( cAddr, (byte) comboSorted[ i ].Key.GenusMain );
+            Memory.Instance.Write( cAddr + 0x4, (byte) comboSorted[ i ].Key.GenusSub );
             Memory.Instance.Write( cAddr + 0x8, (byte) (byte) comboSorted[ i ].Value );
         }
 
@@ -312,8 +312,10 @@ class CombinationHandler {
         _hook_combinationFinalStatsUpdate!.OriginalFunction( unk1 );
 
         (byte, double)[] childGrowths = new (byte, double)[ 6 ];
-        var mmBreed = MMBreed.GetBreed( _monsterCurrent.GenusMain, _monsterCurrent.GenusSub );
+        
         MonsterBreed childBreed = MonsterBreed.GetBreed( _monsterCurrent.GenusMain, _monsterCurrent.GenusSub );
+        /* TODO - Perhaps introduce variants into this process? Not sure how that'll work to be honest.
+        //var mmBreed = MMBreed.GetBreed( _monsterCurrent.GenusMain, _monsterCurrent.GenusSub );
 
         if ( mmBreed != null ) {
             _mod.WriteMonsterData( mmBreed._monsterVariants[ 0 ] );
@@ -321,16 +323,21 @@ class CombinationHandler {
             childGrowths = [ (0, variant.GrowthRateLife), (1, variant.GrowthRatePower + 0.01),
                 (2, variant.GrowthRateIntelligence + 0.02), (3, variant.GrowthRateSkill + 0.03),
                 (4, variant.GrowthRateSpeed + 0.04), (5, variant.GrowthRateDefense + 0.05) ];
-        
-        }
+        }*/
 
-        else {
-            childGrowths = [ (0, Double.Parse(childBreed.SDATAValues[13])), (1, Double.Parse(childBreed.SDATAValues[14]) + 0.01),
-                (2, Double.Parse(childBreed.SDATAValues[15]) + 0.02), (3, Double.Parse(childBreed.SDATAValues[16]) + 0.03),
-                (4, Double.Parse(childBreed.SDATAValues[17]) + 0.04), (5, Double.Parse(childBreed.SDATAValues[18] + 0.05) ) ];
-        }
+   
+        // This is a bit strange, but we're accounting for the fact that it orders by Starting Stat (/2000 to get a small amount)
+        // plus infinitely small values in the stat order to break ties.
+            childGrowths = [ 
+                (0, childBreed.GrowthRateLife + (childBreed.Life / 2000.0) ), 
+                (1, childBreed.GrowthRatePower + 0.0001 + (childBreed.Power / 2000.0) ),
+                (2, childBreed.GrowthRateIntelligence + 0.0002 + (childBreed.Intelligence / 2000.0) ), 
+                (3, childBreed.GrowthRateSkill + 0.0003 + (childBreed.Skill / 2000.0) ),
+                (4, childBreed.GrowthRateSpeed + 0.0004 + (childBreed.Speed / 2000.0) ), 
+                (5, childBreed.GrowthRateDefense + 0.0005 + (childBreed.Defense / 2000.0) ) ];
 
-        if ( _overwriteCombinationLogic && mmBreed != null ) {
+        if ( _overwriteCombinationLogic ) {
+            _mod.WriteMonsterData( childBreed );
             ApplyParentStatBonuses(childBreed, childGrowths );
             ApplySecretSeasoning();
         }
@@ -359,7 +366,7 @@ class CombinationHandler {
         double[] statPercentages = new double[ 6 ];
         for ( var i = 0; i < 6; i++ ) {
             if ( childGrowths[ i ].Item1 == statOrderP1[ i ].Item1 && childGrowths[ i ].Item1 == statOrderP2[ i ].Item1 ) {
-                statPercentages[ childGrowths[ i ].Item1 ] = (byte) (
+                statPercentages[ childGrowths[ i ].Item1 ] = (
                     ( correctOrderCount == 6 ) ? 0.80 :
                     ( correctOrderCount == 4 ) ? 0.70 :
                     ( correctOrderCount == 3 ) ? 0.60 :
@@ -367,7 +374,7 @@ class CombinationHandler {
                     ( correctOrderCount == 1 ) ? 0.40 : 0.15 );
             }
 
-            else { statPercentages[ i ] = 0.15; }
+            else { statPercentages[ childGrowths[ i ].Item1 ] = 0.15; }
         }
 
         double chancePercentage = 0.85;
@@ -392,6 +399,7 @@ class CombinationHandler {
         double[] statOffsets = new double[ 6 ];
         for ( var i = 0; i < 6; i++ ) { statOffsets[ i ] = ( ( ( 2 * statOrderP1[ i ].Item2 ) + statOrderP2[ i ].Item2 ) / 3 ); }
 
+        var ski = (ushort) ( statOffsets[ 3 ] * statPercentages[ 3 ] * chancePercentage ); ;
         _monsterCurrent.Life +=         (ushort) ( statOffsets[ 0 ] * statPercentages[ 0 ] * chancePercentage );
         _monsterCurrent.Power +=        (ushort) ( statOffsets[ 1 ] * statPercentages[ 1 ] * chancePercentage );
         _monsterCurrent.Intelligence += (ushort) ( statOffsets[ 2 ] * statPercentages[ 2 ] * chancePercentage );
@@ -604,21 +612,41 @@ class CombinationHandler {
 
         MonsterBreed parentBreed = MonsterBreed.GetBreed( (MonsterGenus) breedMain, (MonsterGenus) breedSub );
 
-        short[] baseStats = new short[ 6 ]; //
-        short[] curStats = new short[ 6 ]; // Starts at 0x10
+        ushort[] baseStats = new ushort[ 6 ]; //
+        ushort[] curStats = new ushort[ 6 ]; // Starts at 0x10
         byte[] growths = new byte[ 6 ]; // Starts at 0x30
 
-        for ( var i = 0; i < 6; i++ ) {
-            baseStats[i] = Byte.Parse( parentBreed.SDATAValues[ 7 + i ] );
-            Memory.Instance.Read( parentAddress + 0x10 + (byte) ( i * 2 ), out curStats[ i ] );
-            Memory.Instance.Read( parentAddress + 0x30 + (byte) i, out growths[ i ] );
-        }
+        // Read Stats in order of L, P, I, Sk, Sp, D. Manual as the orders are nonsensical in memory.
+        // Current Stats increments by Shorts, LPDSkSpI, Growths by Bytes PILSkSD
+        baseStats[ 0 ] = parentBreed.Life;
+        Memory.Instance.Read( parentAddress + 0x10, out curStats[ 0 ] );
+        Memory.Instance.Read( parentAddress + 0x30 + 0x2, out growths[ 0 ] );
+
+        baseStats[ 1 ] = parentBreed.Power;
+        Memory.Instance.Read( parentAddress + 0x10 + 0x2, out curStats[ 1 ] );
+        Memory.Instance.Read( parentAddress + 0x30, out growths[ 1 ] );
+
+        baseStats[ 2 ] = parentBreed.Intelligence;
+        Memory.Instance.Read( parentAddress + 0x10 + 0xA, out curStats[ 2 ] );
+        Memory.Instance.Read( parentAddress + 0x30 + 0x1, out growths[ 2 ] );
+
+        baseStats[ 3 ] = parentBreed.Skill;
+        Memory.Instance.Read( parentAddress + 0x10 + 0x6, out curStats[ 3 ] );
+        Memory.Instance.Read( parentAddress + 0x30 + 0x3, out growths[ 3 ] );
+
+        baseStats[ 4 ] = parentBreed.Speed;
+        Memory.Instance.Read( parentAddress + 0x10 + 0x8, out curStats[ 4 ] );
+        Memory.Instance.Read( parentAddress + 0x30 + 0x4, out growths[ 4 ] );
+
+        baseStats[ 5 ] = parentBreed.Defense;
+        Memory.Instance.Read( parentAddress + 0x10 + 0x4, out curStats[ 5 ] );
+        Memory.Instance.Read( parentAddress + 0x30 + 0x5, out growths[ 5 ] );
 
         for ( var i = 5; i >= 0; i-- ) {
             byte maxStat = (byte) i;
             var maxVal = -1.0;
             for ( var j = 5; j >= 0; j-- ) {
-                var weightTotal = Math.Max( 1, ( Math.Max( 0, curStats[ j ] - baseStats[ j ] ) * ( 0.5 * growths[ j ] ) ) );
+                var weightTotal = Math.Max( 1, ( curStats[ j ] * ( 0.5 * growths[ j ] ) ) );
                 if ( curStats[j] == 0 ) { weightTotal = -1; }
                 if ( maxVal < weightTotal ) {
                     maxVal = weightTotal;

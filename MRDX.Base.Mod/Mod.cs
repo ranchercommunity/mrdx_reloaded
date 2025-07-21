@@ -273,15 +273,9 @@ public sealed class Mod : ModBase, IExports // <= Do not Remove.
                 }
 
                 Logger.Trace($"found subinfo: {sub}");
-                newBreeds.Add(new MonsterBreed
-                {
-                    Main = info.Id,
-                    Sub = sub,
-                    Name = string.Empty,
-                    BreedIdentifier = breedIdentifier,
-                    TechList = techs,
-                    SDATAValues = sDataList[(info.Id, sub)]
-                });
+                newBreeds.Add( MonsterBreed.NewBreed( info.Id, sub, string.Empty, breedIdentifier,
+                    techs, sDataList[ (info.Id, sub) ] ) );
+                
             }
         }
 

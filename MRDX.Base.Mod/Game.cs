@@ -147,7 +147,7 @@ public class Game : BaseObject<Game>, IGame
 
             // Write the attack name and header to the temp array so we can write it out later
             var monsterTechs = MonsterBreed.AllBreeds
-                .Find(b => b.Main == b.Sub && b.Main == mon.Id)!.TechList;
+                .Find(b => b.GenusMain == b.GenusSub && b.GenusMain == mon.Id)!.TechList;
 
             // Build a header for the attacks 
             for (var i = 0; i < 24; ++i)

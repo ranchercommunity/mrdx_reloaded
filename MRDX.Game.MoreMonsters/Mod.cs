@@ -494,8 +494,8 @@ public class Mod : ModBase // <= Do not Remove.
         var ret = _hook_statUpdate!.OriginalFunction( self );
 
         if ( shrineReplacementActive ) {
-            // TODO - Choose Random Variant or something akin to that.
-            var variant = _shrineReplacementMonster._monsterVariants[ 0 ];
+            // TODO - Choose Random Variant or something akin to that. _shrineReplacementMonster._monsterVariants[ 0 ];
+            var variant = MonsterBreed.GetBreed( _shrineReplacementMonster._genusNewMain, _shrineReplacementMonster._genusNewSub );
             WriteMonsterData( variant );
 
             Memory.Instance.Write( address_monster_mm_variant, _shrineColorVariant );
@@ -505,46 +505,41 @@ public class Mod : ModBase // <= Do not Remove.
         return ret;
     }
 
-    public void WriteMonsterData(MMBreedVariant variant) {
-        _monsterCurrent.GenusMain = variant.GenusMain;
-        _monsterCurrent.GenusSub = variant.GenusSub;
+    public void WriteMonsterData(MonsterBreed breed) {
+        _monsterCurrent.GenusMain = breed.GenusMain;
+        _monsterCurrent.GenusSub = breed.GenusSub;
 
-        _monsterCurrent.Lifespan = variant.Lifespan;
-        _monsterCurrent.InitalLifespan = variant.InitalLifespan;
+        _monsterCurrent.Lifespan = breed.Lifespan;
+        _monsterCurrent.InitalLifespan = breed.Lifespan;
 
-        _monsterCurrent.NatureRaw = variant.NatureRaw;
-        _monsterCurrent.NatureBase = variant.NatureBase;
+        _monsterCurrent.NatureRaw = (short) breed.NatureBase;
+        _monsterCurrent.NatureBase = breed.NatureBase;
 
-        _monsterCurrent.LifeType = variant.LifeType;
+        _monsterCurrent.LifeType = breed.LifeType;
 
-        _monsterCurrent.Life = variant.Life;
-        _monsterCurrent.Power = variant.Power;
-        _monsterCurrent.Intelligence = variant.Intelligence;
-        _monsterCurrent.Skill = variant.Skill;
-        _monsterCurrent.Speed = variant.Speed;
-        _monsterCurrent.Defense = variant.Defense;
+        _monsterCurrent.Life = breed.Life;
+        _monsterCurrent.Power = breed.Power;
+        _monsterCurrent.Intelligence = breed.Intelligence;
+        _monsterCurrent.Skill = breed.Skill;
+        _monsterCurrent.Speed = breed.Speed;
+        _monsterCurrent.Defense = breed.Defense;
 
-        _monsterCurrent.GrowthRateLife = variant.GrowthRateLife;
-        _monsterCurrent.GrowthRatePower = variant.GrowthRatePower;
-        _monsterCurrent.GrowthRateIntelligence = variant.GrowthRateIntelligence;
-        _monsterCurrent.GrowthRateSkill = variant.GrowthRateSkill;
-        _monsterCurrent.GrowthRateSpeed = variant.GrowthRateSpeed;
-        _monsterCurrent.GrowthRateDefense = variant.GrowthRateDefense;
+        _monsterCurrent.GrowthRateLife = breed.GrowthRateLife;
+        _monsterCurrent.GrowthRatePower = breed.GrowthRatePower;
+        _monsterCurrent.GrowthRateIntelligence = breed.GrowthRateIntelligence;
+        _monsterCurrent.GrowthRateSkill = breed.GrowthRateSkill;
+        _monsterCurrent.GrowthRateSpeed = breed.GrowthRateSpeed;
+        _monsterCurrent.GrowthRateDefense = breed.GrowthRateDefense;
 
-        _monsterCurrent.ArenaSpeed = variant.ArenaSpeed;
-        _monsterCurrent.GutsRate = variant.GutsRate;
+        _monsterCurrent.ArenaSpeed = breed.ArenaSpeed;
+        _monsterCurrent.GutsRate = breed.GutsRate;
 
-        Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x1D0 ), BitConverter.GetBytes(variant.BattleSpecialsRaw) );
+        Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x1D0 ), BitConverter.GetBytes(breed.BattleSpecialsRaw) );
 
-        _monsterCurrent.TrainBoost = variant.TrainBoost;
+        _monsterCurrent.TrainBoost = breed.TrainBoost;
 
-        Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x192 ), variant.TechniquesRaw );
-
+        Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x192 ), breed.TechniquesRaw );
     }
-
-
-    
-
 
     #region Monster Scaling
 
@@ -592,6 +587,7 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     #endregion Monster Scaling
+
     private void ProcessReloadedFileLoad ( string filename ) {
         //_logger.WriteLineAsync( $"Any file check {_monsterInsideBattleStartup}, {_monsterInsideBattleRedirects}, {_monsterInsideBattleMain}, {_monsterInsideBattleSub}", Color.Orange );
         if ( _monsterInsideBattleStartup ) {
