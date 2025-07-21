@@ -13,6 +13,8 @@ using CallingConventions = Reloaded.Hooks.Definitions.X86.CallingConventions;
 using MRDX.Base.Mod.Interfaces;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Collections;
+using System.Numerics;
 
 namespace MRDX.Game.MoreMonsters;
 
@@ -61,10 +63,16 @@ class CombinationHandler {
     private byte _combinationParent1Scaling;
     private byte _combinationParent2Scaling;
 
-    private int[] _breedCombinationStrength = [ 10, 7, 4, 1, 4, 4, 5, 10, 9, 5,
-                                                3, 6, 6, 6, 4, 6, 2, 2, 1, 2,
-                                                1, 1, 1, 6, 3, 4, 3, 2, 6, 1,
-                                                4, 1, 1, 6, 6, 6, 6];
+    private MonsterGenus _combinationParent1Main;
+    private byte[] _combinationParent1Techniques = new byte[48];
+
+    private MonsterGenus _combinationParent2Main;
+
+    private int[] _breedCombinationStrength = [ 10, 7, 4, 1, 4, 4, 5, 10, 9, 5, // 0-9
+                                                3, 6, 6, 6, 4, 6, 2, 2, 1, 2, // 10-19
+                                                1, 1, 1, 6, 3, 4, 3, 2, 6, 1, // 20-29
+                                                4, 1, 1, 6, 6, 2, 6, 6, // 30-37
+                                                1, 1, 1, 1, 1, 1]; // Specials 38-43
     public CombinationHandler ( Mod mod, IHooks iHooks, IMonster monster ) {
         _mod = mod;
         _iHooks = iHooks;
@@ -104,7 +112,11 @@ class CombinationHandler {
             } else {
                 GenerateCombinationListBaseGame();
             }
-        } 
+        }
+
+        if ( _mod._configuration.MonsterSizesEnabled ) {
+            ApplyMonsterScaling();
+        }
     }
 
     /// <summary>
@@ -174,15 +186,27 @@ class CombinationHandler {
         Memory.Instance.Read( _combinationParent2Address + 0x8, out MonsterGenus p2Main );
         Memory.Instance.Read( _combinationParent2Address + 0xc, out MonsterGenus p2Sub );
 
-        Dictionary<MonsterBreed, int> comboResults = new Dictionary<MonsterBreed, int>();
+
+        // This is where ???'s are filtered out.
+        if ( !_mod._configuration.CombinationSpecialSubspecies ) {
+            if ( p1Sub == MonsterGenus.XX || p1Sub == MonsterGenus.XY || p1Sub == MonsterGenus.XZ ||
+                 p1Sub == MonsterGenus.YX || p1Sub == MonsterGenus.YY || p1Sub == MonsterGenus.YZ ) { p1Sub = p1Main; }
+            if ( p2Sub == MonsterGenus.XX || p2Sub == MonsterGenus.XY || p2Sub == MonsterGenus.XZ ||
+                 p2Sub == MonsterGenus.YX || p2Sub == MonsterGenus.YY || p2Sub == MonsterGenus.YZ ) { p2Sub = p2Main; }
+        }
 
         MonsterGenus[] order = [ p1Main, p1Sub, p2Main, p2Sub ];
+        Dictionary<MonsterBreed, int> comboResults = new Dictionary<MonsterBreed, int>();
+        var dcb = _discChipGenusMapping.TryGetValue( _secretSeasoning, out MonsterGenus discChipsBoost );
+
+        
         var totalStrength = 0;
         for ( var i = 0; i < 4; i++ ) {
             for ( var j = 0; j < 4; j++ ) {
                 MonsterBreed? breed = MonsterBreed.GetBreed( order[ i ], order[ j ] );
                 if ( breed != null ) {
                     var strength = GetCombinationOutputStrength( ( i * 4 ) + j + 1, order[ i ] );
+                    if ( dcb && order[i] == discChipsBoost && order[j] != discChipsBoost ) { strength += 5; }
                     if ( strength != 0 ) {
                         if ( comboResults.ContainsKey( breed ) ) {
                             comboResults[ breed ] = comboResults[ breed ] + strength;
@@ -195,8 +219,6 @@ class CombinationHandler {
                 }
             }
         }
-
-        // TODO: DISC CHIPS
 
         int totalPercent = 0;
         foreach ( var breed in comboResults.Keys ) {
@@ -219,6 +241,10 @@ class CombinationHandler {
 
         _combinationParent1Offsets = GetParentOffsetsInCombinationOrder( _combinationParent1Address );
         _combinationParent2Offsets = GetParentOffsetsInCombinationOrder( _combinationParent2Address );
+
+        _combinationParent1Main = p1Main;
+        _combinationParent2Main = p2Main;
+        Memory.Instance.ReadRaw( _combinationParent1Address + 0x19A, out _combinationParent1Techniques, 48 );
 
         _combinationPotentialResults = comboSorted;
     }
@@ -296,6 +322,7 @@ class CombinationHandler {
         _combinationParent2Offsets = GetParentOffsetsInCombinationOrder( _combinationParent2Address );
 
         _combinationPotentialResults = comboSorted;
+
     }
 
 
@@ -340,10 +367,9 @@ class CombinationHandler {
             _mod.WriteMonsterData( childBreed );
             ApplyParentStatBonuses(childBreed, childGrowths );
             ApplySecretSeasoning();
-        }
 
-        if ( _mod._configuration.MonsterSizesEnabled ) {
-            ApplyMonsterScaling();
+            if ( childBreed.GenusMain == _combinationParent1Main ) { ApplyTechniquesParentSame( childBreed ); }
+            else { ApplyTechniquesParentDifferent( childBreed ); }
         }
     }
 
@@ -366,12 +392,13 @@ class CombinationHandler {
         double[] statPercentages = new double[ 6 ];
         for ( var i = 0; i < 6; i++ ) {
             if ( childGrowths[ i ].Item1 == statOrderP1[ i ].Item1 && childGrowths[ i ].Item1 == statOrderP2[ i ].Item1 ) {
+                double rBoost = Random.Shared.Next( 0, 10 ) / 100.0;
                 statPercentages[ childGrowths[ i ].Item1 ] = (
-                    ( correctOrderCount == 6 ) ? 0.80 :
-                    ( correctOrderCount == 4 ) ? 0.70 :
-                    ( correctOrderCount == 3 ) ? 0.60 :
-                    ( correctOrderCount == 2 ) ? 0.50 :
-                    ( correctOrderCount == 1 ) ? 0.40 : 0.15 );
+                    ( correctOrderCount == 6 ) ? 0.70 + rBoost :
+                    ( correctOrderCount == 4 ) ? 0.60 + rBoost :
+                    ( correctOrderCount == 3 ) ? 0.50 + rBoost :
+                    ( correctOrderCount == 2 ) ? 0.40 + rBoost :
+                    ( correctOrderCount == 1 ) ? 0.30 + rBoost : 0.15 );
             }
 
             else { statPercentages[ childGrowths[ i ].Item1 ] = 0.15; }
@@ -409,6 +436,45 @@ class CombinationHandler {
 
     }
 
+    private readonly Dictionary<Item, MonsterGenus> _discChipGenusMapping = new Dictionary<Item, MonsterGenus>() {
+        { Item.DiscChipsApe, MonsterGenus.Ape },
+        { Item.DiscChipsBajarl, MonsterGenus.Bajarl },
+        { Item.DiscChipsBaku, MonsterGenus.Baku },
+        { Item.DiscChipsBeaclon, MonsterGenus.Beaclon },
+        { Item.DiscChipsCentaur, MonsterGenus.Centaur },
+        { Item.DiscChipsColorP, MonsterGenus.ColorPandora },
+        { Item.DiscChipsDucken, MonsterGenus.Ducken },
+        { Item.DiscChipsDurahan, MonsterGenus.Durahan },
+        { Item.DiscChipsGaboo, MonsterGenus.Gaboo },
+        { Item.DiscChipsGali, MonsterGenus.Gali },
+        { Item.DiscChipsGhost, MonsterGenus.Ghost },
+        { Item.DiscChipsGolem, MonsterGenus.Golem },
+        { Item.DiscChipsHare, MonsterGenus.Hare },
+        { Item.DiscChipsHenger, MonsterGenus.Henger },
+        { Item.DiscChipsHopper, MonsterGenus.Hopper },
+        { Item.DiscChipsJell, MonsterGenus.Jell },
+        { Item.DiscChipsJill, MonsterGenus.Jill },
+        { Item.DiscChipsJoker, MonsterGenus.Joker },
+        { Item.DiscChipsKato, MonsterGenus.Kato },
+        { Item.DiscChipsMetalner, MonsterGenus.Metalner },
+        { Item.DiscChipsMew, MonsterGenus.Mew },
+        { Item.DiscChipsMocchi, MonsterGenus.Mocchi },
+        { Item.DiscChipsMock, MonsterGenus.Mock },
+        { Item.DiscChipsMonol, MonsterGenus.Monol },
+        { Item.DiscChipsNaga, MonsterGenus.Naga },
+        { Item.DiscChipsNiton, MonsterGenus.Niton },
+        { Item.DiscChipsPhoenix, MonsterGenus.Phoenix },
+        { Item.DiscChipsPixie, MonsterGenus.Pixie },
+        { Item.DiscChipsPlant, MonsterGenus.Plant },
+        { Item.DiscChipsSuezo, MonsterGenus.Suezo },
+        { Item.DiscChipsTiger, MonsterGenus.Tiger },
+        { Item.DiscChipsUndine, MonsterGenus.Undine },
+        { Item.DiscChipsWorm, MonsterGenus.Worm },
+        { Item.DiscChipsWracky, MonsterGenus.Wracky },
+        { Item.DiscChipsZilla, MonsterGenus.Zilla },
+        { Item.DiscChipsZuum, MonsterGenus.Zuum },
+    };
+ 
     /// <summary>
     /// Applies the secret seasoning stats if they are stat affecting items (i.e., non monster species ones).
     /// </summary>
@@ -584,18 +650,142 @@ class CombinationHandler {
             _monsterCurrent.TrainBoost |= (ushort) TrainingBoosts.Run;
         }
     }
+
+
+
+    private void ApplyTechniquesParentSame ( MonsterBreed childBreed ) {
+        var techList = childBreed.TechList;
+        byte[] childTechs = new byte[ 48 ]; Array.Copy( childBreed.TechniquesRaw, childTechs, 48 );
+
+        // This function sets which techs have been learned of each errantry type. Last value [6] of LTT is the total.
+        int[] learnedTechTypes = [ 0, 0, 0, 0, 0, 0, 0 ];
+        for ( var i = 0; i < 24; i++ ) {
+            if ( _combinationParent1Techniques[ i * 2 ] == 1 ) {
+                var t = techList.FindLast( v => BitOperations.TrailingZeroCount( (uint) v.Slot ) == i ); //BO.TZC allows us to get the 'id' of the slot.
+                if ( t != null ) {
+                    learnedTechTypes[ (int) t.Type ]++;
+                    learnedTechTypes[ 6 ]++;
+                }
+            }
+        }
+
+        int[] shuffle = new int[ techList.Count ];
+        for ( var i = 0; i < techList.Count; i++ ) { shuffle[ i ] = i; }
+        Utils.Shuffle( Random.Shared, shuffle );
+
+        // Assign Non-Special, Non-Learned techs to the monster based on the inheritedCount.
+        var inheritedCount = (int) Math.Floor ( ( learnedTechTypes[ 6 ] - ( learnedTechTypes[ 5 ] + 2 ) ) * 2.0 / 3.0 );
+        
+        for ( var t = 0; t < inheritedCount; t++ ) {
+            for ( var i = 0; i < shuffle.Count(); i++ ) {
+                var pendingTech = techList[ shuffle[ i ] ];
+                var slot = BitOperations.TrailingZeroCount( (uint) pendingTech.Slot ) * 2;
+                if ( childTechs[ slot ] == 0 && _combinationParent1Techniques[slot] == 1 && pendingTech.Type != ErrantryType.Special ) {
+                    childTechs[ slot ] = 1;
+                    break;
+                }
+            }
+        }
+
+        // Now transfer over the use count of each move learned.
+        for ( var i = 0; i < 24; i++ ) {
+            if ( childTechs[ i * 2 ] == 1 ) {
+                childTechs[ ( i * 2 ) + 1 ] = _combinationParent1Techniques[ ( i * 2 ) + 1 ];
+            }
+        }
+
+        Memory.Instance.WriteRaw( nuint.Add( Mod.address_monster, 0x192 ), childTechs );
+    }
+
+    /// <summary>
+    /// Applies techniques to the child based on the combination rules for mismatched Parent/Baby mains.
+    /// Chooses 1 tech each, if learned, from Power, Wither, Sharp, and Hit, and gives it to the baby.
+    /// </summary>
+    /// <param name="childBreed"></param>
+    private void ApplyTechniquesParentDifferent( MonsterBreed childBreed ) {
+        
+        MonsterBreed parentBreed = MonsterBreed.GetBreed( _combinationParent1Main, _combinationParent1Main );
+        var parentTechList = parentBreed.TechList;
+        var childTechList = childBreed.TechList;
+        byte[] childTechs = new byte[ 48 ]; Array.Copy( childBreed.TechniquesRaw, childTechs, 48 );
+
+        // This function sets which techs have been learned of each errantry type. Basic and Special will be ignored later.
+        int[] learnedTechTypes = [ 0, 0, 0, 0, 0, 0 ];
+        for ( var i = 0; i < 24; i++ ) {
+            if ( _combinationParent1Techniques[ i * 2 ] == 1 ) {
+                var t = parentTechList.FindLast( v => BitOperations.TrailingZeroCount((uint) v.Slot) == i ); //BO.TZC allows us to get the 'id' of the slot.
+                if ( t != null ) {
+                    learnedTechTypes[ (int) t.Type ]++;
+                }
+            }
+        }
+
+        int[] shuffle = new int[ childTechList.Count ];
+        for ( var i = 0; i < childTechList.Count; i++ ) { shuffle[ i ] = i; }
+        Utils.Shuffle( Random.Shared, shuffle );
+
+        // Loop through each Tech Type (1-4) and sets the skill if the LTT >= 1 for that type.
+        for ( var tt = 1; tt <= 4; tt++ ) {
+            if ( learnedTechTypes[ tt ] >= 1 ) {
+                for ( var i = 0; i < shuffle.Count(); i++ ) {
+                    var pendingTech = childTechList[ shuffle[ i ] ];
+                    if ( pendingTech.Type == (ErrantryType) tt ) {
+                        childTechs[ BitOperations.TrailingZeroCount((uint) pendingTech.Slot) * 2 ] = 1;
+                        break;
+                    }
+                }
+            }
+        }
+
+        Memory.Instance.WriteRaw( nuint.Add( Mod.address_monster, 0x192 ), childTechs );
+    }
+
+
+
+
     /// <summary>
     /// Applies monster scaling based upon a semi-random weighting between the parents and a random mutation value.
     /// </summary>
     private void ApplyMonsterScaling() {
-        var p1strength = _combinationParent1Scaling == 0 ? 0 : Random.Shared.Next( 0, 2 );
-        var p2strength = _combinationParent2Scaling == 0 ? 0 : Random.Shared.Next( 0, 2 );
-        var mustrength = Random.Shared.Next( 1, 201 );
+        _mod.HandlerScaling.temporaryScaling = 0;
+        if ( !_mod._configuration.MonsterSizesEnabled ) { return; }
 
-        byte scaling = (byte) 
-            ( ( (p1strength * _combinationParent1Scaling ) +  ( p2strength * _combinationParent2Scaling ) + mustrength ) 
-                / ( 1 + p1strength + p2strength ) );
+        byte scaling = 0;
+
+        if ( _mod._configuration.MonsterSizesGenetics == Configuration.Config.ScalingGenetics.WildWest ) {
+
+            var p1strength = _combinationParent1Scaling == 0 ? 0 : Random.Shared.Next( 0, 2 );
+            var p2strength = _combinationParent2Scaling == 0 ? 0 : Random.Shared.Next( 0, 2 );
+            var mustrength = Random.Shared.Next( 1, 201 );
+
+            scaling = (byte)
+                ( ( ( p1strength * _combinationParent1Scaling ) + ( p2strength * _combinationParent2Scaling ) + mustrength )
+                    / ( 1 + p1strength + p2strength ) );
+        }
+
+        else {
+            var p1value = ( _combinationParent1Scaling == 0 ? 100 : _combinationParent1Scaling );
+            var p2value = ( _combinationParent2Scaling == 0 ? 100 : _combinationParent2Scaling );
+            var rValue = Random.Shared.Next( 1, 201 );
+            int oValue = _mod.HandlerScaling.MonsterScalingFactors[ _combinationParent2Main ] -
+                _mod.HandlerScaling.MonsterScalingFactors[ _combinationParent1Main ];
+
+            oValue = oValue < 0 ? Math.Max(1, 100 - Random.Shared.Next( 1, Math.Abs( oValue ) ) ) :
+                Math.Min(200, Random.Shared.Next(100, 100 + oValue) );
+
+            double [] strengths = [ Random.Shared.NextDouble() + 1, Random.Shared.NextDouble() + 1,
+                Random.Shared.NextDouble(), Random.Shared.NextDouble(), 0 ];
+            strengths[ 4 ] = strengths[ 0 ] + strengths[ 1 ] + strengths[ 2 ] + strengths[ 3 ];
+
+            scaling = (byte) (
+                ((p1value * strengths[ 0 ]) + ( p2value * strengths[ 1 ]) +
+                ( rValue * strengths[ 2 ] ) +  ( oValue * strengths[ 3 ])) /
+                strengths[ 4 ] );
+
+        }
+
         Memory.Instance.Write( Mod.address_monster_mm_scaling, scaling );
+        _mod.HandlerScaling.temporaryScaling = scaling;
     }
 
     /// <summary>

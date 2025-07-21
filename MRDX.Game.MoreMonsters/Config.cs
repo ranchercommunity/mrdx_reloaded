@@ -7,14 +7,28 @@ namespace MRDX.Game.MoreMonsters.Configuration;
 public class Config : Configurable<Config>
 {
 
+    public enum ScalingGenetics {
+        StrongGenetics,
+        WildWest
+    }
+
     [Category("Monster Sizes")]
     [DisplayName( "Enable Random Monster Sizes" )]
     [Description(   "Not all monsters are born the same!\n" +
                     "Enabling this feature will have all player owned monsters be different sizes.\n" +
-                    "Monster sizes are the average of two random values. Normal monsters are more likely.\n" +
+                    "The likiness of certain monster sizes is based on the Monster Size Genetics option.\n" +
                     "Note: Setting sizes too small or large will result in unpredictable monster appearances.")]
     [DefaultValue( true )]
     public bool MonsterSizesEnabled { get; set; } = true;
+
+    [Category( "Monster Sizes" )]
+    [DisplayName( "Monster Size Genetics" )]
+    [Description( "Determines the behavior of monster size genetics.\n" +
+                    "Strong Genetics - Monsters have base sizes (+mutations) that are propagated through combining.\n" +
+                    "                  For example Zilla/Pixie will, on average, be smaller than Zilla/Zilla.\n" +
+                    "Wild West - 'Bigness' is its own unique trait and passed down through combinations." )]
+    [DefaultValue( ScalingGenetics.StrongGenetics )]
+    public ScalingGenetics MonsterSizesGenetics { get; set; } = ScalingGenetics.StrongGenetics;
 
     [Category( "Monster Sizes" )]
     [DisplayName( "Monster Size Minimum" )]
@@ -56,6 +70,14 @@ public class Config : Configurable<Config>
              "Modified - Improves or adjusts the behavior of combination items to make unappealing items more useful.")]
     [DefaultValue( CombinaitonSettings.Modified )]
     public CombinaitonSettings CombinationItemAdjustment { get; set; } = CombinaitonSettings.Modified;
+
+    [Category( "Combinations" )]
+    [DisplayName( "Enable Combinations for Special Subspecies" )]
+    [Description( "Enables the ability to combine monsters to obtain ??? subspecies.\n" +
+         "Note: This enables the XX through YZ genes in combination. Some specials may still be\n" +
+         "difficult to combine for, and potential outputs may be not what you expect." )]
+    [DefaultValue( false )]
+    public bool CombinationSpecialSubspecies { get; set; } = false;
     /*
     [DisplayName( "String" )]
     [Description( "This is a string." )]

@@ -56,9 +56,6 @@ public delegate int H_ReadSDATA ( nuint self, int p1 );
 [Function( CallingConventions.Fastcall )]
 public delegate int H_MysteryStatUpdate ( nuint self );
 
-
-
-
 // MonsterIDFromBreeds - Takes in a Main/Sub and returns the Monster ID
 [ HookDef( BaseGame.Mr2, Region.Us, "51 56 8B F1 8B 0D ?? ?? ?? ??" )]
 [Function( CallingConventions.Fastcall )]
@@ -86,7 +83,10 @@ public class Mod : ModBase // <= Do not Remove.
     public static nuint address_monster_mm_scaling { get { return address_monster + 0x165; } }
     public static nuint address_monster_mm_truesub { get { return address_monster + 0x166; } }
     public static nuint address_monster_mm_trueguts { get { return address_monster + 0x167; } }
-    
+
+    internal CombinationHandler HandlerCombination { get => handlerCombination; set => handlerCombination =  value ; }
+    internal FreezerHandler HandlerFreezer { get => handlerFreezer; set => handlerFreezer =  value ; }
+    internal ScalingHandler HandlerScaling { get => handlerScaling; set => handlerScaling =  value ; }
 
     public static int unusedMonsterOffset = 0x1C; // 28 Bytes are safe at a minimum prior to the monster's name.
     
@@ -109,25 +109,19 @@ public class Mod : ModBase // <= Do not Remove.
     public bool shrineReplacementActive = false;
     private MMBreed _shrineReplacementMonster;
     private byte _shrineColorVariant;
-    private byte _shrineMonsterScaling = 0;
     private readonly IMonster _monsterCurrent;
 
     private Dictionary<int, MMBreed> _songIDMapping = new Dictionary<int, MMBreed>();
 
-    /* Combination Variables */
-
-    private CombinationHandler _combinationHandler;
-
 
     private IHook<H_GetMonsterBreedName> _hook_monsterBreedNames;
 
-    private FreezerHandler _freezerHandler;
-
+    private CombinationHandler handlerCombination;
+    private FreezerHandler handlerFreezer;
+    private ScalingHandler handlerScaling;
 
     /* Scaling Variables */
-    private IHook<UpdateGenericState> _hook_updateGenericState;
 
-    private short _vertexScaling;
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -186,12 +180,13 @@ public class Mod : ModBase // <= Do not Remove.
 
         _iHooks.AddHook<H_GetMonsterBreedName>( SetupGetMonsterBreedName ).ContinueWith( result => _hook_monsterBreedNames = result.Result );
 
-        _freezerHandler = new FreezerHandler( this, _iHooks, _monsterCurrent );
-        _combinationHandler = new CombinationHandler( this, _iHooks, _monsterCurrent );
+        handlerFreezer = new FreezerHandler( this, _iHooks, _monsterCurrent );
+        handlerCombination = new CombinationHandler( this, _iHooks, _monsterCurrent );
+        handlerScaling = new ScalingHandler( this, _iHooks, _monsterCurrent );
 
         //_iHooks.AddHook<ParseTextWithCommandCodes>( SetupParseTextCommmandCodes ).ContinueWith(result => _hook_parseTextWithCommandCodes = result.Result.Activate());
 
-        _iHooks.AddHook<UpdateGenericState>( CheckVertexScalingUpdate ).ContinueWith( result => _hook_updateGenericState = result.Result );
+
 
         
         WeakReference<IRedirectorController> _redirectorx = _modLoader.GetController<IRedirectorController>();
@@ -444,7 +439,12 @@ public class Mod : ModBase // <= Do not Remove.
             }
         }
 
-        _shrineMonsterScaling = (byte) ( ( Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) ) / 2 );
+        if ( _configuration.MonsterSizesGenetics == Config.ScalingGenetics.WildWest ) {
+            handlerScaling.temporaryScaling = (byte) ( ( Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) ) / 2 );
+        } else {
+            handlerScaling.temporaryScaling = (byte) ( ( Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) + 
+                Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) ) / 4 );
+        }
     }
 
     /// <summary>
@@ -464,8 +464,8 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         if ( _configuration.MonsterSizesEnabled ) {
-            Memory.Instance.Write( address_monster_mm_scaling, _shrineMonsterScaling );
-            _shrineMonsterScaling = 0;
+            Memory.Instance.Write( address_monster_mm_scaling, handlerScaling.temporaryScaling );
+            handlerScaling.temporaryScaling = 0;
         }
     }
 
@@ -541,52 +541,6 @@ public class Mod : ModBase // <= Do not Remove.
         Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x192 ), breed.TechniquesRaw );
     }
 
-    #region Monster Scaling
-
-    /// <summary>
-    /// Reads the location of the scaling factor in memory for monsters, then applies the configuration options to get a % scaling.
-    /// This location in memory is by default 0, so set it to 1. Monster sizes should be from 1-201.
-    /// </summary>
-    /// <returns></returns>
-    private double GetCurrentMonsterScalingFactor () {
-        byte monsterScaling = _shrineMonsterScaling;
-        if ( monsterScaling == 0 ) {
-            Memory.Instance.Read( address_monster_mm_scaling, out monsterScaling );
-        }
-
-        if ( monsterScaling == 0 ) { return 1; }
-
-        if ( monsterScaling <= 100 ) { return Single.Lerp( (float) _configuration.MonsterSizeMinimum, (float) 1.0, (((float) monsterScaling)-1) / 99 ); }
-        else if ( monsterScaling == 101 ) { return 1.0; }
-        else { return Single.Lerp( (float) 1.0, (float) _configuration.MonsterSizeMaximum, ( ( (float) monsterScaling ) - 101 ) / 100 ); }
-    }
-
-    /// <summary>
-    /// Only activates if Monster Sizes is enabled in the configuration options.
-    /// Updates the location of the monster's vertex scaling based upon the monster's vertex scaling value.
-    /// Only updates these values if it detects a change from one value to reduce memory writes.
-    /// </summary>
-    /// <param name="parent"></param>
-    private void CheckVertexScalingUpdate ( nint parent ) {
-        _hook_updateGenericState!.OriginalFunction( parent );
-
-        if ( !_configuration.MonsterSizesEnabled ) { return; }
-
-        Memory.Instance.Read( address_monster_vertex_scaling, out ushort vertexScalingA );
-
-        if ( vertexScalingA != _vertexScaling && vertexScalingA != 0x00 ) {
-            Memory.Instance.Read( address_monster_vertex_scaling + 0x2, out ushort vertexScalingB );
-            Memory.Instance.Read( address_monster_vertex_scaling + 0x4, out ushort vertexScalingC );
-
-            double scaling = GetCurrentMonsterScalingFactor();
-            Memory.Instance.WriteRaw( address_monster_vertex_scaling, BitConverter.GetBytes( (ushort) (vertexScalingA * scaling) ) );
-            Memory.Instance.WriteRaw( address_monster_vertex_scaling + 0x2, BitConverter.GetBytes( (ushort) ( vertexScalingB * scaling ) ) );
-            Memory.Instance.WriteRaw( address_monster_vertex_scaling + 0x4, BitConverter.GetBytes( (ushort) ( vertexScalingC * scaling ) ) );
-            _vertexScaling = (short) (vertexScalingA * scaling);
-        }
-    }
-
-    #endregion Monster Scaling
 
     private void ProcessReloadedFileLoad ( string filename ) {
         //_logger.WriteLineAsync( $"Any file check {_monsterInsideBattleStartup}, {_monsterInsideBattleRedirects}, {_monsterInsideBattleMain}, {_monsterInsideBattleSub}", Color.Orange );

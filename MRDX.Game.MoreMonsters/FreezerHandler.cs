@@ -106,6 +106,7 @@ class FreezerHandler
     /// <summary>
     /// After the monster's stats are set from the freezer, update the monster's guts to the MM value.
     /// Values of 0 represent pre-MM Freezes and can be ignored.
+    /// Also update the scaling if applicable.
     /// </summary>
     /// <param name="unk1"></param>
     /// <param name="unk2"></param>
@@ -114,5 +115,9 @@ class FreezerHandler
 
         Memory.Instance.Read<byte>( Mod.address_monster_mm_trueguts, out byte trueGuts );
         if ( trueGuts != 0 ) { _monsterCurrent.GutsRate = trueGuts; }
+
+        if ( _mod._configuration.MonsterSizesEnabled ) {
+            _mod.HandlerScaling.temporaryScaling = 0;
+            _mod.HandlerScaling.UpdateVertexScaling(); }
     }
 }
