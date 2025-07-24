@@ -104,7 +104,7 @@ Contributors are listed in order of initial contribution, along with which monst
 
 Arrowhead/Undine, Bajarl/Plant, Baku/Mew, ColorPandora/ColorPandora #2, ColorPandora/Ducken, Ducken/ColorPandora, Ducken/Phoenix, Durahan/Ducken, Gaboo/Ape, Gaboo/Centaur, Gaboo/Centaur #2
 
-Gali/Joker, Ghost/Joker, Golem/Gaboo, Hopper/Gali, Jell/Gaboo, Kato/Hopper, Mew/Monol, Mocchi/Beaclon, Monol/ColorPandora, Monol/Mock, Niton/Suezo, Phoenix/Jill, Phoenix/Undine,
+Gali/Joker, Ghost/Joker, Golem/Gaboo, Hare/Mew, Hopper/Gali, Jell/Gaboo, Kato/Hopper, Mew/Monol, Mocchi/Beaclon, Monol/ColorPandora, Monol/Mock, Niton/Suezo, Phoenix/Jill, Phoenix/Undine,
 
 Undine/Dragon, Undine/Gaboo, Worm/Mew, Zuum/Ghost, Zuum/Henger, Zuum/Undine
 
@@ -112,7 +112,7 @@ Undine/Dragon, Undine/Gaboo, Worm/Mew, Zuum/Ghost, Zuum/Henger, Zuum/Undine
 
 #### Teawch
 
-Centaur/Henger, Suezo/Metalner, Suezo/Henger, Zilla/Dragon, Zilla/Ghost
+Centaur/Henger, Metalner/Tiger, Metalner/Monol, Suezo/Metalner, Suezo/Henger, Zilla/Dragon, Zilla/Ghost
 
 
 
