@@ -174,10 +174,10 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
         Utils.Shuffle( Random.Shared, allBreeds );
         var breed = allBreeds[ 0 ];
         foreach ( var b in allBreeds ) {
-            if ( SpecialSubs.Contains( b.Sub ) && Random.Shared.NextDouble() < conf.SpeciesUnique ) { continue; }
+            if ( SpecialSubs.Contains( b.GenusSub ) && Random.Shared.NextDouble() < conf.SpeciesUnique ) { continue; }
 
             if ( mainRestrictions is [] && subRestrictions is [] ) {
-                if ( !available.Contains( b.Main ) || !available.Contains( b.Sub ) ) { continue; }
+                if ( !available.Contains( b.GenusMain ) || !available.Contains( b.GenusSub ) ) { continue; }
                 else {
                     breed = b;
                     break;
@@ -185,14 +185,14 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
             }
 
             // If we have a restriction, guarantee we generate a breed with this main or sub
-            if ( ( mainRestrictions is not [] && mainRestrictions.Contains( b.Main ) ) ||
-                ( subRestrictions is not [] && subRestrictions.Contains( b.Sub ) ) ) {
+            if ( ( mainRestrictions is not [] && mainRestrictions.Contains( b.GenusMain ) ) ||
+                ( subRestrictions is not [] && subRestrictions.Contains( b.GenusSub ) ) ) {
                 breed = b;
                 break;
             }
         }
 
-        Logger.Info( $"Breed chosen for {TournamentRuleset.Name} - {breed.Main}/{breed.Sub}", Color.AliceBlue );
+        Logger.Info( $"Breed chosen for {TournamentRuleset.Name} - {breed.GenusMain}/{breed.GenusSub}", Color.AliceBlue );
         return breed;
     }
 
@@ -238,8 +238,8 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
         }*/
 
         var monData = new BattleMonsterData {
-            GenusMain = breed.Main,
-            GenusSub = breed.Sub,
+            GenusMain = breed.GenusMain,
+            GenusSub = breed.GenusSub,
             Name = TournamentData.RandomNameList[ Random.Shared.Next( TournamentData.RandomNameList.Length ) ],
             Life = 80,
             Power = 1,

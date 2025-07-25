@@ -257,6 +257,8 @@ public interface IMonster
     LifeType LifeType { get; set; }
     byte ArenaSpeed { get; set; }
     byte GutsRate { get; set; }
+    ushort BattleSpecial { get; set; }
+
 
     IList<IMonsterTechnique> Moves { get; }
     IList<byte> MoveUseCount { get; }

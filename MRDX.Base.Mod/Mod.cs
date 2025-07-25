@@ -273,15 +273,9 @@ public sealed class Mod : ModBase, IExports // <= Do not Remove.
                 }
 
                 Logger.Trace($"found subinfo: {sub}");
-                newBreeds.Add(new MonsterBreed
-                {
-                    Main = info.Id,
-                    Sub = sub,
-                    Name = string.Empty,
-                    BreedIdentifier = breedIdentifier,
-                    TechList = techs,
-                    SDATAValues = sDataList[(info.Id, sub)]
-                });
+                newBreeds.Add( MonsterBreed.NewBreed( info.Id, sub, string.Empty, breedIdentifier,
+                    techs, sDataList[ (info.Id, sub) ] ) );
+                
             }
         }
 
@@ -327,11 +321,13 @@ public sealed class Mod : ModBase, IExports // <= Do not Remove.
         {
             Capacity = 24
         };
+
         for (var i = 0; i < (int)TechRange.Count; ++i)
         {
             var tech = (TechRange)i;
             for (var j = 0; j < 6; ++j)
             {
+
                 var slot = (i * 6 + j) * 4;
                 Logger.Trace($"new attack tech {tech} slot {slot}");
                 var offset = BitConverter.ToInt32(rawStats[slot .. (slot + 4)]);
@@ -342,8 +338,12 @@ public sealed class Mod : ModBase, IExports // <= Do not Remove.
                 }
 
                 Logger.Trace($"new attack offset {offset}");
-                techs.Add(new MonsterTechnique(atkNames[i, j], (TechSlots)(1 << (i * 6 + j)),
-                    rawStats[offset .. (offset + 0x20)]));
+
+                var technique = new MonsterTechnique( atkNames[ i, j ], (byte) ((offset - 96 ) / 32), (TechSlots) ( 1 << ( i * 6 + j ) ),
+                    rawStats[ offset..( offset + 0x20 ) ] );
+                Logger.Trace( $"Technique parsed: {technique}" );
+                techs.Add(technique);
+                
             }
         }
 

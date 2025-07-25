@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Xml.Linq;
 
 namespace MRDX.Base.Mod.Interfaces;
 
@@ -55,6 +58,27 @@ public enum BattleSpecials
     Hax3 = 1 << 15
 }
 
+[Flags]
+public enum TrainingBoosts {
+    None = 0,
+    Domino = 1 << 0,
+    Study = 1 << 1,
+    Run = 1 << 2,
+    Shoot = 1 << 3,
+    Dodge = 1 << 4,
+    Endure = 1 << 5,
+    Pull = 1 << 6,
+    Meditate = 1 << 7,
+    Leap = 1 << 8,
+    Swim = 1 << 9,
+    TorbleSea = 1 << 10,
+    PapasMountain = 1 << 11,
+    MandyDesert = 1 << 12,
+    ParepareJungle = 1 << 13,
+    KawreaVolcano = 1 << 14,
+    Hax1 = 1 << 15
+}
+
 public enum Item : byte
 {
     Potato = 0,
@@ -97,7 +121,22 @@ public enum Item : byte
     Nageel = 39,
     TorokachinFx = 40,
     Paradoxine = 41,
-    DiscChips = 57,
+    DiscChipsTiger = 42,
+    DiscChipsHopper = 43,
+    DiscChipsHare = 44,
+    DiscChipsKato = 45,
+    DiscChipsSuezo = 46,
+    DiscChipsNaga = 47,
+    DiscChipsGaboo = 48,
+    DiscChipsJell = 49,
+    DiscChipsNiton = 50,
+    DiscChipsPlant = 51,
+    DiscChipsMew = 52,
+    DiscChipsMocchi = 53,
+    DiscChipsZuum = 54,
+    DiscChipsArrowhead = 55,
+    DiscChipsApe = 56,
+    DiscChipsMonol = 57,
     BayShrimp = 58,
     Incense = 59,
     Shoes = 60,
@@ -119,7 +158,13 @@ public enum Item : byte
     TrainingDummy = 76,
     IceOfPapas = 77,
     Grease = 78,
-    DnaCapsule = 85,
+    DnaCapsuleRed = 79,
+    DnaCapsuleYellow = 80,
+    DnaCapsulePink = 81,
+    DnaCapsuleGray = 82,
+    DnaCapsuleWhite = 83,
+    DnaCapsuleGreen = 84,
+    DnaCapsuleBlack = 85,
     GodsSlate = 86,
     HeroBadge = 87,
     HeelBadge = 88,
@@ -178,7 +223,28 @@ public enum Item : byte
     MockNut = 143,
     ColtsCake = 144,
     Flower = 145,
-    DiscChips2 = 167,
+    DiscChipsPixie = 146,
+    DiscChipsDragon = 147,
+    DiscChipsCentaur = 148,
+    DiscChipsColorP = 149,
+    DiscChipsBeaclon = 150,
+    DiscChipsHenger = 151,
+    DiscChipsWracky = 152,
+    DiscChipsGolem = 153,
+    DiscChipsDurahan = 154,
+    DiscChipsBaku = 155,
+    DiscChipsGali = 156,
+    DiscChipsZilla = 157,
+    DiscChipsBajarl = 158,
+    DiscChipsPhoenix = 159,
+    DiscChipsGhost = 160,
+    DiscChipsMetalner = 161,
+    DiscChipsJill = 162,
+    DiscChipsJoker = 163,
+    DiscChipsUndine = 164,
+    DiscChipsMock = 165,
+    DiscChipsDucken = 166,
+    DiscChipsWorm = 167,
     GaliMask = 168,
     Crystal = 169,
     UndineSlate = 170,
@@ -187,7 +253,9 @@ public enum Item : byte
     CupJellyD = 174,
     Spear = 175,
     WrackyDoll = 176,
-    QuackDoll3 = 177
+    QuackDoll3 = 177,
+    NoneEmpty = 178,
+    NoneInvalid = 255
 }
 
 public enum MonsterGenus : byte
@@ -335,20 +403,90 @@ public record GenusInfo
 public record MonsterBreed
 {
     public static List<MonsterBreed> AllBreeds = [];
-    public MonsterGenus Main { get; init; } = 0;
-    public MonsterGenus Sub { get; init; } = 0;
+    public MonsterGenus GenusMain { get; init; } = 0;
+    public MonsterGenus GenusSub { get; init; } = 0;
 
     public string Name { get; init; } = string.Empty;
-
     public string BreedIdentifier { get; init; } = string.Empty;
 
     public string[] SDATAValues { get; init; } = [];
 
+    public ushort Lifespan { get; init; } = 300;
+    public sbyte NatureBase { get; init; } = 0;
+    public LifeType LifeType { get; init; } = LifeType.Normal;
+    public ushort Life { get; init; } = 100;
+    public ushort Power { get; init; } = 100;
+    public ushort Intelligence { get; init; } = 100;
+    public ushort Skill { get; init; } = 100;
+    public ushort Speed { get; init; } = 100;
+    public ushort Defense { get; init; } = 100;
+    public byte GrowthRateLife { get; init; } = 2;
+    public byte GrowthRatePower { get; init; } = 2;
+    public byte GrowthRateIntelligence { get; init; } = 2;
+    public byte GrowthRateSkill { get; init; } = 2;
+    public byte GrowthRateSpeed { get; init; } = 2;
+    public byte GrowthRateDefense { get; init; } = 2;
+    public byte ArenaSpeed { get; init; } = 2;
+    public byte GutsRate { get; init; } = 10;
+    public ushort BattleSpecialsRaw { get; init; } = 3;
+    public byte[] TechniquesRaw { get; set; } 
+    public ushort TrainBoost { get; init; } = 0; // Slots 23 and 24 are unknown.
+
     public List<IMonsterTechnique> TechList { get; init; } = [];
 
+    public static MonsterBreed NewBreed( MonsterGenus main, MonsterGenus sub, string name, string breedidentifier,
+        List<IMonsterTechnique> techlist, string[] SDATAvalues ) {
+        MonsterBreed newBreed = new MonsterBreed {
+            GenusMain = main,
+            GenusSub = sub,
+            Name = name,
+            BreedIdentifier = breedidentifier,
+            TechList = techlist,
+            SDATAValues = SDATAvalues,
+            Lifespan = UInt16.Parse( SDATAvalues[ 4 ] ),
+            NatureBase = SByte.Parse( SDATAvalues[ 5 ] ),
+            LifeType = (LifeType) Byte.Parse( SDATAvalues[ 6 ] ),
+            Life = UInt16.Parse( SDATAvalues[ 7 ] ),
+            Power = UInt16.Parse( SDATAvalues[ 8 ] ),
+            Intelligence = UInt16.Parse( SDATAvalues[ 9 ] ),
+            Skill = UInt16.Parse( SDATAvalues[ 10 ] ),
+            Speed = UInt16.Parse( SDATAvalues[ 11 ] ),
+            Defense = UInt16.Parse( SDATAvalues[ 12 ] ),
+            GrowthRateLife = Byte.Parse( SDATAvalues[ 13 ] ),
+            GrowthRatePower = Byte.Parse( SDATAvalues[ 14 ] ),
+            GrowthRateIntelligence = Byte.Parse( SDATAvalues[ 15 ] ),
+            GrowthRateSkill = Byte.Parse( SDATAvalues[ 16 ] ),
+            GrowthRateSpeed = Byte.Parse( SDATAvalues[ 17 ] ),
+            GrowthRateDefense = Byte.Parse( SDATAvalues[ 18 ] ),
+            ArenaSpeed = Byte.Parse( SDATAvalues[ 19 ] ),
+            GutsRate = Byte.Parse( SDATAvalues[ 20 ] ),
+            BattleSpecialsRaw = UInt16.Parse( SDATAvalues[ 21 ] ),
+            TechniquesRaw = new byte[48],
+            TrainBoost = UInt16.Parse( SDATAvalues[ 25 ] ), // Slots 23 and 24 are unknown.
+        };
+
+        var techArray = SDATAvalues[22].ToCharArray();
+
+        for ( var i = techArray.Length - 1; i >= 0; i-- ) {
+            if ( techArray[ i ] == '1' ) {
+                foreach ( var technique in techlist ) {
+                    if ( technique.Id == ( techArray.Length - ( i + 1 )  ) ) {
+                        BitArray bArray = new BitArray( [ (int) technique.Slot ] );
+                        for ( var j = 0; j < 24; j++ ) {
+                            if ( bArray[ j ] ) {
+                                newBreed.TechniquesRaw[ ( j * 2 ) ] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return newBreed;
+    }
+ 
     public static MonsterBreed? GetBreed(MonsterGenus main, MonsterGenus sub)
     {
         Logger.Trace($"Get Breed: {main}, sub: {sub}");
-        return AllBreeds.Find(m => m.Main == main && m.Sub == sub);
+        return AllBreeds.Find(m => m.GenusMain == main && m.GenusSub == sub);
     }
 }
