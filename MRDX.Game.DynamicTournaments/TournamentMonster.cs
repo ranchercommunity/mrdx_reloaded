@@ -139,8 +139,14 @@ public class TournamentMonster : BattleMonsterData
         // for ( var i = 0; i < techniques.Count; i++ ) { TournamentData._mod.DebugLog( 2, monster.name + " has " + techniques[ i ], Color.Orange ); }
     }
 
-    private ReadOnlyCollection<IMonsterTechnique> TechList =>
-        BreedInfo.TechList.FindAll(t => TechSlot.HasFlag(t.Slot)).AsReadOnly();
+    // TODO - Properly fix the null check so that it doesn't need to happen. This is due to MM adding breeds after init.
+    // When the game is then loaded with MM breeds, BI is still null and it explodes on looking for the monster data.
+    private ReadOnlyCollection<IMonsterTechnique> TechList {
+        get {
+            return BreedInfo.TechList.FindAll( t => TechSlot.HasFlag( t.Slot ) ).AsReadOnly();
+        }
+    }
+        
 
 
     private void SetupGrowthOptions(Config config)
@@ -491,13 +497,13 @@ public class TournamentMonster : BattleMonsterData
 
     public void MonsterAddTechnique(IMonsterTechnique tech)
     {
-        // set the bit at this slot
+        TechsRaw |= (uint) ( 1 << tech.Id );
         TechSlot |= tech.Slot;
     }
 
     private void MonsterRemoveTechnique(IMonsterTechnique tech)
     {
-        // clear the bit at this slot
+        TechsRaw &= (uint) ~( 1 << tech.Id );
         TechSlot &= ~tech.Slot;
     }
 
