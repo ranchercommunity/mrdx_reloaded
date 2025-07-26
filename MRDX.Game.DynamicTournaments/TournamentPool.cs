@@ -257,22 +257,32 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
 
         switch ( tournament._config.SpeciesAccuracyTraits ) {
             case Config.ESpeciesAccuracyTraits.Strict:
-                monData.ArenaSpeed = Byte.Parse( breed.SDATAValues[ 19 ] );
-                monData.GutsRate = Byte.Parse( breed.SDATAValues[ 20 ] );
+                monData.ArenaSpeed = breed.ArenaSpeed;
+                monData.GutsRate = breed.GutsRate;
                 break;
             case Config.ESpeciesAccuracyTraits.Loose:
-                monData.ArenaSpeed = Math.Clamp( (byte) ( Byte.Parse( breed.SDATAValues[ 19 ] ) + Random.Shared.Next( -1, 1 ) ), (byte) 0, (byte) 4 );
-                monData.GutsRate = Math.Clamp( (byte) ( Byte.Parse( breed.SDATAValues[ 20 ] ) + Random.Shared.Next( -2, 2 ) ), (byte) 6, (byte) 21 );
+                monData.ArenaSpeed = (byte) Math.Clamp( ( breed.ArenaSpeed + Random.Shared.Next( -1, 1 ) ),  0,  4 );
+                monData.GutsRate = (byte) Math.Clamp( ( breed.GutsRate + Random.Shared.Next( -2, 2 ) ),  6,  21 );
                 break;
             case Config.ESpeciesAccuracyTraits.WildWest:
                 monData.ArenaSpeed = (byte) Random.Shared.Next( 0, 4 );
-                monData.GutsRate = (byte) Random.Shared.Next( 7, 21 );
+                monData.GutsRate = (byte) Random.Shared.Next( 6, 21 );
                 break;
         }
 
         var nm = new TournamentMonster( conf, monData );
         Logger.Trace( $"TP: Breed " + nm.GenusMain + " " + nm.GenusSub + $" AS:{monData.ArenaSpeed}|GUTS:{monData.GutsRate}", Color.AliceBlue );
 
+        // Standard Tech Starts
+        for ( var i = 0; i < nm.BreedInfo.TechList.Count; i++ ) {
+            var tech = nm.BreedInfo.TechList[ i ];
+            if ( nm.BreedInfo.TechniquesRaw[tech.Id * 2] == 1 ) {
+                Logger.Debug( $"TP: Adding default technique {tech.Name} with slot {tech.Slot} and {tech.Id} to {nm.GenusMain} breed." );
+                nm.MonsterAddTechnique( tech );
+            }
+        }
+        
+        /* Standard Tech Starts
         // Attempt to assign three basics, weighted generally towards worse basic techs with variance.
         if ( nm.BreedInfo.TechList[ 0 ].Type == ErrantryType.Basic )
             nm.MonsterAddTechnique( nm.BreedInfo.TechList[ 0 ] );
@@ -287,7 +297,7 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
             }
 
             nm.MonsterAddTechnique( tech );
-        }
+        } */
 
         return nm;
     }

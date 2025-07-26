@@ -186,9 +186,6 @@ public class Mod : ModBase // <= Do not Remove.
 
         //_iHooks.AddHook<ParseTextWithCommandCodes>( SetupParseTextCommmandCodes ).ContinueWith(result => _hook_parseTextWithCommandCodes = result.Result.Activate());
 
-
-
-        
         WeakReference<IRedirectorController> _redirectorx = _modLoader.GetController<IRedirectorController>();
         _redirectorx.TryGetTarget( out var redirect );
         if ( redirect == null ) { _logger.WriteLine( $"[{_modConfig.ModId}] Failed to get redirection controller.", Color.Red ); return; }

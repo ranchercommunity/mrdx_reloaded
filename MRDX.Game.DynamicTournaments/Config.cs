@@ -204,8 +204,8 @@ public class Config : Configurable<Config>
                  "Average - Will attempt to focus on the correct scaling type (Pow vs Int).\n" +
                  "Smart - Will both account for scaling type and relative tech strength.\n" +
                  "Genius - Will not only focus on powerful, relevant techniques, but will also occasionally cheat and prune bad techniques from their monsters.")]
-    [DefaultValue(TechInt.Smart)]
-    public TechInt TechIntelligence { get; set; } = TechInt.Smart;
+    [DefaultValue(TechInt.Genius)]
+    public TechInt TechIntelligence { get; set; } = TechInt.Genius;
 
     [Category("Advanced - Monster Lifespan")]
     [DisplayName("Monster Lifespan Minimum")]
@@ -225,8 +225,8 @@ public class Config : Configurable<Config>
     [Description("Allows the mod to save tournament data for autosaves.\n" +
                  "Considerably increases the number of concurrent file writes and was disabled due to early mod stability concerns.\n" +
                  "Will be evaluated over time and integreated into the mod proper if old issues were resolved.")]
-    [DefaultValue(false)]
-    public bool Autosaves { get; set; } = false;
+    [DefaultValue(true)]
+    public bool Autosaves { get; set; } = true;
 
     [Category("Advanced - Mod Debugging")]
     [DisplayName("Reloaded Message Verbosity")]

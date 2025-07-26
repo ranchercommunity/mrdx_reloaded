@@ -622,6 +622,11 @@ public class ErrantryEnemyMonster(int offset) : BaseObject<ErrantryEnemyMonster>
         set => Write(value);
     }
 
+    [BaseOffset( BaseGame.Mr2, Region.Us | Region.Japan, 0x2c )]
+    public uint TechsRaw {
+        get; set;
+    }
+
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2c)]
     public byte[] Techs
     {
