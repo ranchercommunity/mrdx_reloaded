@@ -277,6 +277,7 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
         for ( var i = 0; i < nm.BreedInfo.TechList.Count; i++ ) {
             var tech = nm.BreedInfo.TechList[ i ];
             if ( nm.BreedInfo.TechniquesRaw[tech.Id * 2] == 1 ) {
+                Logger.Debug( $"TP: Adding default technique {tech.Name} with slot {tech.Slot} and {tech.Id} to {nm.GenusMain} breed." );
                 nm.MonsterAddTechnique( tech );
             }
         }

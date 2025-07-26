@@ -471,12 +471,13 @@ public record MonsterBreed
             if ( techArray[ i ] == '1' ) {
                 foreach ( var technique in techlist ) {
                     if ( technique.Id == ( techArray.Length - ( i + 1 )  ) ) {
-                        BitArray bArray = new BitArray( [ (int) technique.Slot ] );
+                        newBreed.TechniquesRaw[ technique.Id * 2 ] = 1;
+                        /*BitArray bArray = new BitArray( [ (int) technique.Id ] );
                         for ( var j = 0; j < 24; j++ ) {
                             if ( bArray[ j ] ) {
                                 newBreed.TechniquesRaw[ ( j * 2 ) ] = 1;
                             }
-                        }
+                        }*/
                     }
                 }
             }
