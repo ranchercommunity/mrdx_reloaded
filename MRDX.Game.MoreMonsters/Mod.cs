@@ -309,8 +309,6 @@ public class Mod : ModBase // <= Do not Remove.
                 Logger.Info( $"New Monster Combination Found: {newMain}, {newSub} for songID {songID}." );
             }
         }
-
-           // TODO - Hook into DT to fix the issue where MonsterBreeds for MMs are not loaded properly.
     }
 
     private int SetupHookMonsterID ( uint breedIdMain, uint breedIdSub ) {
