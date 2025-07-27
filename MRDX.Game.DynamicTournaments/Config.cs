@@ -194,8 +194,8 @@ public class Config : Configurable<Config>
                  "Lower values will result in significantly less 'cohesive' monsters.\n" +
                  "Higher values will reduce the odds of monsters having 'wild' stats.")]
     [SliderControlParams(1, 500, showTextField: true, isTextFieldEditable: true)]
-    [DefaultValue(300)]
-    public int Wildcard { get; set; } = 300;
+    [DefaultValue(240)]
+    public int Wildcard { get; set; } = 240;
 
     [Category("Advanced - Monster Growths")]
     [DisplayName("Technique Growth Intelligence")]

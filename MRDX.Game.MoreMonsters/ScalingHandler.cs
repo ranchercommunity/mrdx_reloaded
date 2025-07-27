@@ -96,9 +96,9 @@ class ScalingHandler {
 
         if ( monsterScaling == 0 ) { return 1; }
 
-        if ( monsterScaling <= 100 ) { return Single.Lerp( (float) _mod._configuration.MonsterSizeMinimum, (float) 1.0, ( ( (float) monsterScaling ) - 1 ) / 99 ); }
+        if ( monsterScaling <= 100 ) { return Single.Lerp( (float) (_mod._configuration.MonsterSizeMinimum / 100.0), (float) 1.0, ( ( (float) monsterScaling ) - 1 ) / 99 ); }
         else if ( monsterScaling == 101 ) { return 1.0; }
-        else { return Single.Lerp( (float) 1.0, (float) _mod._configuration.MonsterSizeMaximum, ( ( (float) monsterScaling ) - 101 ) / 100 ); }
+        else { return Single.Lerp( (float) 1.0, (float) (_mod._configuration.MonsterSizeMaximum / 100.0), ( ( (float) monsterScaling ) - 101 ) / 100 ); }
     }
 
     public double GetCurrentMonsterScalingFactor () {
