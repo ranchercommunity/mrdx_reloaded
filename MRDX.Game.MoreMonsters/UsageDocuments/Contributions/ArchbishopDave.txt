@@ -1,0 +1,39 @@
+ArchbihopDave
+=====================================
+Monsters Developed or Contributed To
+=====================================
+Arrowhead/Undine
+Bajarl/Plant
+Baku/Mew
+ColorPandora/ColorPandora #2
+ColorPandora/Ducken
+Ducken/ColorPandora
+Ducken/Phoenix
+Durahan/Ducken
+Gaboo/Ape 
+Gaboo/Centaur
+Gaboo/Centaur #2
+Gali/Joker
+Ghost/Joker
+Golem/Gaboo
+Hare/Mew
+Hopper/Gali
+Jell/Gaboo
+Kato/Hopper
+Mew/Monol
+Mocchi/Beaclon
+Monol/ColorPandora #1-3
+Monol/Mock
+Niton/Suezo
+Phoenix/Jill
+Phoenix/Undine
+Undine/Dragon
+Undine/Gaboo
+Worm/Mew
+Zuum/Ghost
+Zuum/Henger
+Zuum/Undine
+
+...
+
+and countless others for processing, stat updates and naming, and battle sprite textures!

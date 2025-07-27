@@ -1,0 +1,13 @@
+Teawch
+=====================================
+Monsters Developed or Contributed To
+=====================================
+Centaur/Henger
+Metalner/Monol
+Metalner/Tiger
+Suezo/Metalner
+Suezo/Henger
+Tiger/Henger
+Tiger/Hopper
+Zilla/Dragon
+Zilla/Ghost

@@ -35,6 +35,7 @@
 	<None Update="Redirector\**\*" CopyToOutputDirectory="PreserveNewest" />
 	<None Update="ManualRedirector\**\*" CopyToOutputDirectory="PreserveNewest" />
 	<None Update="NewMonsterData\*" CopyToOutputDirectory="PreserveNewest" />
+	<None Update="UsageDocuments\*" CopyToOutputDirectory="PreserveNewest" />
 	
   </ItemGroup>
 
