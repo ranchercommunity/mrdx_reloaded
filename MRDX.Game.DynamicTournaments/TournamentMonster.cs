@@ -258,17 +258,17 @@ public class TournamentMonster : BattleMonsterData
         }
 
         // This is some fun variance. 16% chance of a stat (1 on average) getting a slight penalty or boost.
-        // CONFIG: Wildcard chance of a stat being effectively completely randomized with no rhyme or reason. (Approximately 1/50 monsters have a stat altered in this way at 300).
+        // CONFIG: Wildcard chance of a stat being effectively completely randomized with no rhyme or reason. (Approximately 1/40 monsters have a stat altered in this way at 240).
         for (var i = 0; i < gopts.Length; i++)
         {
             if (Random.Shared.Next(6) == 0)
-                gopts[i] = (byte)(gopts[i] - Random.Shared.Next(1, 6));
+                gopts[i] = (byte) Math.Max( 1, gopts[i] + 5 - Random.Shared.Next(1, 8) );
             if (Random.Shared.Next(config.Wildcard) == 0)
             {
                 if (i is 0 or 2)
-                    gopts[i] = (byte)Random.Shared.Next(4, 21);
+                    gopts[i] = (byte)Random.Shared.Next(4, 40);
                 else
-                    gopts[i] = (byte)Random.Shared.Next(1, 21);
+                    gopts[i] = (byte)Random.Shared.Next(1, 40);
             }
 
             if (gopts[i] == 0) gopts[i] = 1;
@@ -328,8 +328,9 @@ public class TournamentMonster : BattleMonsterData
         if (Fear < 100) Fear += (byte)(TournamentData.GrowthRNG.Next() % 2);
         if (Spoil < 100) Spoil += (byte)(TournamentData.GrowthRNG.Next() % 2);
 
-        Logger.Trace(
-            "Monster " + Name + " Completed Growth: [STATS: " + StatTotal + ", GROWTH:" +
+        Logger.Info(
+            "Monster " + Name + " Completed Growth: [STATS: " + StatTotal + 
+            $"[{Life}, {Power}, {Intelligence}, {Skill}, {Speed}, {Defense}], GROWTH:" +
             _growthRate +
             ", LIFE: " + Lifespan + ", ALIVE: " + Alive + "]", Color.Yellow);
     }

@@ -440,7 +440,7 @@ public class Mod : ModBase // <= Do not Remove.
             handlerScaling.temporaryScaling = (byte) ( ( Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) ) / 2 );
         } else {
             handlerScaling.temporaryScaling = (byte) ( ( Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) + 
-                Random.Shared.Next( 1, 201 ) + Random.Shared.Next( 1, 201 ) ) / 4 );
+                Random.Shared.Next( 1, 201 ) ) / 3 );
         }
     }
 

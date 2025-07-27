@@ -2,15 +2,10 @@
 
 ## Features
 
-Adds additional species combinations to the game and support for being able to acquire them.
-
-Monsters have size variations, making every monster unique!
-
-Monsters can have multiple appearances for the same species.
-
-
-
-Monsters can be generated from the shrine or combined from existing monsters.
+* Adds additional species (50+!) combinations to the game and support for being able to acquire them.
+* Monsters have size variations, making every monster unique!
+* Monsters can have multiple appearances for the same species.
+* Monsters can be generated from the shrine or combined from existing monsters.
 
 
 
@@ -20,29 +15,30 @@ Monsters can be generated from the shrine or combined from existing monsters.
 
 ## Usage Guide
 
-New monsters have replaced the existing monster generated for CD Slots starting with 'Z' for the Artist Name.
+New monsters have replaced the existing monster generated for CD Slots starting with the letter of the main species for the Artist Name.
 
 To generate new monsters, follow the below steps.
 
 1. Access the Shrine
-2. Enter in 'Z' for the Artist Name
-3. Choose any of the first X options, where X is the number of unique species in the mod.
+2. Enter in the first letter of the main for the Artist Name
+3. Choose any of the first X options, where X is the number of unique species starting with that letter in the mod.
+4. Reference the 'UsageDocuments/MonsterData' file in the mod directory for information regarding stat growths and other important information, and a list of which letters (and offset) will generate the monster.
 
 
 
-*Note*: You must have access to the main breed to generate new creatures utilizing those breeds.
+For example, Durandal the new Centaur/Henger monster, is labeled as C-1. Enter C for the Artist name, then choose the 2nd song (The ID starts with 0) to generate the monster!
 
 
 
-For version 0.1.0, there are 40 new monster species! Any option between pages 1 and 8 will generate a new monster.
+***Note*:** You must have access to the main breed to generate new creatures utilizing those breeds.
 
 
 
-Alternatively, combine monsters with the main/subs of the new species you want to access the monster.
+Alternatively to obtain the new species, combine monsters with the main/subs of the new species you want.
 
 
 
-Monster size variations are random from the shrine, and inherited from parents when combining.
+Monster size variations are random from the shrine, and partially inherited from parents when combining.
 
 
 
@@ -67,8 +63,9 @@ Release the mod to the world!
 ### Known Issues
 
 * Intermittent crashes can occur when accessing the combination list, or just prior to monster generation.
-* Combination stat totals for new monster species (or combinations using new monster species) are incorrect.
-* Combinations do not always inherit techniques or move uses.
+* Combinations do not respect tech chains when inheriting moves.
+* Combinations where the baby does not match the parent can learn unintended techniques.
+* The combination menu always allows for accessing the 2nd page of monsters, even if there are less than 8 options.
 
 
 
@@ -82,31 +79,29 @@ Please contact the Mod Author, ArchbishopDave, if you wish to contribute additio
 
 
 
-Submissions are voluntary
+* Submissions are voluntary
+* Submissions aren't guaranteed to be used. If they are used it is possible they could be removed in future versions.
+* Submissions may be modified by others or be derivative of existing submissions.
+* Submissions are volunteered to the community and there is no personal ownership of the modified monsters.
+* Credits will be supplied to all submitters and maintained in all future versions of the mod (even if submissions are removed).
 
-Submissions aren't guaranteed to be used. If they are used it is possible they could be removed in future versions.
 
-Submissions may be modified by others or be derivative of existing submissions.
 
-Submissions are volunteered to the community and there is no personal ownership of the modified monsters.
+Please see the following GitHub repository for information regarding the process to create new monsters. 
 
-Credits will be supplied to all submitters and maintained in all future versions of the mod (even if submissions are removed).
+[MRDX2 TIM Builder](https://github.com/ArchbishopDave/MRDX2_TIMBuilder)
 
 
 
 ### Contributors
 
-Contributors are listed in order of initial contribution, along with which monsters they have worked on.
+Contributors are listed in order of initial contribution. Thank you so much to everyone who has assisted with the development and progress of this mod!
+
+Individual monsters contributions can be found in the 'UsageDocuments/Contributions' file.
 
 
 
 #### ArchbishopDave
-
-Arrowhead/Undine, Bajarl/Plant, Baku/Mew, ColorPandora/ColorPandora #2, ColorPandora/Ducken, Ducken/ColorPandora, Ducken/Phoenix, Durahan/Ducken, Gaboo/Ape, Gaboo/Centaur, Gaboo/Centaur #2
-
-Gali/Joker, Ghost/Joker, Golem/Gaboo, Hare/Mew, Hopper/Gali, Jell/Gaboo, Kato/Hopper, Mew/Monol, Mocchi/Beaclon, Monol/ColorPandora, Monol/Mock, Niton/Suezo, Phoenix/Jill, Phoenix/Undine,
-
-Undine/Dragon, Undine/Gaboo, Worm/Mew, Zuum/Ghost, Zuum/Henger, Zuum/Undine
 
 
 
@@ -118,11 +113,11 @@ Centaur/Henger, Metalner/Tiger, Metalner/Monol, Suezo/Metalner, Suezo/Henger, Zi
 
 #### MonsterFenrick
 
-Monol/??? (ColorPandora MR3)
+
 
 
 
 #### OriharaSaki
 
-Gaboo/Arrowhead, Gaboo/Suezo, Jell/Ghost, Suezo/Gaboo, Zuum/Gaboo
+Baku/Mocchi
 

@@ -32,19 +32,20 @@ public class Config : Configurable<Config>
 
     [Category( "Monster Sizes" )]
     [DisplayName( "Monster Size Minimum" )]
-    [Description( "The minimum multiplier for monster sizes." )]
-    [DefaultValue( 0.65 )]
-    [SliderControlParams( minimum: 0.5, maximum: 1.0, smallChange: 0.01, largeChange: 0.1, tickFrequency: 1,
+    [Description( "The minimum % multiplier for monster sizes." )]
+    [DefaultValue( 65 )]
+    
+    [SliderControlParams( minimum: 35, maximum: 100, smallChange: 1, largeChange: 10, tickFrequency: 1,
         isSnapToTickEnabled: false, showTextField: true, isTextFieldEditable: true )]
-    public double MonsterSizeMinimum { get; set; } = 0.65;
+    public int MonsterSizeMinimum { get; set; } = 65;
 
     [Category( "Monster Sizes" )]
     [DisplayName( "Monster Size Maximum>" )]
-    [Description( "The maximum multiplier for monster sizes." )]
-    [DefaultValue( 1.8 )]
-    [SliderControlParams( minimum: 1.0, maximum: 2.5, smallChange: 0.01, largeChange: 0.1, tickFrequency: 1,
+    [Description( "The maximum % multiplier for monster sizes." )]
+    [DefaultValue( 180 )]
+    [SliderControlParams( minimum: 100, maximum: 250, smallChange: 1, largeChange: 10, tickFrequency: 1,
         isSnapToTickEnabled: false, showTextField: true, isTextFieldEditable: true )]
-    public double MonsterSizeMaximum { get; set; } = 1.8;
+    public int MonsterSizeMaximum { get; set; } = 180;
 
 
 

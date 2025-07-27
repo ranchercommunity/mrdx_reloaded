@@ -12,11 +12,13 @@
 * Base Stat Incorporation - Additional configuration options to lock monsters to realistic move speeds, guts rates, and growth patterns.
 * FIMBA Progression - Participate in those FIMBA Tournaments! You may see familiar faces rise though the ranks too!
 * Spread Tournament Pools - Special tournaments (Phoenix, Hero, Heel, etc.) will now use the same pool of monsters from regular tournaments!
+* Autosave Settings have been defaulted to enabled.
 * * Restrictions still apply to those tournaments. This will result in high rank base tournaments having monsters you may not have unlocked yet.
 
 ### Important Information
-Autosaves are still in testing. If you regularly use AutoSaves, ensure the correct configuration option is selected!
-You may keep the feature enabled, but loading an autosave will wipe your progress unless the Experimental Autosave Support is enabled!
+If you encounter any issues when saving your game, please disable Autosaves.
+Please report any issues or crashes to ArchbishopDave.
+
 
 
 ### Older Releases
@@ -26,7 +28,6 @@ You may keep the feature enabled, but loading an autosave will wipe your progres
 * v0.2.2 - Additional Technique Fixes, Tournament Growth Cap Fix, Lifespan Configuration Option
 * v0.2.3 - Promotion Rate Fixes, More Names, Unique and Wildcard Stat Configuration Option
 * v0.2.4 - Growth Rate Adjustments, Autosave Support, Additional Names, Bugfixes
-
 
 
 ### Future Updates and Features
