@@ -774,7 +774,7 @@ class CombinationHandler {
                 Math.Min(200, Random.Shared.Next(100, 100 + oValue) );
 
             double [] strengths = [ Random.Shared.NextDouble() + 1, Random.Shared.NextDouble() + 1,
-                Random.Shared.NextDouble(), Random.Shared.NextDouble(), 0 ];
+                Random.Shared.NextDouble() + 1, Random.Shared.NextDouble(), 0 ];
             strengths[ 4 ] = strengths[ 0 ] + strengths[ 1 ] + strengths[ 2 ] + strengths[ 3 ];
 
             scaling = (byte) (

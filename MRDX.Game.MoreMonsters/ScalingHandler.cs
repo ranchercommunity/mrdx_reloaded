@@ -19,14 +19,18 @@ using System.Numerics;
 namespace MRDX.Game.MoreMonsters;
 
 
-
 class ScalingHandler {
+
+    [HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 51 56 8B F1 BA ?? ?? ?? ??" )]
+    [Function( CallingConventions.Fastcall )]
+    public delegate void H_VertexScalingCheck ( nuint self );
 
     private Mod _mod;
     private readonly IHooks _iHooks;
     private IMonster _monsterCurrent;
 
     private IHook<UpdateGenericState> _hook_updateGenericState;
+    private IHook<H_VertexScalingCheck> _hook_vertexScalingCheck;
     private short _vertexScaling;
 
     public Dictionary<MonsterGenus, byte> MonsterScalingFactors = new Dictionary<MonsterGenus, byte>() 
@@ -75,7 +79,8 @@ class ScalingHandler {
         _iHooks = iHooks;
         _monsterCurrent = monster;
 
-        _iHooks.AddHook<UpdateGenericState>( CheckVertexScalingUpdate ).ContinueWith( result => _hook_updateGenericState = result.Result );
+        //_iHooks.AddHook<UpdateGenericState>( CheckVertexScalingUpdate ).ContinueWith( result => _hook_updateGenericState = result.Result );
+        _iHooks.AddHook<H_VertexScalingCheck>( CheckVertexScalingUpdate2 ).ContinueWith( result => _hook_vertexScalingCheck = result.Result );
     }
 
     /// <summary>
@@ -108,6 +113,18 @@ class ScalingHandler {
     /// <param name="parent"></param>
     private void CheckVertexScalingUpdate ( nint parent ) {
         _hook_updateGenericState!.OriginalFunction( parent );
+
+        if ( !_mod._configuration.MonsterSizesEnabled ) { return; }
+
+        Memory.Instance.Read( Mod.address_monster_vertex_scaling, out ushort vertexScalingA );
+
+        if ( vertexScalingA != _vertexScaling ) {
+            UpdateVertexScaling();
+        }
+    }
+
+    private void CheckVertexScalingUpdate2 ( nuint self ) {
+        _hook_vertexScalingCheck!.OriginalFunction( self );
 
         if ( !_mod._configuration.MonsterSizesEnabled ) { return; }
 
