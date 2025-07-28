@@ -194,6 +194,8 @@ public class Mod : ModBase // <= Do not Remove.
         var exeBaseAddress = module.BaseAddress.ToInt64();
         address_game = (nuint) exeBaseAddress;
 
+
+
         Logger.SetLogLevel( Logger.LogLevel.Info );
     }
 
@@ -252,6 +254,7 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void RedirectorSetupDataPath ( string? extractedPath ) {
         _dataPath = extractedPath;
+        _redirector.AddRedirect( _dataPath + @"\data.bin", _modPath + @"invalidfile.bin" );
     }
 
     /// <summary>

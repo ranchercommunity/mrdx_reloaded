@@ -72,8 +72,9 @@ public class SaveFileManager : ISaveFile
             OnSave?.Invoke(saveslot);
             _saveDataGameLoaded = false;
         }
-        else
+        else if ( !filename.Contains("data.bin") )
         {
+            // Fix for data.bin not existing/being redirected and interrupting the file detection.
             _saveDataReadCount = 0;
             _saveDataGameLoaded = false;
         }
