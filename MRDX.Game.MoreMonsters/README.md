@@ -20,9 +20,9 @@ New monsters have replaced the existing monster generated for CD Slots starting 
 To generate new monsters, follow the below steps.
 
 1. Access the Shrine
-2. Enter in the first letter of the main for the Artist Name
-3. Choose any of the first X options, where X is the number of unique species starting with that letter in the mod.
-4. Reference the 'UsageDocuments/MonsterData' file in the mod directory for information regarding stat growths and other important information, and a list of which letters (and offset) will generate the monster.
+2. Enter 'More Monsters' for the Title of the song.
+3. Choose any of the available species combinations!
+4. Optionally, to reduce the page count, also enter the main breed name for the Artist if you know which monster you want to create!
 
 
 
@@ -103,21 +103,9 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 
 #### ArchbishopDave
 
-
-
 #### Teawch
-
-Centaur/Henger, Metalner/Tiger, Metalner/Monol, Suezo/Metalner, Suezo/Henger, Zilla/Dragon, Zilla/Ghost
-
-
 
 #### MonsterFenrick
 
-
-
-
-
 #### OriharaSaki
-
-Baku/Mocchi
 
