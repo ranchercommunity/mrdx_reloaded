@@ -7,7 +7,7 @@ consider adding them to this base mod so that other mods can also use the work.
 
 
 
-### Latest Versions
+### Latest Updates
 
 ##### V1.2.0
 
