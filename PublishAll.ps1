@@ -15,7 +15,7 @@ $InterfaceVersions = @{
 $AllProjects = @(
 # Name of mod, version
     @("MRDX.Audio.VolumeConfig", "1.1.7", $false),
-    @("MRDX.Base.ExtractDataBin", "1.1.4", $false),
+    @("MRDX.Base.ExtractDataBin", "1.1.5", $false),
     @("MRDX.Base.Mod", $BaseModInterfaceVersion, $false),
     @("MRDX.Game.HardMode", "2.1.3", $false),
     @("MRDX.Game.DynamicTournaments", "0.3.1", $false),
