@@ -255,6 +255,7 @@ public class Mod : ModBase // <= Do not Remove.
     private void RedirectorSetupDataPath ( string? extractedPath ) {
         _dataPath = extractedPath;
         _redirector.AddRedirect( _dataPath + @"\data.bin", _modPath + @"invalidfile.bin" );
+        Logger.Info( "Redirecting " + _dataPath + @"\data.bin to " + _modPath + @"invalidfile.bin", Color.Beige );
     }
 
     /// <summary>

@@ -44,6 +44,12 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Latest Updates
 
+##### v0.1.2
+
+* Song List Fixes
+
+
+
 ##### v0.1.1
 
 * Shrine generation is now considerably simplified!
