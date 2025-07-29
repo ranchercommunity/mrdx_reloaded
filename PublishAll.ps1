@@ -6,7 +6,7 @@ Split-Path $MyInvocation.MyCommand.Path | Push-Location
 
 # Name of interface mod, version
 # These are kinda hard coded into the publish script for now.
-$BaseModInterfaceVersion = "1.2.0"
+$BaseModInterfaceVersion = "1.2.1"
 $InterfaceVersions = @{
     BaseExtractDataBinInterface = "1.1.5";
     BaseModInterfaces = $BaseModInterfaceVersion

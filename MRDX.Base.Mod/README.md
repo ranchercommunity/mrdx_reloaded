@@ -9,7 +9,7 @@ consider adding them to this base mod so that other mods can also use the work.
 
 ### Latest Updates
 
-##### V1.2.0
+##### V1.2.1
 
 * Major Code Refactoring
 * Updates to save file processing for Dynamic Tournaments compatibility
