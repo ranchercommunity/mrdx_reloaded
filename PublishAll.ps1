@@ -21,7 +21,7 @@ $AllProjects = @(
     @("MRDX.Game.DynamicTournaments", "0.3.1", $false),
 #    Not ready for release yet, so leave it commented out for now
 #    @("MRDX.Game.MonsterEditor", "1.0.0", $false),
-    @("MRDX.Game.MoreMonsters", "0.1.1", $false),
+    @("MRDX.Game.MoreMonsters", "0.1.2", $false),
     @("MRDX.Graphics.Widescreen", "1.2.4", $false),
     @("MRDX.Qol.BattleTimer", "1.0.4", $false),
     @("MRDX.Qol.FastForward", "1.3.6", $false),
