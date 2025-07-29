@@ -26,7 +26,7 @@ To generate new monsters, follow the below steps.
 
 
 
-For example, Durandal the new Centaur/Henger monster, is labeled as C-1. Enter C for the Artist name, then choose the 2nd song (The ID starts with 0) to generate the monster!
+For example, to generate Durandal the new Centaur/Henger monster, enter 'More Monsters' for the Title and 'C' for the Arist, then select 'Centaur / Henger' from the Artist list.
 
 
 
@@ -42,11 +42,18 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 
-## Latest Update
+## Latest Updates
 
-* v0.1.0 - Alpha Test
+##### v0.1.1
 
-Release the mod to the world!
+* Shrine generation is now considerably simplified!
+* Please read the Usage Guide above for new instructions to generate the new monsters!
+
+
+
+##### v0.1.0
+
+* Initial Release - Release the mod to the world!
 
 
 
@@ -83,11 +90,11 @@ Please contact the Mod Author, ArchbishopDave, if you wish to contribute additio
 * Submissions aren't guaranteed to be used. If they are used it is possible they could be removed in future versions.
 * Submissions may be modified by others or be derivative of existing submissions.
 * Submissions are volunteered to the community and there is no personal ownership of the modified monsters.
-* Credits will be supplied to all submitters and maintained in all future versions of the mod (even if submissions are removed).
+* Credits will be supplied to all submitters and maintained in all future versions of the mod (even if submissions are modified).
 
 
 
-Please see the following GitHub repository for information regarding the process to create new monsters. 
+Please see the following GitHub repository for information regarding the process to create new monsters.
 
 [MRDX2 TIM Builder](https://github.com/ArchbishopDave/MRDX2_TIMBuilder)
 
