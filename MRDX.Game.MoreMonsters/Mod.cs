@@ -61,7 +61,14 @@ public delegate int H_MysteryStatUpdate ( nuint self );
 [Function( CallingConventions.Fastcall )]
 public delegate int H_GetMonsterBreedName ( nuint mainID, nuint subID );
 
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 24 A1 ?? ?? ?? ?? 33 C5 89 45 ?? 56" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void H_FileSaveLoad ( nuint self, nuint unk1, nuint unk2 );
 
+
+[HookDef( BaseGame.Mr2, Region.Us, "51 53 56 57 FF 72 ??" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void H_FileSave ( nuint self, nuint unk1);
 
 
 public class Mod : ModBase // <= Do not Remove.
@@ -79,10 +86,16 @@ public class Mod : ModBase // <= Do not Remove.
     public static nuint address_freezer { get { return address_game + 0x3768BC; } }
     public static nuint address_monster_vertex_scaling { get { return address_game + 0x581520; } }
 
-    public static nuint address_monster_mm_variant { get { return address_monster + 0x164; } }
-    public static nuint address_monster_mm_scaling { get { return address_monster + 0x165; } }
-    public static nuint address_monster_mm_truesub { get { return address_monster + 0x166; } }
-    public static nuint address_monster_mm_trueguts { get { return address_monster + 0x167; } }
+    // Offsets are exact for monster values. For Freezer Data, add +2.
+    public static nuint offset_mm_variant { get { return 0x164; } }
+    public static nuint offset_mm_scaling { get { return 0x165; } }
+    public static nuint offset_mm_truesub { get { return 0x166; } }
+    public static nuint offset_mm_trueguts { get { return 0x167; } }
+
+    public static nuint address_monster_mm_variant { get { return address_monster + offset_mm_variant; } }
+    public static nuint address_monster_mm_scaling { get { return address_monster + offset_mm_scaling; } }
+    public static nuint address_monster_mm_truesub { get { return address_monster + offset_mm_truesub; } }
+    public static nuint address_monster_mm_trueguts { get { return address_monster + offset_mm_trueguts; } }
 
     internal CombinationHandler HandlerCombination { get => handlerCombination; set => handlerCombination =  value ; }
     internal FreezerHandler HandlerFreezer { get => handlerFreezer; set => handlerFreezer =  value ; }
@@ -105,6 +118,11 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<H_EarlyShrine> _hook_earlyShrine;
     private IHook<H_WriteSDATAMemory> _hook_writeSDATAMemory;
     private IHook<H_MysteryStatUpdate> _hook_statUpdate;
+    private IHook<UpdateGenericState> _hook_updateGenericState;
+    private IHook<H_FileSaveLoad> _hook_fileSaveLoad;
+    private IHook<H_FileSave> _hook_fileSave;
+
+    private int _loadedFileCorrectFreezer = 0;
 
     public bool shrineReplacementActive = false;
     private MMBreed _shrineReplacementMonster;
@@ -119,6 +137,7 @@ public class Mod : ModBase // <= Do not Remove.
     private CombinationHandler handlerCombination;
     private FreezerHandler handlerFreezer;
     private ScalingHandler handlerScaling;
+    private VSHandler handlerVS;
 
     /* Scaling Variables */
 
@@ -166,6 +185,12 @@ public class Mod : ModBase // <= Do not Remove.
             return;
         }
 
+        var maybeSaveFile = _modLoader.GetController<ISaveFile>();
+        if ( maybeSaveFile != null && maybeSaveFile.TryGetTarget( out var saveFile ) ) {
+            saveFile.OnSave += PostSaveFreezerDataCorrections;
+            saveFile.OnLoad += LoadUpdateFreezerDataCorrections;
+        }
+
         _iGame.OnMonsterBreedsLoaded.Subscribe( InitializeNewMonsters );
 
         _monsterCurrent = _iGame.Monster;
@@ -180,9 +205,14 @@ public class Mod : ModBase // <= Do not Remove.
 
         _iHooks.AddHook<H_GetMonsterBreedName>( SetupGetMonsterBreedName ).ContinueWith( result => _hook_monsterBreedNames = result.Result );
 
+        _iHooks.AddHook<UpdateGenericState>( CheckUpdateLoadedFreezer ).ContinueWith( result => _hook_updateGenericState = result.Result );
+        _iHooks.AddHook<H_FileSaveLoad>( FileSaveLoad ).ContinueWith( result => _hook_fileSaveLoad = result.Result );
+        _iHooks.AddHook<H_FileSave>( FileSave ).ContinueWith( result => _hook_fileSave = result.Result );
+
         handlerFreezer = new FreezerHandler( this, _iHooks, _monsterCurrent );
         handlerCombination = new CombinationHandler( this, _iHooks, _monsterCurrent );
         handlerScaling = new ScalingHandler( this, _iHooks, _monsterCurrent );
+        handlerVS = new VSHandler( this, _iHooks );
 
         //_iHooks.AddHook<ParseTextWithCommandCodes>( SetupParseTextCommmandCodes ).ContinueWith(result => _hook_parseTextWithCommandCodes = result.Result.Activate());
 
@@ -209,6 +239,12 @@ public class Mod : ModBase // <= Do not Remove.
 
     #endregion
    
+    private void FileSaveLoad(nuint self, nuint unk1, nuint unk2 ) {
+        Logger.Error( $"File Save Load {self}, {unk1}, {unk2}" );
+        _hook_fileSaveLoad!.OriginalFunction( self, unk1, unk2 );
+    }
+
+
     private byte GetPlayerMonsterVariantData() {
         Memory.Instance.Read( address_monster_mm_variant, out byte variantID );
         return variantID;
@@ -544,11 +580,18 @@ public class Mod : ModBase // <= Do not Remove.
 
 
     private void ProcessReloadedFileLoad ( string filename ) {
+
+        FileLoadCheckBattleRedirects(filename);
+        FileLoadCorrectFreezerEntries( filename );
+
+    }
+
+    private void FileLoadCheckBattleRedirects(string filename) {
         //_logger.WriteLineAsync( $"Any file check {_monsterInsideBattleStartup}, {_monsterInsideBattleRedirects}, {_monsterInsideBattleMain}, {_monsterInsideBattleSub}", Color.Orange );
         if ( _monsterInsideBattleStartup ) {
             //_logger.WriteLineAsync( $"Inside File Checking for Monsters", Color.Orange );
             if ( _monsterInsideBattleRedirects == 1 ) {
-                RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub ); 
+                RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub );
                 // Load the tournament monsters? I think?
             }
 
@@ -558,6 +601,117 @@ public class Mod : ModBase // <= Do not Remove.
                 //_logger.WriteLineAsync( $"Inside File Checking Decrementing redirects {_monsterInsideBattleRedirects}", Color.Orange );
             }
         }
+    }
+
+
+    /// <summary>
+    /// This function is called whenever Reloaded detects a file load. We are looking for 
+    /// park.tex. This is our indication that the game has 'properly' been loaded so we do not
+    /// upload garbage data to VS mode. This reads the monster's mm guts rate and subs and replaces the
+    /// freezer data if set to the appropriate values. Values of 0 are ignored.
+    /// Subspecies are written as +1 to the actual species (Pixie = 1, Henger = 6, etc).
+    /// </summary>
+    /// <param name="filename"></param>
+    private void FileLoadCorrectFreezerEntries(string filename) {
+
+        if ( filename.Contains("park.tex") && _loadedFileCorrectFreezer == 1 ) {
+            _loadedFileCorrectFreezer = 2;
+        }
+    }
+
+
+    private void CheckUpdateLoadedFreezer ( nint parent ) {
+        _hook_updateGenericState!.OriginalFunction( parent );
+
+        if ( _loadedFileCorrectFreezer == 2 ) {
+            PostSaveLoadFreezerDataCorrections();
+            Logger.Info("Updated Freezer with MM Data Post-Load", Color.Aqua );
+            _loadedFileCorrectFreezer = 0;
+        }
+        
+    }
+
+    /// <summary>
+    /// This function is called immediately prior to saving the game.
+    /// It alters the state of all monsters in the freezer to have main breed subs and guts rates.
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="unk1"></param>
+    private void FileSave ( nuint self, nuint unk1 ) {
+
+        nuint todooffset = 0x4; // TODO - Offsets are off by 4 in memory? I am losing it.
+
+        for ( var i = 0; i < 20; i++ ) {
+            var subPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_truesub + todooffset;
+            var gutsPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_trueguts + todooffset;
+
+            var mainPosActual = address_freezer + (nuint) ( 524 * i ) + 0x4 + todooffset;
+            var subPosActual = address_freezer + (nuint) ( 524 * i ) + 0x8 + todooffset;
+            var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D7 + todooffset;
+
+            Memory.Instance.Read( mainPosActual, out byte main);
+            Memory.Instance.Read( subPosActual, out byte sub );
+
+            // Only do data updates if we are writing a non-standard breed. Helps preserve existing saves without issue (legal monsters).
+            // Also skip 0x2e mains as that represents and empty slot.
+            // TODO: Add a 'source' tag to MonsterBreed so we know where it came from so we can perform different logic.
+            if ( main != 0x2e && MMBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ) != null ) { 
+                byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;
+                Memory.Instance.Write<Byte>( subPosActual, ref main );
+                Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+            }
+
+            //if ( sub[0] != 0 ) { sub[ 0 ] -= 1; Memory.Instance.WriteRaw( subPosActual, sub ); }
+            //if ( guts[0] != 0 ) { Memory.Instance.WriteRaw( gutsPosActual, guts ); }
+        }
+
+        Logger.Info( "File Saved with VS Mode Fixed Monster Data", Color.Aqua );
+        _hook_fileSave!.OriginalFunction( self, unk1 );
+    }
+
+    private void PostSaveFreezerDataCorrections ( ISaveFileEntry savefile ) {
+        PostSaveLoadFreezerDataCorrections();
+    }
+
+    /// <summary>
+    /// This function is called after a save is performed. 
+    /// The call then immediately performs the inverse of the previous FileSave function that was called.
+    /// This fixes the freezer monsters so gameplay can continue.
+    /// </summary>
+    private void PostSaveLoadFreezerDataCorrections() {
+        // TODO : I need to fix the 0x8 and 0x4 additions at the end of the addresses.
+
+        for ( var i = 0; i < 20; i++ ) {
+            var subPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_truesub + 0x8;
+            var gutsPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_trueguts + 0x8;
+
+            var subPosActual = address_freezer + (nuint) ( 524 * i ) + 0x8 + 0x4;
+            var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D7 + 0x4;
+
+            Memory.Instance.Read( subPosMM, out byte sub );
+            Memory.Instance.Read( gutsPosMM, out byte guts );
+
+            // Subs are saved as Sub+1 so we can tell empty (0) from Pixie.
+            if ( sub > 0 ) {
+                sub -= 1;
+                Memory.Instance.Write<Byte>( subPosActual, ref sub );
+            }
+
+            if ( guts > 0 ) {
+                Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+            }
+        }
+
+        Logger.Info( "Freezer Data Corrected Post Save/Load", Color.Aqua );
+    }
+
+    /// <summary>
+    /// This function is called after a load is performed.
+    /// Logic is not actually performed here, but instead 
+    /// </summary>
+    /// <param name="savefile"></param>
+    private void LoadUpdateFreezerDataCorrections ( ISaveFileEntry savefile ) {
+        _loadedFileCorrectFreezer = 1;
     }
 
     #region Standard Overrides

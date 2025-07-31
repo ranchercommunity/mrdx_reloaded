@@ -64,10 +64,11 @@ class FreezerHandler
 
         // This is where the magic happens for guts.
         Memory.Instance.WriteRaw( Mod.address_monster_mm_trueguts, [ _monsterCurrent.GutsRate ] );
-        _monsterCurrent.GutsRate = 255;
+        //_monsterCurrent.GutsRate = MonsterBreed.GetBreed( _monsterCurrent.GenusMain, _monsterCurrent.GenusMain ).GutsRate;
 
         // Write the monster's proper Subbreed
-        Memory.Instance.WriteRaw( Mod.address_monster_mm_truesub, [ (byte) _monsterCurrent.GenusSub ] );
+        Memory.Instance.WriteRaw( Mod.address_monster_mm_truesub, [ (byte) (_monsterCurrent.GenusSub + 1) ] );
+        //_monsterCurrent.GenusSub = _monsterCurrent.GenusMain;
 
 
         _hook_freezerWriteFreezer!.OriginalFunction( self, freezerID, unk2 );
@@ -105,6 +106,7 @@ class FreezerHandler
 
     /// <summary>
     /// After the monster's stats are set from the freezer, update the monster's guts to the MM value.
+    /// Updates the monsters subbreed as well.
     /// Values of 0 represent pre-MM Freezes and can be ignored.
     /// Also update the scaling if applicable.
     /// </summary>
@@ -113,8 +115,11 @@ class FreezerHandler
     private void FreezerMonsterCorrection ( int unk1, int unk2 ) {
         _hook_freezerWriteMonsterStats!.OriginalFunction( unk1, unk2 );
 
-        Memory.Instance.Read<byte>( Mod.address_monster_mm_trueguts, out byte trueGuts );
-        if ( trueGuts != 0 ) { _monsterCurrent.GutsRate = trueGuts; }
+        //Memory.Instance.Read<byte>( Mod.address_monster_mm_trueguts, out byte trueGuts );
+        //if ( trueGuts != 0 ) { _monsterCurrent.GutsRate = trueGuts; }
+
+        //Memory.Instance.Read<byte>( Mod.address_monster_mm_truesub, out byte trueSub );
+        //if ( trueSub != 0 ) { _monsterCurrent.GenusSub = (MonsterGenus) ( trueSub - 1 ); }
 
         if ( _mod._configuration.MonsterSizesEnabled ) {
             _mod.HandlerScaling.temporaryScaling = 0;
