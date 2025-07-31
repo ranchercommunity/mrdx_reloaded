@@ -59,7 +59,7 @@ class FreezerHandler
         nuint freezerIDx = 0;
         for ( freezerIDx = 0; freezerIDx <= 19; freezerIDx++ ) {
             Memory.Instance.Read( Mod.address_freezer + 0x170 + ( (nuint) 524 * freezerIDx ), out byte openSlot );
-            if ( openSlot != 0xFF ) { break; }
+            if ( openSlot == 0xFF ) { break; }
         }
 
         // This is where the magic happens for guts.

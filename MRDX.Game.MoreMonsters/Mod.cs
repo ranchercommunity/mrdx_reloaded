@@ -226,7 +226,7 @@ public class Mod : ModBase // <= Do not Remove.
 
 
 
-        Logger.SetLogLevel( Logger.LogLevel.Info );
+        Logger.SetLogLevel( Logger.LogLevel.Debug );
     }
 
     #region For Exports, Serialization etc.
@@ -376,10 +376,12 @@ public class Mod : ModBase // <= Do not Remove.
             if ( _monsterInsideBattleRedirects == 2 ) {
                 _monsterInsideBattleMain = breedIdMain;
                 _monsterInsideBattleSub = breedIdSub;
+                Logger.Info( "InsideBattleStartup, Redirects == 2", Color.Green );
             }
         }
 
         if ( !_monsterInsideBattleStartup || _monsterInsideBattleRedirects == 1 ) {
+            Logger.Info( $"Not Inside or Redirects = 1 {_monsterInsideBattleStartup} | {_monsterInsideBattleRedirects}", Color.Green );
             RedirectFromID( breedIdMain, breedIdSub, variantID );
         }
 
@@ -407,6 +409,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         foreach ( MMBreed breed in MMBreed.NewBreeds ) {
             if ( breed.MatchNewBreed(breedMain, breedSub ) ) {
+                Logger.Info( $"Redirect Script Found MM for {breedIdMain}/{breedIdSub}", Color.Lime );
                 _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + ".tex",
                     _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\" + breed.FilepathNew( variant ) + ".tex" );
                 _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + "_bt.tex",
@@ -415,6 +418,7 @@ public class Mod : ModBase // <= Do not Remove.
             }
 
             if ( breed.MatchBaseBreed(breedMain, breedSub) ) {
+                Logger.Info( $"Redirect Script reverting to standard monster for {breedIdMain}/{breedIdSub}.", Color.Lime );
                 _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + ".tex");
                 _redirector.RemoveRedirect( _dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + "_bt.tex" );
                 return;
@@ -639,15 +643,15 @@ public class Mod : ModBase // <= Do not Remove.
     /// <param name="unk1"></param>
     private void FileSave ( nuint self, nuint unk1 ) {
 
-        nuint todooffset = 0x4; // TODO - Offsets are off by 4 in memory? I am losing it.
+        // TODO : I need to fix the 0x8 and 0x4 additions at the end of the addresses.
 
         for ( var i = 0; i < 20; i++ ) {
-            var subPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_truesub + todooffset;
-            var gutsPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_trueguts + todooffset;
+            var subPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_truesub + 0x8;
+            var gutsPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_trueguts + 0x8;
 
-            var mainPosActual = address_freezer + (nuint) ( 524 * i ) + 0x4 + todooffset;
-            var subPosActual = address_freezer + (nuint) ( 524 * i ) + 0x8 + todooffset;
-            var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D3 + todooffset;
+            var mainPosActual = address_freezer + (nuint) ( 524 * i ) + 0x4 + 0x4;
+            var subPosActual = address_freezer + (nuint) ( 524 * i ) + 0x8 + 0x4;
+            var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D3 + 0x4;
 
             Memory.Instance.Read( mainPosActual, out byte main);
             Memory.Instance.Read( subPosActual, out byte sub );
