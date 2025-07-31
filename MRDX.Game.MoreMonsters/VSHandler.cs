@@ -19,7 +19,7 @@ using System.Numerics;
 namespace MRDX.Game.MoreMonsters;
 
 
-class VSHandler {
+public class VSHandler {
 
     private bool _vsModeActive = false;
     private int _vsMonsterSlot = 0;
@@ -57,6 +57,9 @@ class VSHandler {
         Logger.Info( $"Vs Mode Monster Date Overwrite Complete {self}, {monsterSlot}, {unk2}", Color.Aqua );
         _vsModeActive = false;
 
+
+
+
         return ret;
     }
 
@@ -66,6 +69,7 @@ class VSHandler {
             nuint subActual = 0x8;
             nuint gutsActual = 0x1D3;
 
+            nuint scaleMM = 0x169;
             nuint subMM = 0x16A;
             nuint gutsMM = 0x16B;
 
@@ -77,6 +81,13 @@ class VSHandler {
             if ( sub != 0 ) {
                 Memory.Instance.Write( addr + subActual, sub - 1 );
                 Memory.Instance.Write( addr + gutsActual, guts );
+
+                // Set the scaling value for the opponent only.
+                if ( _vsMonsterSlot == 1 ) {
+                    Memory.Instance.Read( addr + scaleMM, out byte scaling );
+                    _mod.handlerScaling.opponentScalingFactor = scaling;
+
+                }
             }
         }
 

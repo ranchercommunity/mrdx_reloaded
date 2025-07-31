@@ -134,10 +134,10 @@ public class Mod : ModBase // <= Do not Remove.
 
     private IHook<H_GetMonsterBreedName> _hook_monsterBreedNames;
 
-    private CombinationHandler handlerCombination;
-    private FreezerHandler handlerFreezer;
-    private ScalingHandler handlerScaling;
-    private VSHandler handlerVS;
+    public CombinationHandler handlerCombination;
+    public FreezerHandler handlerFreezer;
+    public ScalingHandler handlerScaling;
+    public VSHandler handlerVS;
 
     /* Scaling Variables */
 

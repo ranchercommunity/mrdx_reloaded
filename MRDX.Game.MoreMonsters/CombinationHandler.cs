@@ -34,7 +34,7 @@ public delegate void H_CombinationRenameFirstChoice ( nuint self );
 [Function( CallingConventions.Fastcall )]
 public delegate void H_CombinationFinalStatsUpdate ( nuint unk1 );
 
-class CombinationHandler {
+public class CombinationHandler {
 
     private Mod _mod;
     private readonly IHooks _iHooks;

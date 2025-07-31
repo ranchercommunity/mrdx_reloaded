@@ -19,7 +19,7 @@ using System.Numerics;
 namespace MRDX.Game.MoreMonsters;
 
 
-class ScalingHandler {
+public class ScalingHandler {
 
     [HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 51 56 8B F1 BA ?? ?? ?? ??" )]
     [Function( CallingConventions.Fastcall )]
@@ -31,7 +31,11 @@ class ScalingHandler {
 
     private IHook<UpdateGenericState> _hook_updateGenericState;
     private IHook<H_VertexScalingCheck> _hook_vertexScalingCheck;
-    private short _vertexScaling;
+    private short _lastVertexCurrent;
+
+    public int opponentScalingFactor = 0;
+    private nuint _address_monster_mm_scaling_opponent { get { return Mod.address_game + 0x6015D8; } }
+    private short _lastVertexOpponent;
 
     public Dictionary<MonsterGenus, byte> MonsterScalingFactors = new Dictionary<MonsterGenus, byte>() 
     {   { MonsterGenus.Pixie, 50 },
@@ -101,51 +105,56 @@ class ScalingHandler {
         else { return Single.Lerp( (float) 1.0, (float) (_mod._configuration.MonsterSizeMaximum / 100.0), ( ( (float) monsterScaling ) - 101 ) / 100 ); }
     }
 
+    public double GetOpponentMonsterScalingFactor () {
+        if ( opponentScalingFactor == 0 ) { return 1; }
+
+        if ( opponentScalingFactor <= 100 ) { return Single.Lerp( (float) ( _mod._configuration.MonsterSizeMinimum / 100.0 ), (float) 1.0, ( ( (float) opponentScalingFactor ) - 1 ) / 99 ); }
+        else if ( opponentScalingFactor == 101 ) { return 1.0; }
+        else { return Single.Lerp( (float) 1.0, (float) ( _mod._configuration.MonsterSizeMaximum / 100.0 ), ( ( (float) opponentScalingFactor ) - 101 ) / 100 ); }
+    }
+
     public double GetCurrentMonsterScalingFactor () {
         return GetCurrentMonsterScalingFactor( temporaryScaling );
     }
- 
+
     /// <summary>
     /// Only activates if Monster Sizes is enabled in the configuration options.
     /// Updates the location of the monster's vertex scaling based upon the monster's vertex scaling value.
     /// Only updates these values if it detects a change from one value to reduce memory writes.
     /// </summary>
-    /// <param name="parent"></param>
-    private void CheckVertexScalingUpdate ( nint parent ) {
-        _hook_updateGenericState!.OriginalFunction( parent );
-
-        if ( !_mod._configuration.MonsterSizesEnabled ) { return; }
-
-        Memory.Instance.Read( Mod.address_monster_vertex_scaling, out ushort vertexScalingA );
-
-        if ( vertexScalingA != _vertexScaling ) {
-            UpdateVertexScaling();
-        }
-    }
-
+    /// <param name="self"></param>
     private void CheckVertexScalingUpdate2 ( nuint self ) {
         _hook_vertexScalingCheck!.OriginalFunction( self );
 
         if ( !_mod._configuration.MonsterSizesEnabled ) { return; }
 
         Memory.Instance.Read( Mod.address_monster_vertex_scaling, out ushort vertexScalingA );
+        if ( vertexScalingA != _lastVertexCurrent ) {
+            UpdateVertexScaling( Mod.address_monster_vertex_scaling );
+        }
 
-        if ( vertexScalingA != _vertexScaling ) {
-            UpdateVertexScaling();
+        Memory.Instance.Read( _address_monster_mm_scaling_opponent, out ushort vertexScalingO );
+        if ( vertexScalingO != _lastVertexOpponent ) {
+            UpdateVertexScaling( _address_monster_mm_scaling_opponent, false );
         }
     }
 
-    public void UpdateVertexScaling() {
-        Memory.Instance.Read( Mod.address_monster_vertex_scaling, out ushort vertexScalingA );
+    public void UpdateVertexScaling(nuint vertexAddress, bool currentMonster = true) {
+        Memory.Instance.Read( vertexAddress, out ushort vertexScalingA );
         if ( vertexScalingA != 0x00 ) {
-            Memory.Instance.Read( Mod.address_monster_vertex_scaling + 0x2, out ushort vertexScalingB );
-            Memory.Instance.Read( Mod.address_monster_vertex_scaling + 0x4, out ushort vertexScalingC );
+            Memory.Instance.Read( vertexAddress + 0x2, out ushort vertexScalingB );
+            Memory.Instance.Read( vertexAddress + 0x4, out ushort vertexScalingC );
 
-            double scaling = GetCurrentMonsterScalingFactor();
-            Memory.Instance.WriteRaw( Mod.address_monster_vertex_scaling, BitConverter.GetBytes( (ushort) ( vertexScalingA * scaling ) ) );
-            Memory.Instance.WriteRaw( Mod.address_monster_vertex_scaling + 0x2, BitConverter.GetBytes( (ushort) ( vertexScalingB * scaling ) ) );
-            Memory.Instance.WriteRaw( Mod.address_monster_vertex_scaling + 0x4, BitConverter.GetBytes( (ushort) ( vertexScalingC * scaling ) ) );
-            _vertexScaling = (short) ( vertexScalingA * scaling );
+            double scaling = currentMonster ? GetCurrentMonsterScalingFactor() : GetOpponentMonsterScalingFactor();
+            Memory.Instance.WriteRaw( vertexAddress, BitConverter.GetBytes( (ushort) ( vertexScalingA * scaling ) ) );
+            Memory.Instance.WriteRaw( vertexAddress + 0x2, BitConverter.GetBytes( (ushort) ( vertexScalingB * scaling ) ) );
+            Memory.Instance.WriteRaw( vertexAddress + 0x4, BitConverter.GetBytes( (ushort) ( vertexScalingC * scaling ) ) );
+
+            if ( currentMonster ) {
+                _lastVertexCurrent = (short) ( vertexScalingA * scaling );
+            } else {
+                _lastVertexOpponent = (short) ( vertexScalingA * scaling );
+            }
         }
     }
 }

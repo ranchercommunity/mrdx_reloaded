@@ -31,7 +31,7 @@ public delegate void H_FreezerWriteMonster ( nuint self, nuint unk1, int unk2 );
 [Function( CallingConventions.MicrosoftThiscall )]
 public delegate void H_FreezerWriteMonterStats ( int unk1, int unk2 );
 
-class FreezerHandler
+public class FreezerHandler
 {
     private Mod _mod;
     private readonly IHooks _iHooks;
@@ -123,6 +123,6 @@ class FreezerHandler
 
         if ( _mod._configuration.MonsterSizesEnabled ) {
             _mod.HandlerScaling.temporaryScaling = 0;
-            _mod.HandlerScaling.UpdateVertexScaling(); }
+            _mod.HandlerScaling.UpdateVertexScaling(Mod.address_monster_mm_scaling); }
     }
 }
