@@ -31,8 +31,8 @@ class VSHandler {
     public delegate uint H_VSModeMonsterTemporaryStorage ( nuint self, int monsterSlot, int unk2 );
 
     [HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 51 53 56 8B F1 C6 05 ?? ?? ?? ?? 01" )]
-    [Function( CallingConventions.Stdcall )]
-    public delegate nuint H_VSModeLoop ();
+    [Function( CallingConventions.MicrosoftThiscall )]
+    public delegate void H_VSModeLoop (nuint self );
 
     private Mod _mod;
     private readonly IHooks _iHooks;
@@ -54,13 +54,14 @@ class VSHandler {
         _vsMonsterSlot = monsterSlot;
 
         uint ret = _hook_VSModeMonsterTemporaryStorage!.OriginalFunction( self, monsterSlot, unk2 );
-
+        Logger.Info( $"Vs Mode Monster Date Overwrite Complete {self}, {monsterSlot}, {unk2}", Color.Aqua );
         _vsModeActive = false;
 
         return ret;
     }
 
-    private nuint VSModeLoopFunction() {
+    private void VSModeLoopFunction(nuint self) {
+        byte guts = 0;
         if ( _vsModeActive ) {
             nuint subActual = 0x8;
             nuint gutsActual = 0x1D3;
@@ -71,7 +72,7 @@ class VSHandler {
             nuint addr = _vsMonsterSlot == 0 ? _address_vsmode_monster_info_one : _address_vsmode_monster_info_two;
 
             Memory.Instance.Read( addr + subMM, out byte sub );
-            Memory.Instance.Read( addr + subMM, out byte guts );
+            Memory.Instance.Read( addr + gutsMM, out guts );
 
             if ( sub != 0 ) {
                 Memory.Instance.Write( addr + subActual, sub - 1 );
@@ -79,10 +80,20 @@ class VSHandler {
             }
         }
 
-        Logger.Info( $"VS Mode Monster Data Updated {_vsMonsterSlot}" );
-        return _hook_VSModeLoop!.OriginalFunction( );
+      
+        _hook_VSModeLoop!.OriginalFunction( self );
+
+        if ( _vsModeActive && guts != 0 ) {
+            // This is a magic number hard coded in that roughly points to the battle pointers.
+            nuint addressBPS = ( ( Mod.address_game + 0x1DE8A20 ) ); 
+            Memory.Instance.Read<nuint>( addressBPS, out nuint addressBPS2 );
+            Memory.Instance.Read<nuint>(addressBPS2+ 0x4 + (nuint) ( 0x4 * _vsMonsterSlot ), out nuint addressBPS3);
+            Logger.Info( $"Values {addressBPS} , {addressBPS2}, {addressBPS3}" );
+            Memory.Instance.SafeWrite( addressBPS3 + 0x34, ref guts );
 
 
+            Logger.Info( $"VS Mode Monster Data Updated {_vsMonsterSlot}, {self}", Color.Aqua );
+        }
     }
     
 }

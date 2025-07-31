@@ -647,7 +647,7 @@ public class Mod : ModBase // <= Do not Remove.
 
             var mainPosActual = address_freezer + (nuint) ( 524 * i ) + 0x4 + todooffset;
             var subPosActual = address_freezer + (nuint) ( 524 * i ) + 0x8 + todooffset;
-            var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D7 + todooffset;
+            var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D3 + todooffset;
 
             Memory.Instance.Read( mainPosActual, out byte main);
             Memory.Instance.Read( subPosActual, out byte sub );
@@ -686,7 +686,7 @@ public class Mod : ModBase // <= Do not Remove.
             var gutsPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_trueguts + 0x8;
 
             var subPosActual = address_freezer + (nuint) ( 524 * i ) + 0x8 + 0x4;
-            var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D7 + 0x4;
+            var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D3 + 0x4;
 
             Memory.Instance.Read( subPosMM, out byte sub );
             Memory.Instance.Read( gutsPosMM, out byte guts );
