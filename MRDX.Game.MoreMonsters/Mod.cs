@@ -338,9 +338,11 @@ public class Mod : ModBase // <= Do not Remove.
 
             ushort trainbonuses = ushort.Parse( row[ 25 ] );
 
+            byte alternateCount = byte.Parse( row[ 26 ] );
+
             MMBreed? breed = MMBreed.GetBreed( newMain, newSub );
             if ( MMBreed.GetBreed(newMain, newSub) == null ) {
-                breed = new MMBreed( newMain, newSub, baseMain, baseSub );
+                breed = new MMBreed( newMain, newSub, baseMain, baseSub, alternateCount );
                 breed.NewBaseBreed( name, lifespan, nature, growthPattern,
                     slif, spow, sint, sski, sspd, sdef,
                     glif, gpow, gint, gski, gspd, gdef,

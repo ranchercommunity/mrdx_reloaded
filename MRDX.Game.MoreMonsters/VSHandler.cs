@@ -89,6 +89,11 @@ public class VSHandler {
 
                 }
             }
+
+            // Reset Scaling Value for Opponent Only
+            else if ( _vsMonsterSlot == 1 ) {
+                _mod.handlerScaling.opponentScalingFactor = 0;
+            }
         }
 
       
