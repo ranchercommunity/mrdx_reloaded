@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Threading;
 
 namespace MRDX.Base.Mod.Interfaces;
 
@@ -21,6 +24,11 @@ public interface IMonsterTechnique
     byte Id { get; set; }
 
     TechSlots Slot { get; set; }
+    byte SlotPosition { get {
+            // This returns the slot's position, 0-5 are Melee, 6-11 are Close, etc.
+            return (byte) BitOperations.TrailingZeroCount( (uint) Slot );
+        } 
+    }
 
     byte[] JpnName { get; set; }
     string Name { get; set; }
@@ -42,6 +50,8 @@ public interface IMonsterTechnique
     byte LifeRecovery { get; set; }
     byte ForceMissSelf { get; set; }
     byte ForceHitSelf { get; set; }
+
+    List<ITechniqueErrantryInformation> ErrantryInformation { get; set; }
 
     /// <summary>
     ///     Estimated value for how good this tech is based on a simply formula
@@ -119,7 +129,73 @@ public interface IMonsterTechnique
 
         return output;
     }
+
+    /// <summary>
+    /// Returns the 32 bit (ony 24 are used) set of data used in files for SDATA and Taikai_en.
+    /// This data does not include usage information and is in 'reverse' ID order.
+    /// 1 represents ID 0 being active, 100000 represents ID 5 being active.
+    /// </summary>
+    /// <param name="techniques"></param> The list of known techniques
+    /// <returns></returns>
+
+    public static int SerializeTechsLearnedDataFile(List<IMonsterTechnique> techniques) {
+        int output = 0;
+        foreach ( IMonsterTechnique technique in techniques ) {
+            output |= 1 << technique.Id;
+        }
+        return output;
+    }
+
+    /// <summary>
+    /// Returns the serialized byte list of data used in files for memory.
+    /// Techniques are in slot order with gaps between each for usage. This allows you to write
+    /// straight to memory if needed.
+    /// </summary>
+    /// <param name="techniques"></param> The list of known techniques
+    /// <returns></returns>
+    public static byte[] SerializeTechsLearnedMemory(List<IMonsterTechnique> techniques) {
+        var output = new byte[ 48 ];
+        foreach ( IMonsterTechnique technique in techniques ) {
+            output[ technique.SlotPosition * 2 ] = 1;
+        }
+        return output;
+    }
 }
+
+public interface ITechniqueErrantryInformation {
+    IMonsterTechnique Technique { get; set; }
+    ErrantryLocation Location { get; set; }
+
+    byte ErrantrySlot { get; set; }
+
+    List<_statRequirements> StatRequirements { get; set; }
+
+    int AutolearnPercent { get; set; } // 1E 00 00 00 is = 3%. Not sure how this actually functions
+    
+    ushort NatureRequirement { get; set; } // 0 No Requirement, 1 = Good+, 2 = Bad-
+
+
+    IMonsterTechnique? ChainTechRequired { get; set; }
+    ushort ChainUsesRequired { get; set; }
+
+    bool SubRequirements { get; set; }
+    List<MonsterGenus> SubsRequired { get; set; }
+    List<MonsterGenus> SubsLocked { get; set; }
+
+    public struct _statRequirements {
+        public _statRequirements( ushort type, ushort guaranteed, ushort offset) {
+            StatTypeRequired = type;
+            StatTotalGuaranteed = guaranteed;
+            StatTotalOffset = offset;
+        }
+
+        ushort StatTypeRequired { get; set; }
+        ushort StatTotalGuaranteed { get; set; }
+        ushort StatTotalOffset { get; set; }
+        ushort StatTotalMinimum { get { return (ushort) ( Math.Max( 0, StatTotalGuaranteed - StatTotalOffset ) ); } }
+    }
+}
+
 
 public interface IBattleAttack
 {

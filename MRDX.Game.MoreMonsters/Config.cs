@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using MRDX.Base.Mod.Interfaces;
 using MRDX.Game.MoreMonsters.Template.Configuration;
 using Reloaded.Mod.Interfaces.Structs;
 
@@ -69,8 +70,8 @@ public class Config : Configurable<Config>
     [Description( "Determines the properties of combination items when applied to monsters.\n" +
              "No Changes - Keeps the default behavior of combination items.\n" +
              "Modified - Improves or adjusts the behavior of combination items to make unappealing items more useful.")]
-    [DefaultValue( CombinaitonSettings.Modified )]
-    public CombinaitonSettings CombinationItemAdjustment { get; set; } = CombinaitonSettings.Modified;
+    [DefaultValue( CombinaitonSettings.NoChanges )]
+    public CombinaitonSettings CombinationItemAdjustment { get; set; } = CombinaitonSettings.NoChanges;
 
     [Category( "Combinations" )]
     [DisplayName( "Enable Combinations for Special Subspecies" )]
@@ -79,6 +80,27 @@ public class Config : Configurable<Config>
          "difficult to combine for, and potential outputs may be not what you expect." )]
     [DefaultValue( false )]
     public bool CombinationSpecialSubspecies { get; set; } = false;
+
+    [Category( "Monster Species" )]
+    [DisplayName( "Bonus Monsters" )]
+    [Description( "Allows for the generation of bonus monsters.\n" +
+        "These monsters are typically memes or references to other non-MR related sources.")]
+    [DefaultValue( false )]
+    public bool BonusMonsterSpecies { get; set; } = false;
+
+
+
+    [Category( "Advanced - Mod Debugging" )]
+    [DisplayName( "Reloaded Message Verbosity" )]
+    [Description(
+    "Enables internal printouts to the Reloaded Log file to help debug issues or track mod performance.\n" +
+    "Error - No debug messages printed except dire, urgent issues. For normal gameplay.\n" +
+    "Warning - Prints messages for major events only.\n" +
+    "Info - Prints lots messages. Useful if there is consistent crashing.\n" +
+    "Debug - Considerably helpful for diagnoisng issues though.\n" +
+    "Trace - Meant for diagnosing issues internal to the mod's performance itself." )]
+    [DefaultValue( Logger.LogLevel.Error )]
+    public Logger.LogLevel LogLevel { get; set; } = Logger.LogLevel.Error;
     /*
     [DisplayName( "String" )]
     [Description( "This is a string." )]

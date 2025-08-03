@@ -356,6 +356,14 @@ public enum ErrantryType : byte
     Special = 5
 }
 
+public enum ErrantryLocation : byte {
+    TorbleSea = 0,
+    PapasMountain = 1,
+    MandyDesert = 2,
+    ParepareJungle = 3,
+    KawreaVolcano = 4,
+}
+
 public enum TechRange : byte
 {
     Melee = 0,
@@ -398,7 +406,7 @@ public record GenusInfo
 }
 
 /// <summary>
-///     Represents an actual monster breed (combination of two Genus) that is used in game
+///     Represents an actual monster breed (combination of two Genus) that is used in game.
 /// </summary>
 public record MonsterBreed
 {
@@ -431,8 +439,8 @@ public record MonsterBreed
     public ushort BattleSpecialsRaw { get; init; } = 3;
     public byte[] TechniquesRaw { get; set; } 
     public ushort TrainBoost { get; init; } = 0; // Slots 23 and 24 are unknown.
-
     public List<IMonsterTechnique> TechList { get; init; } = [];
+    public List<IMonsterTechnique> TechsKnown { get; init; } = [];
 
     public static MonsterBreed NewBreed( MonsterGenus main, MonsterGenus sub, string name, string breedidentifier,
         List<IMonsterTechnique> techlist, string[] SDATAvalues ) {
@@ -471,13 +479,8 @@ public record MonsterBreed
             if ( techArray[ i ] == '1' ) {
                 foreach ( var technique in techlist ) {
                     if ( technique.Id == ( techArray.Length - ( i + 1 )  ) ) {
+                        newBreed.TechsKnown.Add( technique );
                         newBreed.TechniquesRaw[ technique.Id * 2 ] = 1;
-                        /*BitArray bArray = new BitArray( [ (int) technique.Id ] );
-                        for ( var j = 0; j < 24; j++ ) {
-                            if ( bArray[ j ] ) {
-                                newBreed.TechniquesRaw[ ( j * 2 ) ] = 1;
-                            }
-                        }*/
                     }
                 }
             }

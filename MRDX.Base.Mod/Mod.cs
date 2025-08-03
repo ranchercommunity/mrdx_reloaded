@@ -232,13 +232,16 @@ public sealed class Mod : ModBase, IExports // <= Do not Remove.
             var breedFolder = @$"{DataPath}\mf2\data\mon\{info.ShortName}\";
             var textureFiles = Directory.EnumerateFiles(breedFolder, "??_??.tex");
             var techniqueFile = Path.Combine(breedFolder, $"{shortname}_{shortname}_wz.bin");
+            var errantryFile = Path.Combine(breedFolder, $"{shortname}_{shortname}_i.isd" );
 
             // Build a singular tech list. This will be the same for every breed until I do the right now and actually check errantry (no thanks :( )
             Logger.Trace($"loading technique list from {techniqueFile}");
             var data = await File.ReadAllBytesAsync(techniqueFile);
 
+            var errantryData = await File.ReadAllBytesAsync( errantryFile );
+            //Span<byte> errantryData = new Span<byte>();
             Logger.Debug($"Creating technique list for {info.Name}");
-            var techs = CreateTechs(atkNameTable[info.Id], data);
+            var techs = CreateTechs(atkNameTable[info.Id], data, errantryData);
             Logger.Trace($"tech loading complete for {info.Name}");
 
             // Enumerate through each species tex file and generate the final breeds.
@@ -315,7 +318,7 @@ public sealed class Mod : ModBase, IExports // <= Do not Remove.
         return atkList;
     }
 
-    private static List<IMonsterTechnique> CreateTechs(string[,] atkNames, Span<byte> rawStats)
+    private static List<IMonsterTechnique> CreateTechs(string[,] atkNames, Span<byte> rawStats, Span<byte> errantryData)
     {
         var techs = new List<IMonsterTechnique>
         {
@@ -344,6 +347,34 @@ public sealed class Mod : ModBase, IExports // <= Do not Remove.
                 Logger.Trace( $"Technique parsed: {technique}" );
                 techs.Add(technique);
                 
+            }
+        }
+
+        // Read Errantry Data
+        // 0C contains the address for the start of the data
+        // The first information that is read is 2 byte pointers to each ErrantryLocation
+        // At each location pointer is a 2 byte count of how many techs it contains, followed by
+        // that many 2 byte pointers to the data of the IErrantryTechniqueInformation
+        
+        int locationPos = errantryData[ 0x0C ];
+        for ( var i = 0; i < 5; i++ ) {
+            var lPos = errantryData[ locationPos + ( i * 2 ) ] + (errantryData[ locationPos + 1 + ( i * 2 ) ] << 8) ;
+
+            int techCount = errantryData[ locationPos + lPos ];
+            List<int> techLocationsRead = new List<int>();
+
+            for ( var j = 0; j < techCount; j++ ) {
+                var p = locationPos + lPos + 2 + ( j * 2 );
+                int techPos = errantryData[ p ] + (errantryData[p + 1] << 8);
+                techPos += locationPos;
+                if ( techLocationsRead.Contains(techPos) || 
+                    ( errantryData[techPos] == 0xFF && errantryData[ techPos + 1 ] == 0xFF ) ) { continue; }
+                
+                TechniqueErrantryData ted = new TechniqueErrantryData(
+                    techs, (ErrantryLocation) i, (byte) j, errantryData, techPos );
+
+                ted.Technique.ErrantryInformation.Add( ted );
+                techLocationsRead.Add( techPos );
             }
         }
 

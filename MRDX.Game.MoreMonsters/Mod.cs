@@ -295,13 +295,21 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     /// <summary>
-    ///  This function should eventually read from a file or some equivalent.
+    /// Reads in monster data from the applicable files.
     /// </summary>
     private void InitializeNewMonsters ( bool unused ) {
+        InitializeNewMonsters( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER.csv" ) );
+
+        if ( _configuration.BonusMonsterSpecies ) {
+            InitializeNewMonsters( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER_BONUS.csv" ) );
+        }
+    }
+
+    private void InitializeNewMonsters(string filename ) {
 
         // Reads in a slightly modified version of SDATA
-        var moreMonstersDataList = new Dictionary<int, string[]>();
-        var mdata = File.ReadAllLines( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER.csv" ) );
+        
+        var mdata = File.ReadAllLines( filename );
         foreach ( var r in mdata ) {
             var row = r.Split( "," );
 
@@ -378,12 +386,12 @@ public class Mod : ModBase // <= Do not Remove.
             if ( _monsterInsideBattleRedirects == 2 ) {
                 _monsterInsideBattleMain = breedIdMain;
                 _monsterInsideBattleSub = breedIdSub;
-                Logger.Info( "InsideBattleStartup, Redirects == 2", Color.Green );
+                //Logger.Info( "InsideBattleStartup, Redirects == 2", Color.Green );
             }
         }
 
         if ( !_monsterInsideBattleStartup || _monsterInsideBattleRedirects == 1 ) {
-            Logger.Info( $"Not Inside or Redirects = 1 {_monsterInsideBattleStartup} | {_monsterInsideBattleRedirects}", Color.Green );
+            //Logger.Info( $"Not Inside or Redirects = 1 {_monsterInsideBattleStartup} | {_monsterInsideBattleRedirects}", Color.Green );
             RedirectFromID( breedIdMain, breedIdSub, variantID );
         }
 

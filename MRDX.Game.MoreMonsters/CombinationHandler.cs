@@ -15,6 +15,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Collections;
 using System.Numerics;
+using System.Runtime.Intrinsics.Arm;
 
 namespace MRDX.Game.MoreMonsters;
 
@@ -655,7 +656,7 @@ public class CombinationHandler {
 
     private void ApplyTechniquesParentSame ( MonsterBreed childBreed ) {
         var techList = childBreed.TechList;
-        byte[] childTechs = new byte[ 48 ]; Array.Copy( childBreed.TechniquesRaw, childTechs, 48 );
+        byte[] childTechs = IMonsterTechnique.SerializeTechsLearnedMemory( childBreed.TechsKnown );
 
         // This function sets which techs have been learned of each errantry type. Last value [6] of LTT is the total.
         int[] learnedTechTypes = [ 0, 0, 0, 0, 0, 0, 0 ];
@@ -675,16 +676,47 @@ public class CombinationHandler {
 
         // Assign Non-Special, Non-Learned techs to the monster based on the inheritedCount.
         var inheritedCount = (int) Math.Floor ( ( learnedTechTypes[ 6 ] - ( learnedTechTypes[ 5 ] + 2 ) ) * 2.0 / 3.0 );
-        
-        for ( var t = 0; t < inheritedCount; t++ ) {
-            for ( var i = 0; i < shuffle.Count(); i++ ) {
+        var learnedTechs = 0;
+        for ( var i = 0; i < shuffle.Count(); i++ ) {
+            if ( learnedTechs < inheritedCount ) {
                 var pendingTech = techList[ shuffle[ i ] ];
-                var slot = BitOperations.TrailingZeroCount( (uint) pendingTech.Slot ) * 2;
-                if ( childTechs[ slot ] == 0 && _combinationParent1Techniques[slot] == 1 && pendingTech.Type != ErrantryType.Special ) {
-                    childTechs[ slot ] = 1;
-                    break;
-                }
-            }
+                var oneBonus = 0;
+                do {
+                    var slot = pendingTech.SlotPosition * 2;
+
+
+                    // Determine if this is a valid sub for the technique.
+                    // Going to have both versions of this block in here. We are not 100% confident as to if it work as 
+                    // Any failure prevents learning, or any success allows learning. Golem is the culprit (Heavy Kick).
+
+                    /* Any Success = Success
+                    var learnable = pendingTech.ErrantryInformation.Count == 0;
+                    foreach ( ITechniqueErrantryInformation errantryInfo in pendingTech.ErrantryInformation ) {
+                        if ( !errantryInfo.SubRequirements ) { learnable = true; break; }
+                        else {
+                            bool subReq = errantryInfo.SubsRequired.Count > 0 ? errantryInfo.SubsRequired.Contains( (MonsterGenus) childBreed.GenusSub ) : true;
+                            bool subLock = errantryInfo.SubsLocked.Count > 0 ? !errantryInfo.SubsLocked.Contains( (MonsterGenus) childBreed.GenusSub ) : true;
+                            if ( subReq && subLock ) { learnable = true; break; }
+                        }
+                    } */
+
+                    // Any Failure = Failure
+                    var learnable = pendingTech.ErrantryInformation.Count != 0;
+                    foreach ( ITechniqueErrantryInformation errantryInfo in pendingTech.ErrantryInformation ) {
+                        bool subReq = errantryInfo.SubsRequired.Count > 0 ? errantryInfo.SubsRequired.Contains( (MonsterGenus) childBreed.GenusSub ) : true;
+                        bool subLock = errantryInfo.SubsLocked.Count > 0 ? !errantryInfo.SubsLocked.Contains( (MonsterGenus) childBreed.GenusSub ) : true;
+                        if ( !subReq || !subLock ) { learnable = false; break; }
+                    }
+
+                    if ( childTechs[ slot ] == 0 && _combinationParent1Techniques[ slot ] == 1 && pendingTech.Type != ErrantryType.Special && learnable ) {
+                        childTechs[ slot ] = 1;
+                        learnedTechs++;
+                        oneBonus++;
+                    }
+                    // TODO - Handle the modded case where a tech chain is required for one errantry location but not others.
+                    pendingTech = pendingTech.ErrantryInformation.Count == 0 ? null : pendingTech.ErrantryInformation[ 0 ].ChainTechRequired; 
+                } while ( pendingTech != null && oneBonus <= 1  );
+            } else { break; }
         }
 
         // Now transfer over the use count of each move learned.
@@ -707,7 +739,7 @@ public class CombinationHandler {
         MonsterBreed parentBreed = MonsterBreed.GetBreed( _combinationParent1Main, _combinationParent1Main );
         var parentTechList = parentBreed.TechList;
         var childTechList = childBreed.TechList;
-        byte[] childTechs = new byte[ 48 ]; Array.Copy( childBreed.TechniquesRaw, childTechs, 48 );
+        byte[] childTechs = IMonsterTechnique.SerializeTechsLearnedMemory( childBreed.TechsKnown );
 
         // This function sets which techs have been learned of each errantry type. Basic and Special will be ignored later.
         int[] learnedTechTypes = [ 0, 0, 0, 0, 0, 0 ];
@@ -720,18 +752,16 @@ public class CombinationHandler {
             }
         }
 
-        int[] shuffle = new int[ childTechList.Count ];
-        for ( var i = 0; i < childTechList.Count; i++ ) { shuffle[ i ] = i; }
-        Utils.Shuffle( Random.Shared, shuffle );
-
-        // Loop through each Tech Type (1-4) and sets the skill if the LTT >= 1 for that type.
-        for ( var tt = 1; tt <= 4; tt++ ) {
-            if ( learnedTechTypes[ tt ] >= 1 ) {
-                for ( var i = 0; i < shuffle.Count(); i++ ) {
-                    var pendingTech = childTechList[ shuffle[ i ] ];
-                    if ( pendingTech.Type == (ErrantryType) tt ) {
-                        childTechs[ BitOperations.TrailingZeroCount((uint) pendingTech.Slot) * 2 ] = 1;
-                        break;
+        // Loop through each Tech Location (Type) (0-3), finds the first slot technique, and sets the skill if the LTT >= 1 for that type.
+        for ( var tt = 0; tt <= 3; tt++ ) {
+            if ( learnedTechTypes[ tt + 1 ] >= 1 ) {
+                for ( var i = 0; i < childTechList.Count(); i++ ) {
+                    var pendingTech = childTechList[ i ];
+                    if ( pendingTech.ErrantryInformation.Count > 0 && 
+                         pendingTech.ErrantryInformation[0].ErrantrySlot == 0 &&
+                         pendingTech.ErrantryInformation[0].Location == (ErrantryLocation) tt ) {
+                            childTechs[ pendingTech.SlotPosition * 2 ] = 1;
+                            break;
                     }
                 }
             }

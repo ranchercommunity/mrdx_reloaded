@@ -123,6 +123,6 @@ public class FreezerHandler
 
         if ( _mod._configuration.MonsterSizesEnabled ) {
             _mod.HandlerScaling.temporaryScaling = 0;
-            _mod.HandlerScaling.UpdateVertexScaling(Mod.address_monster_mm_scaling); }
+            _mod.HandlerScaling.UpdateVertexScaling(Mod.address_monster_vertex_scaling); }
     }
 }

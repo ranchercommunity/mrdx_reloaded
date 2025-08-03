@@ -274,30 +274,9 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
         Logger.Trace( $"TP: Breed " + nm.GenusMain + " " + nm.GenusSub + $" AS:{monData.ArenaSpeed}|GUTS:{monData.GutsRate}", Color.AliceBlue );
 
         // Standard Tech Starts
-        for ( var i = 0; i < nm.BreedInfo.TechList.Count; i++ ) {
-            var tech = nm.BreedInfo.TechList[ i ];
-            if ( nm.BreedInfo.TechniquesRaw[tech.Id * 2] == 1 ) {
-                Logger.Debug( $"TP: Adding default technique {tech.Name} with slot {tech.Slot} and {tech.Id} to {nm.GenusMain} breed." );
-                nm.MonsterAddTechnique( tech );
-            }
-        }
-        
-        /* Standard Tech Starts
-        // Attempt to assign three basics, weighted generally towards worse basic techs with variance.
-        if ( nm.BreedInfo.TechList[ 0 ].Type == ErrantryType.Basic )
-            nm.MonsterAddTechnique( nm.BreedInfo.TechList[ 0 ] );
-        for ( var tc = 0; tc < 3; tc++ ) {
-            var tech = nm.BreedInfo.TechList[ 0 ];
-
-            for ( var j = 1; j < nm.BreedInfo.TechList.Count; j++ ) {
-                var nt = nm.BreedInfo.TechList[ j ];
-                if ( nt.Type == ErrantryType.Basic )
-                    if ( nt.TechValue - Random.Shared.Next( 20 ) < tech.TechValue )
-                        tech = nt;
-            }
-
+        foreach ( IMonsterTechnique tech in nm.BreedInfo.TechsKnown ) {
             nm.MonsterAddTechnique( tech );
-        } */
+        }
 
         return nm;
     }

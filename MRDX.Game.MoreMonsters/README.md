@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.1.0
+﻿# More Monsters - Version 0.2.0
 
 ## Features
 
@@ -6,10 +6,21 @@
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
+* Monsters are supported for VS Play!
 
 
 
-**Note:** To prevent potential issues, save files using the More Monsters mod are not compatible for Vs uploads.
+##### Updating to 0.2.0 from a previous version:
+
+The update from 0.1.2 to 0.2.0 has involved considerable changes to the way monster information is stored to allow for VS Mode uploads.
+
+With this in mind, all monsters generated with the mod and in the freezer will immediately be altered, and any monsters currently being
+
+used will be affected when frozen. Unfortunately, there was no way to handle all cases (existing Non-MM Saves, MM-Saves, a mixture of both)
+
+and the decision was made to break existing MM-Saves. It is recommended that all existing monsters be deleted and the save continued.
+
+This update should not cause any issues with the save itself, only the monsters generated prior to the save.
 
 
 
@@ -30,10 +41,6 @@ For example, to generate Durandal the new Centaur/Henger monster, enter 'More Mo
 
 
 
-***Note*:** You must have access to the main breed to generate new creatures utilizing those breeds.
-
-
-
 Alternatively to obtain the new species, combine monsters with the main/subs of the new species you want.
 
 
@@ -42,7 +49,17 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 
-## Latest Updates
+## Update History
+
+##### v0.2.0
+
+* 5 additional monster combinations have been added!
+* VS Play is now supported! No restrictions are on monsters uploaded. Non More-Monsters users will not be impacted.
+* Monster Growths have been normalized to base game values.
+* Combinations now respect Tech Chains for both Matched and Mismatched Parents.
+* 'Bonus Monsters' are now available as a toggleable option in the configuration for MM.
+
+
 
 ##### v0.1.2
 
@@ -66,19 +83,19 @@ Monster size variations are random from the shrine, and partially inherited from
 ### Planned Updates
 
 * More Species
-* Combination Fixes
 * Stability Improvements
 * Monster Card Data
-* VS Mode Compatibility
+
+
 
 
 
 ### Known Issues
 
 * Intermittent crashes can occur when accessing the combination list, or just prior to monster generation.
-* Combinations do not respect tech chains when inheriting moves.
-* Combinations where the baby does not match the parent can learn unintended techniques.
 * The combination menu always allows for accessing the 2nd page of monsters, even if there are less than 8 options.
+
+
 
 
 
@@ -114,11 +131,9 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 
 
 
-#### ArchbishopDave
-
-#### Teawch
-
-#### MonsterFenrick
-
-#### OriharaSaki
-
+* ArchbishopDave
+* Teawch
+* MonsterFenrick
+* OriharaSaki
+* Kane
+* Chacolah
