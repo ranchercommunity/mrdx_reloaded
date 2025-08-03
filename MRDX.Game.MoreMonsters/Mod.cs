@@ -589,7 +589,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         _monsterCurrent.TrainBoost = breed.TrainBoost;
 
-        Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x192 ), breed.TechniquesRaw );
+        Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x192 ), IMonsterTechnique.SerializeTechsLearnedMemory( breed.TechsKnown ) );
     }
 
 

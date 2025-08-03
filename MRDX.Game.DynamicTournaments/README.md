@@ -11,6 +11,12 @@
 
 ### Latest Updates
 
+##### v0.3.2
+
+* Mandatory to accommodate MRDX Base Mod update.
+
+
+
 ##### v0.3.1
 
 * Fix for minor incompatibility with the More Monsters Mod.

@@ -74,7 +74,6 @@ public record TechniqueErrantryData : ITechniqueErrantryInformation {
 
         StatRequirements = new List<ITechniqueErrantryInformation._statRequirements>();
         while ( errantryData[ dPos ] != 0xFF && errantryData[ dPos + 1 ] != 0xFF ) {
-            Console.WriteLine( $"{dPos} : {errantryData[ dPos ]}" );
             ushort statType = (ushort) ( errantryData[ dPos ] + ( errantryData[ dPos + 1 ] << 8 ) );
             ushort statTotal = (ushort) ( errantryData[ dPos + 2 ] + ( errantryData[ dPos + 3 ] << 8 ) );
             ushort statOff = (ushort) ( errantryData[ dPos + 4 ] + ( errantryData[ dPos + 5 ] << 8 ) );

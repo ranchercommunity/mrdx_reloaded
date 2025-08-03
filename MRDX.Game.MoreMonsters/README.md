@@ -53,7 +53,7 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ##### v0.2.0
 
-* 5 additional monster combinations have been added!
+* 6 additional monster combinations have been added!
 * VS Play is now supported! No restrictions are on monsters uploaded. Non More-Monsters users will not be impacted.
 * Monster Growths have been normalized to base game values.
 * Combinations now respect Tech Chains for both Matched and Mismatched Parents.

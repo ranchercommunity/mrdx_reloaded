@@ -5,21 +5,29 @@
 
 
 
-All Magic Banana variants are available through the mod. Please use the configuration file'
+All Magic Banana variants are available through the mod. 
 
-&nbsp;
+Please use the configuration file to select which banana you would like.
+
+ 
 
 ### Latest Updates
 
+##### v0.1.2
+
+* Required for Base Mod compatibility.
+
+
+
 ##### v0.1.1
 
-Updated Preview Imagery to match other MR2DX Mods.
+* Updated Preview Imagery to match other MR2DX Mods.
 
 
 
 ##### v0.1.0
 
-Initial Release
+* Initial Release
 
 
 
