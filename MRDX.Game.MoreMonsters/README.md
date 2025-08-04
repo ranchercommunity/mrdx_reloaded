@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.2.0
+﻿# More Monsters - Version 0.2.1
 
 ## Features
 
@@ -10,7 +10,7 @@
 
 
 
-##### Updating to 0.2.0 from a previous version:
+##### Updating to 0.2.0+ from 0.1.2 or earlier:
 
 The update from 0.1.2 to 0.2.0 has involved considerable changes to the way monster information is stored to allow for VS Mode uploads.
 
@@ -50,6 +50,15 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.2.1
+
+* Fixed a bug where monsters rarely were not assigned a Liked item, leading to potential crashes.
+* Fixed a major bug where monster's active technique slots were not reset properly, leading to bricked technique ranges.
+* &nbsp;   - If you were affected by this bug, you will need to use Cheat Engine or another tool to manually update
+* &nbsp;     the chosen technique of your monster to something known and valid.
+
+##### 
 
 ##### v0.2.0
 
