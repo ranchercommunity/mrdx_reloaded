@@ -2,6 +2,8 @@ ArchbihopDave
 =====================================
 Monsters Developed or Contributed To
 =====================================
+Version 0.1.0
+=====================================
 Arrowhead/Undine
 Bajarl/Plant
 Baku/Mew
@@ -22,7 +24,7 @@ Jell/Gaboo
 Kato/Hopper
 Mew/Monol
 Mocchi/Beaclon
-Monol/ColorPandora #1-3
+Monol/ColorPandora (Base + Alternates #2-3)
 Monol/Mock
 Niton/Suezo
 Phoenix/Jill
@@ -33,6 +35,12 @@ Worm/Mew
 Zuum/Ghost
 Zuum/Henger
 Zuum/Undine
+
+=====================================
+Version 0.2.0
+=====================================
+Henger/Niton
+Monol/Joker (Alternate #2)
 
 ...
 

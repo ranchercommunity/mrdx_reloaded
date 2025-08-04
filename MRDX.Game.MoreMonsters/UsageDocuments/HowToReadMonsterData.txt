@@ -1,12 +1,13 @@
-The MonsterData.pdf file contains all of core information regarding the new monster species.
+Please access the following link to access monster information for current and future monsters.
+https://docs.google.com/spreadsheets/d/1zeIbKS49pPMbbrOunNOaydNaSe2n1KlEOt_hpzRa65U
 
 Please keep in mind that all values are 0 Indexed. 
 Please refer to LegendCup for reference information to compare to other existing monters.
 
 As an example, Aquamarine is a new Arrowhead/Undine monster that has a natural lifespan of 340 weeks.
 It begins with 45 Nature, and has a Sustainable (3) Growth Pattern.
-Aquamarine has growths of C, D, C, B, C, C, for Life, Pow, Int, Skill, Speed, and Defense respectively.
-It also has a C Arena Speed, and a Guts Rate of 12.
+Aquamarine has growths of C, D, C, B, C, B, for Life, Pow, Int, Skill, Speed, and Defense respectively.
+It also has a C Arena Speed, and a Guts Rate of 14.
 
 To generate the monster, go to the Shrine, enter 'More Monsters' as the Title for the shrine.
 Then, select Arrowhead / Undine for the Artist!
