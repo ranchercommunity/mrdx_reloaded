@@ -585,11 +585,30 @@ public class Mod : ModBase // <= Do not Remove.
         _monsterCurrent.ArenaSpeed = breed.ArenaSpeed;
         _monsterCurrent.GutsRate = breed.GutsRate;
 
+        // TODO - Incorproate into base mod.
+        // Battle Specials - Not incorporated into the base mod yet.
         Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x1D0 ), BitConverter.GetBytes(breed.BattleSpecialsRaw) );
 
         _monsterCurrent.TrainBoost = breed.TrainBoost;
 
+        // Fix Techniques - This is not incorproated into the base mod yet.
         Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x192 ), IMonsterTechnique.SerializeTechsLearnedMemory( breed.TechsKnown ) );
+
+        // Fix Technique Slot Chosen - The game does not like custom monsters and will assign slots for invalid techniques, bricking an entire range.
+        byte[] slotChosen = [ 0xFF, 0xFF, 0xFF, 0xFF ];
+        foreach ( IMonsterTechnique technique in breed.TechsKnown ) {
+            slotChosen[(int) technique.Range] = technique.SlotPosition < slotChosen[ (int) technique.Range ] ? technique.SlotPosition : slotChosen[ (int) technique.Range ];
+        }
+        for ( int i = 0; i < 4; i++ ) { if ( slotChosen[i] == 0xFF ) { slotChosen[ i ] = (byte) ( i * 6 ); } }
+        Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x1C8 ), slotChosen );
+
+        // Fix Empty Like Slot - Not sure why the Like slot is occasionally empty. Randomize it if it is.
+        if ( (int) _monsterCurrent.ItemLike >= 177 ) {
+            Item [] itemList = [ Item.Potato, Item.Milk, Item.Fish, Item.Meat, Item.Tablet, Item.CupJelly, Item.Play, Item.Battle, Item.Rest ];
+            Utils.Shuffle( Random.Shared, itemList );
+            _monsterCurrent.ItemLike = _monsterCurrent.ItemDislike != itemList[ 0 ] ? itemList[ 0 ] : itemList[ 1 ];
+        }
+
     }
 
 
