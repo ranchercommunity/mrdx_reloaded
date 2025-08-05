@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace MRDX.Base.BattleSimulator;
 
@@ -13,131 +15,146 @@ namespace MRDX.Base.BattleSimulator;
 ///     https://stackoverflow.com/a/4657392/386091
 ///     https://stackoverflow.com/a/9164742/386091
 /// </remarks>
-public static class ChildProcessTracker
+public sealed partial class ChildProcessManager : IDisposable
 {
-    // Windows will automatically close any open job handles when our process terminates.
-    //  This can be verified by using SysInternals' Handle utility. When the job handle
-    //  is closed, the child processes will be killed.
-    private static readonly IntPtr s_jobHandle;
+    private bool _disposed;
+    private SafeJobHandle? _handle;
 
-    static ChildProcessTracker()
+    public ChildProcessManager()
     {
-        // This feature requires Windows 8 or later. To support Windows 7 requires
-        //  registry settings to be added if you are using Visual Studio plus an
-        //  app.manifest change.
-        //  https://stackoverflow.com/a/4232259/386091
-        //  https://stackoverflow.com/a/9507862/386091
-        if (Environment.OSVersion.Version < new Version(6, 2))
-            return;
+        _handle = new SafeJobHandle(CreateJobObject(IntPtr.Zero, null));
 
-        // The job name is optional (and can be null) but it helps with diagnostics.
-        //  If it's not null, it has to be unique. Use SysInternals' Handle command-line
-        //  utility: handle -a ChildProcessTracker
-        var jobName = "ChildProcessTracker" + Process.GetCurrentProcess().Id;
-        s_jobHandle = CreateJobObject(IntPtr.Zero, jobName);
+        var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION
+        {
+            LimitFlags = 0x2000
+        };
 
-        var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION();
-
-        // This is the key flag. When our process is killed, Windows will automatically
-        //  close the job handle, and when that happens, we want the child processes to
-        //  be killed, too.
-        info.LimitFlags = JOBOBJECTLIMIT.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-
-        var extendedInfo = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
-        extendedInfo.BasicLimitInformation = info;
+        var extendedInfo = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+        {
+            BasicLimitInformation = info
+        };
 
         var length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
         var extendedInfoPtr = Marshal.AllocHGlobal(length);
-        try
-        {
-            Marshal.StructureToPtr(extendedInfo, extendedInfoPtr, false);
+        Marshal.StructureToPtr(extendedInfo, extendedInfoPtr, false);
 
-            if (!SetInformationJobObject(s_jobHandle, JobObjectInfoType.ExtendedLimitInformation,
-                    extendedInfoPtr, (uint)length))
-                throw new Win32Exception();
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(extendedInfoPtr);
-        }
+        if (!SetInformationJobObject(_handle, JobObjectInfoType.ExtendedLimitInformation, extendedInfoPtr,
+                (uint)length)) throw new InvalidOperationException("Unable to set information", new Win32Exception());
     }
 
-    /// <summary>
-    ///     Add the process to be tracked. If our current process is killed, the child processes
-    ///     that we are tracking will be automatically killed, too. If the child process terminates
-    ///     first, that's fine, too.
-    /// </summary>
-    /// <param name="process"></param>
-    public static void AddProcess(Process process)
+    public void Dispose()
     {
-        if (s_jobHandle != IntPtr.Zero)
-        {
-            var success = AssignProcessToJobObject(s_jobHandle, process.Handle);
-            if (!success && !process.HasExited)
-                throw new Win32Exception();
-        }
+        if (_disposed) return;
+
+        _handle?.Dispose();
+        _handle = null;
+        _disposed = true;
     }
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-    private static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string name);
+    [MemberNotNull(nameof(_handle))]
+    private void ValidateDisposed()
+    {
+        ObjectDisposedException.ThrowIf(_disposed || _handle is null, this);
+    }
 
-    [DllImport("kernel32.dll")]
-    private static extern bool SetInformationJobObject(IntPtr job, JobObjectInfoType infoType,
+    public void AddProcess(SafeProcessHandle processHandle)
+    {
+        ValidateDisposed();
+        if (!AssignProcessToJobObject(_handle, processHandle))
+            throw new InvalidOperationException("Unable to add the process");
+    }
+
+    public void AddProcess(Process process)
+    {
+        AddProcess(process.SafeHandle);
+    }
+
+    public void AddProcess(int processId)
+    {
+        using var process = Process.GetProcessById(processId);
+        AddProcess(process);
+    }
+
+    [LibraryImport("kernel32", EntryPoint = "CreateJobObjectW", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial IntPtr CreateJobObject(IntPtr a, string? lpName);
+
+    [LibraryImport("kernel32")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetInformationJobObject(SafeJobHandle hJob, JobObjectInfoType infoType,
         IntPtr lpJobObjectInfo, uint cbJobObjectInfoLength);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
-}
+    [LibraryImport("kernel32", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool AssignProcessToJobObject(SafeJobHandle job, SafeProcessHandle process);
 
-public enum JobObjectInfoType
-{
-    AssociateCompletionPortInformation = 7,
-    BasicLimitInformation = 2,
-    BasicUIRestrictions = 4,
-    EndOfJobTimeInformation = 6,
-    ExtendedLimitInformation = 9,
-    SecurityLimitInformation = 5,
-    GroupInformation = 11
-}
+    private sealed class SafeJobHandle : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        public SafeJobHandle(IntPtr handle) : base(true)
+        {
+            SetHandle(handle);
+        }
 
-[StructLayout(LayoutKind.Sequential)]
-public struct JOBOBJECT_BASIC_LIMIT_INFORMATION
-{
-    public Int64 PerProcessUserTimeLimit;
-    public Int64 PerJobUserTimeLimit;
-    public JOBOBJECTLIMIT LimitFlags;
-    public UIntPtr MinimumWorkingSetSize;
-    public UIntPtr MaximumWorkingSetSize;
-    public UInt32 ActiveProcessLimit;
-    public Int64 Affinity;
-    public UInt32 PriorityClass;
-    public UInt32 SchedulingClass;
-}
+        protected override bool ReleaseHandle()
+        {
+            return CloseHandle(handle);
+        }
 
-[Flags]
-public enum JOBOBJECTLIMIT : uint
-{
-    JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000
-}
+        [DllImport("kernel32", SetLastError = true)]
+        private static extern bool CloseHandle(IntPtr hObject);
+    }
 
-[StructLayout(LayoutKind.Sequential)]
-public struct IO_COUNTERS
-{
-    public UInt64 ReadOperationCount;
-    public UInt64 WriteOperationCount;
-    public UInt64 OtherOperationCount;
-    public UInt64 ReadTransferCount;
-    public UInt64 WriteTransferCount;
-    public UInt64 OtherTransferCount;
-}
+    [StructLayout(LayoutKind.Sequential)]
+    private struct IO_COUNTERS
+    {
+        public ulong ReadOperationCount;
+        public ulong WriteOperationCount;
+        public ulong OtherOperationCount;
+        public ulong ReadTransferCount;
+        public ulong WriteTransferCount;
+        public ulong OtherTransferCount;
+    }
 
-[StructLayout(LayoutKind.Sequential)]
-public struct JOBOBJECT_EXTENDED_LIMIT_INFORMATION
-{
-    public JOBOBJECT_BASIC_LIMIT_INFORMATION BasicLimitInformation;
-    public IO_COUNTERS IoInfo;
-    public UIntPtr ProcessMemoryLimit;
-    public UIntPtr JobMemoryLimit;
-    public UIntPtr PeakProcessMemoryUsed;
-    public UIntPtr PeakJobMemoryUsed;
+    [StructLayout(LayoutKind.Sequential)]
+    private struct JOBOBJECT_BASIC_LIMIT_INFORMATION
+    {
+        public long PerProcessUserTimeLimit;
+        public long PerJobUserTimeLimit;
+        public uint LimitFlags;
+        public UIntPtr MinimumWorkingSetSize;
+        public UIntPtr MaximumWorkingSetSize;
+        public uint ActiveProcessLimit;
+        public UIntPtr Affinity;
+        public uint PriorityClass;
+        public uint SchedulingClass;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SECURITY_ATTRIBUTES
+    {
+        public uint nLength;
+        public IntPtr lpSecurityDescriptor;
+        public int bInheritHandle;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+    {
+        public JOBOBJECT_BASIC_LIMIT_INFORMATION BasicLimitInformation;
+        public IO_COUNTERS IoInfo;
+        public UIntPtr ProcessMemoryLimit;
+        public UIntPtr JobMemoryLimit;
+        public UIntPtr PeakProcessMemoryUsed;
+        public UIntPtr PeakJobMemoryUsed;
+    }
+
+    private enum JobObjectInfoType
+    {
+        AssociateCompletionPortInformation = 7,
+        BasicLimitInformation = 2,
+        BasicUIRestrictions = 4,
+        EndOfJobTimeInformation = 6,
+        ExtendedLimitInformation = 9,
+        SecurityLimitInformation = 5,
+        GroupInformation = 11
+    }
 }

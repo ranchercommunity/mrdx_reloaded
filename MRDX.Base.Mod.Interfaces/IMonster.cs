@@ -260,7 +260,7 @@ public interface IMonster
     ushort BattleSpecial { get; set; }
 
 
-    IList<IMonsterTechnique> Moves { get; }
+    IList<IMonsterTechnique> Moves { get; set; }
     IList<byte> MoveUseCount { get; }
 
     byte MotivationDomino { get; set; }
@@ -348,7 +348,7 @@ public interface IBattleMonsterData
         o[42] = Spoil;
         o[43] = 0; // This is likely FormRaw
         //Techs.CopyTo(o, 44);
-        BitConverter.GetBytes( TechsRaw ).CopyTo( o, 44 );
+        BitConverter.GetBytes(TechsRaw).CopyTo(o, 44);
         o[48] = ArenaSpeed;
         o[49] = GutsRate;
         o[50] = 0;
@@ -376,7 +376,7 @@ public interface IBattleMonsterData
             Fear = o[41],
             Spoil = o[42],
             Techs = o[44..47],
-            TechsRaw = BitConverter.ToUInt32( o, 44 ),
+            TechsRaw = BitConverter.ToUInt32(o, 44),
             ArenaSpeed = o[48],
             GutsRate = o[49],
             BattleSpecial = (BattleSpecials)BitConverter.ToUInt16(o, 52)

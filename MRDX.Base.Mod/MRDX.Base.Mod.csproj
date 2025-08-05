@@ -29,33 +29,36 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ReloadedLinkRoots Include="MRDX.Base.Mod" />
+        <ReloadedLinkRoots Include="MRDX.Base.Mod"/>
         <!-- Add assemblies to be trimmed. You might need to add their dependencies too!  -->
         <!-- <ReloadedLinkAssemblies Include="Reloaded.Memory" /> -->
     </ItemGroup>
 
-    <Import Project="Reloaded.Trimming.targets" />
-    <Import Project="Reloaded.Checks.targets" />
+    <Import Project="Reloaded.Trimming.targets"/>
+    <Import Project="Reloaded.Checks.targets"/>
 
     <ItemGroup>
-        <None Remove="Publish.ps1" />
-        <None Remove="BuildLinked.ps1" />
-        <None Remove="Reloaded.Trimming.targets" />
-        <None Remove="Reloaded.Checks.targets" />
-        <None Update="ModConfig.json" CopyToOutputDirectory="Always" />
-        <None Update="Preview.png" CopyToOutputDirectory="PreserveNewest" />
+        <None Remove="Publish.ps1"/>
+        <None Remove="BuildLinked.ps1"/>
+        <None Remove="Reloaded.Trimming.targets"/>
+        <None Remove="Reloaded.Checks.targets"/>
+        <None Update="ModConfig.json" CopyToOutputDirectory="Always"/>
+        <None Update="Preview.png" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Reloaded.Memory" Version="8.1.0" />
-        <PackageReference Include="Reloaded.Memory.SigScan.ReloadedII.Interfaces" Version="1.2.0" />
-        <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime" />
-        <PackageReference Include="Reloaded.Universal.Redirector.Interfaces" Version="1.1.0" />
+        <PackageReference Include="Reloaded.Assembler" Version="1.0.14"/>
+        <PackageReference Include="Reloaded.Hooks" Version="4.3.0"/>
+        <PackageReference Include="Reloaded.Hooks.Definitions" Version="1.15.0"/>
+        <PackageReference Include="Reloaded.Memory" Version="8.1.0"/>
+        <PackageReference Include="Reloaded.Memory.SigScan.ReloadedII.Interfaces" Version="1.2.0"/>
+        <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime"/>
+        <PackageReference Include="Reloaded.Universal.Redirector.Interfaces" Version="1.1.0"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\MRDX.Base.ExtractDataBin.Interface\MRDX.Base.ExtractDataBin.Interface.csproj" />
-        <ProjectReference Include="..\MRDX.Base.Mod.Interfaces\MRDX.Base.Mod.Interfaces.csproj" />
+        <ProjectReference Include="..\MRDX.Base.ExtractDataBin.Interface\MRDX.Base.ExtractDataBin.Interface.csproj"/>
+        <ProjectReference Include="..\MRDX.Base.Mod.Interfaces\MRDX.Base.Mod.Interfaces.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -72,6 +75,6 @@
             <InputFile>ModConfig.template.json</InputFile>
             <OutputFile>ModConfig.json</OutputFile>
         </PropertyGroup>
-        <WriteLinesToFile File="$(OutputFile)" Lines="$([System.IO.File]::ReadAllText($(InputFile)).Replace('{{ MOD_VERSION }}','$(Version)'))" Overwrite="true" />
+        <WriteLinesToFile File="$(OutputFile)" Lines="$([System.IO.File]::ReadAllText($(InputFile)).Replace('{{ MOD_VERSION }}','$(Version)'))" Overwrite="true"/>
     </Target>
 </Project>
