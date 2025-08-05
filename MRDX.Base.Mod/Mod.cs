@@ -114,7 +114,7 @@ public sealed class Mod : ModBase, IExports // <= Do not Remove.
         _modLoader.AddOrReplaceController<IController>(_owner, new Controller(context));
         _game = new Game(context);
         _modLoader.AddOrReplaceController(_owner, _game);
-        _modLoader.AddOrReplaceController<IGameClient>(_owner, new GameClient());
+        _modLoader.AddOrReplaceController<IGameClient>(_owner, new GameClient(context));
         _modLoader.AddOrReplaceController<ISaveFile>(_owner, new SaveFileManager(_modLoader));
 
         var maybeExtractor = _modLoader.GetController<IExtractDataBin>();
@@ -219,9 +219,7 @@ public sealed class Mod : ModBase, IExports // <= Do not Remove.
             var row = t.Split(",");
 
             if (!sDataList.ContainsKey(((MonsterGenus)int.Parse(row[2]), (MonsterGenus)int.Parse(row[3]))))
-            {
                 sDataList.Add(((MonsterGenus)int.Parse(row[2]), (MonsterGenus)int.Parse(row[3])), row);
-            }
         }
 
         foreach (var info in IMonster.AllMonsters)

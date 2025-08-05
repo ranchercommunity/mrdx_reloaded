@@ -43,4 +43,10 @@ public interface IGameClient
     IGameRenderRect RenderScaleUniform { get; set; }
 
     bool FastForwardOption { get; set; }
+
+    int TickDelay { get; set; }
+
+    void SetVsyncEnable(bool enabled);
+
+    void SetFastForward(bool value);
 }

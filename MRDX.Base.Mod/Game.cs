@@ -56,6 +56,11 @@ public class Game : BaseObject<Game>, IGame
     public event IGame.GameSceneChange? OnGameSceneChanged;
 #pragma warning restore 0067
 
+    public IMonster MonsterFromPointer(nuint addr)
+    {
+        return new Monster((int)addr.ToUInt32());
+    }
+
 
     private int FrameStartImpl()
     {

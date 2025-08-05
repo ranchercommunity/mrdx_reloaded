@@ -36,6 +36,7 @@ public interface IGame
     public Utils.OneTimeEvent<bool> OnMonsterBreedsLoaded { get; }
 
     public List<MonsterGenus> UnlockedMonsters { get; }
+    public IMonster MonsterFromPointer(nuint addr);
 
     public event WeekChange OnWeekChange;
 

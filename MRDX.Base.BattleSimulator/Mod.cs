@@ -5,6 +5,7 @@ using MRDX.Base.BattleSimulator.Configuration;
 using MRDX.Base.BattleSimulator.Template;
 using MRDX.Base.Mod.Interfaces;
 using Reloaded.Hooks.Definitions;
+using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
 
 namespace MRDX.Base.BattleSimulator;
@@ -17,6 +18,10 @@ public class Mod : ModBase // <= Do not Remove.
     private const string ControlPipeName = "mrdx_reloaded_battle_simulator";
 
     private readonly string _exepath;
+
+    private readonly WeakReference<IGameClient> _gameClient;
+
+    private readonly Lock _gameLock = new();
 
     /// <summary>
     ///     Provides access to the Reloaded.Hooks API.
@@ -46,12 +51,20 @@ public class Mod : ModBase // <= Do not Remove.
 
     private readonly bool IsServer;
 
+    private IHook<SetupCCtrlBattle>? _battleHook;
+
     private Process? _child;
+
+    private ChildProcessManager _childManager = new();
 
     /// <summary>
     ///     Provides access to this mod's configuration.
     /// </summary>
     private Config _configuration;
+
+    private IHook<LoadDemoMonsterData>? _loadDataHook;
+
+    private BattleSimRequest? _request;
 
     public Mod(ModContext context)
     {
@@ -61,7 +74,7 @@ public class Mod : ModBase // <= Do not Remove.
         _owner = context.Owner;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
-        Logger.SetLogLevel(Logger.LogLevel.Trace);
+        // Logger.SetLogLevel(Logger.LogLevel.Trace);
         // Debugger.Launch();
 
         // Check if the named pipe exists already
@@ -74,6 +87,18 @@ public class Mod : ModBase // <= Do not Remove.
             // FreeConsole();
             var console = GetConsoleWindow();
             ShowWindow(console, 0);
+
+            _modLoader.GetController<IHooks>().TryGetTarget(out var hooks);
+            if (hooks == null)
+            {
+                Logger.Error("Could not get hook controller.");
+                return;
+            }
+
+            hooks.AddHook<SetupCCtrlBattle>(ClientDemoBattleHook)
+                .ContinueWith(result => _battleHook = result.Result);
+            hooks.AddHook<LoadDemoMonsterData>(ClientDemoMonsterDataHook)
+                .ContinueWith(result => _loadDataHook = result.Result);
         }
 
         var mainModule = Process.GetCurrentProcess().MainModule;
@@ -85,6 +110,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         _exepath = Path.GetDirectoryName(mainModule.FileName);
 
+        _gameClient = _modLoader.GetController<IGameClient>();
         var maybeGame = _modLoader.GetController<IGame>();
         if (maybeGame != null && maybeGame.TryGetTarget(out var game))
             game.OnMonsterBreedsLoaded.Subscribe(_ =>
@@ -151,10 +177,9 @@ public class Mod : ModBase // <= Do not Remove.
         // Spawn the reloaded process a second time
         // var config = IConfig<LoaderConfig>.FromPathOrDefault(Paths.LoaderConfigPath);
         // var exe = Path.Combine(config.LoaderPath32, "Reloaded-II.exe");
-        // TODO don't hardcode this winky face
         Logger.Debug("Gonna relaunch!");
-
-        var exe = @"C:\Programs\Reloaded-II\Reloaded-II.exe";
+        // TODO don't hardcode this winky face
+        const string exe = @"C:\Programs\Reloaded-II\Reloaded-II.exe";
         var procinfo = new ProcessStartInfo(exe, ["--launch", Path.Combine(_exepath, "MF2.exe")])
         {
             WindowStyle = ProcessWindowStyle.Hidden,
@@ -162,22 +187,174 @@ public class Mod : ModBase // <= Do not Remove.
             WorkingDirectory = Path.GetDirectoryName(exe),
             CreateNoWindow = true
         };
-        _child = Process.Start(procinfo);
-        ChildProcessTracker.AddProcess(_child);
+
+        _childManager = new ChildProcessManager();
+        _child = Process.Start(procinfo)!;
+        _childManager.AddProcess(_child);
         _child.EnableRaisingEvents = true;
-        _child.Exited += (sender, args) => { Logger.Debug("Simulator child process has perished. sad face"); };
+        // _child.Exited += (sender, args) => { Logger.Debug("Simulator child process has perished. sad face"); };
         var server = new NamedPipeServerStream(ControlPipeName, PipeDirection.InOut);
         Logger.Debug("Waiting for simulation client to connect!");
         await server.WaitForConnectionAsync();
         Logger.Debug("Got connection from client!");
+
+        var reader = new StreamReader(server);
+        var writer = new StreamWriter(server);
+        while (true)
+        {
+            var line = await reader.ReadLineAsync();
+            if (line == null)
+            {
+                await Task.Delay(100);
+                continue;
+            }
+
+            await writer.WriteLineAsync();
+            await writer.FlushAsync();
+        }
     }
 
     private async Task SetupClient()
     {
+        if (!_gameClient.TryGetTarget(out var game))
+        {
+            Logger.Error("Could not get game client controller.");
+            return;
+        }
+
+        game.TickDelay = 0;
+        game.SetVsyncEnable(false);
+        game.SetFastForward(true);
+
         var client = new NamedPipeClientStream(ControlPipeName);
+
         Logger.Debug("Connecting to server");
         await client.ConnectAsync();
         Logger.Debug("Got connection to server!");
+
+        var reader = new StreamReader(client);
+        var writer = new StreamWriter(client);
+
+        while (true)
+        {
+            if (!await ClientWaitForSimRequest(reader))
+                continue;
+
+            // and then wait for the simulation result.
+
+            var inCombat = true;
+            while (inCombat)
+            {
+            }
+        }
+    }
+
+    private async Task<bool> ClientWaitForSimRequest(StreamReader reader)
+    {
+        // Wait for a sim message from the server
+        var line = await reader.ReadLineAsync();
+        if (line == null)
+        {
+            await Task.Delay(100);
+            return false;
+        }
+
+        // We have a sim message
+        var message = line.Split(",");
+        var cmd = message[0];
+        if (cmd != "SIM")
+        {
+            Logger.Warn($"Unknown command {cmd}. Ignored.");
+            return false;
+        }
+
+        var request = new BattleSimRequest
+        {
+            left = IBattleMonsterData.FromBytes(Convert.FromBase64String(message[1])),
+            right = IBattleMonsterData.FromBytes(Convert.FromBase64String(message[2]))
+        };
+
+        // Now tell the game thread to start running
+        lock (_gameLock)
+        {
+            _request = request;
+        }
+
+        return true;
+    }
+
+    private void ClientDemoBattleHook(nuint self)
+    {
+        _battleHook!.OriginalFunction(self);
+        Memory.Instance.Read(nuint.Add(self, 0x34), out short gameMode);
+        if (gameMode != 6) Logger.Warn($"Game mode {gameMode} is invalid. Somehow not in the demo battle?");
+
+        var newTimer = 60;
+        // The current timer that ticks down is in offset 0x10
+        Memory.Instance.Write(nuint.Add(self, 0x10), newTimer);
+        // but the original timer value is in offset 0x14
+        Memory.Instance.Write(nuint.Add(self, 0x14), newTimer);
+    }
+
+    private void ClientDemoMonsterDataHook(nuint self)
+    {
+        // Run the original code to load the demo monsters
+        _loadDataHook!.OriginalFunction(self);
+
+        var maybeGame = _modLoader.GetController<IGame>();
+        if (maybeGame == null || !maybeGame.TryGetTarget(out var game)) return;
+
+        // Now we stall until its time to start the demo battle for real.
+        IBattleMonsterData left;
+        IBattleMonsterData right;
+        while (true)
+        {
+            lock (_gameLock)
+            {
+                if (_request != null)
+                {
+                    // Copy the monster data into the battle monsters
+                    left = _request.left;
+                    right = _request.right;
+
+                    // Clear out the monster to say I'm ready for the next battle
+                    _request = null;
+                    // Time to start the battle!
+                    break;
+                }
+            }
+
+            // Nothing to do so sleep the game thread and prevent it from continuing
+            Thread.Sleep(100);
+        }
+
+        // Now actually write the data into the battle monster
+        Memory.Instance.Read(nuint.Add(self, 0x58), out nuint leftAddr);
+        var leftMon = game.MonsterFromPointer(leftAddr + 8);
+        CopyMonsterData(left, leftMon);
+
+        Memory.Instance.Read(nuint.Add(self, 0x68), out nuint rightAddr);
+        var rightMon = game.MonsterFromPointer(rightAddr + 8);
+        CopyMonsterData(right, rightMon);
+
+        // battle start!
+    }
+
+    private void CopyMonsterData(IBattleMonsterData src, IMonster dst)
+    {
+        dst.Name = src.Name;
+        dst.GenusMain = src.GenusMain;
+        dst.GenusSub = src.GenusSub;
+        dst.Life = src.Life;
+        dst.Power = src.Power;
+        dst.Intelligence = src.Intelligence;
+        dst.Skill = src.Skill;
+        dst.Speed = src.Speed;
+        dst.Defense = src.Defense;
+        dst.ArenaSpeed = src.ArenaSpeed;
+        dst.GutsRate = src.GutsRate;
+        dst.NatureBase = src.Nature;
+        // dst.Moves = src.Techs;
     }
 
     #region Standard Overrides
@@ -191,4 +368,10 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     #endregion
+}
+
+internal record BattleSimRequest
+{
+    public IBattleMonsterData left;
+    public IBattleMonsterData right;
 }

@@ -16,6 +16,12 @@ public class Config : Configurable<Config>
                  "Limitation: your monitor refresh rate will be the hard cap for how fast it can run.")]
     [DefaultValue(16000)]
     public int TickDelay { get; set; } = 16000;
+
+    [DisplayName("Disable VSync")]
+    [Description(
+        "When ON, makes the fast forward go even faster at the cost of causing tearing and other visual glitches")]
+    [DefaultValue(false)]
+    public bool DisableVsync { get; set; } = false;
 }
 
 /// <summary>

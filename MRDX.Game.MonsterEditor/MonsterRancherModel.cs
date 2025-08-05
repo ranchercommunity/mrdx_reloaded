@@ -39,6 +39,7 @@ public class MonsterModel : IMonster
     private readonly IMonster _mon;
     private ushort _age;
     private byte _arenaSpeed;
+    private ushort _battleSpecial;
     private byte _cupJellyCount;
     private ushort _defense;
     private byte _drug;
@@ -86,7 +87,6 @@ public class MonsterModel : IMonster
     private ushort _speed;
     private sbyte _stress;
     private ushort _trainBoost;
-    private ushort _battleSpecial;
     private bool _usedPeachGold;
     private bool _usedPeachSilver;
 
@@ -335,7 +335,8 @@ public class MonsterModel : IMonster
         set => _mon.GutsRate = value;
     }
 
-    public ushort BattleSpecial {
+    public ushort BattleSpecial
+    {
         get => _battleSpecial;
         set => _mon.BattleSpecial = value;
     }
@@ -400,8 +401,8 @@ public class MonsterModel : IMonster
         set => _mon.MotivationSwim = value;
     }
 
-    public IList<IMonsterTechnique> Moves { get; } = new List<IMonsterTechnique>();
-    public IList<byte> MoveUseCount { get; } = new List<byte>();
+    public IList<IMonsterTechnique> Moves { get; set; } = new List<IMonsterTechnique>();
+    public IList<byte> MoveUseCount { get; set; } = new List<byte>();
 
     public string Name
     {

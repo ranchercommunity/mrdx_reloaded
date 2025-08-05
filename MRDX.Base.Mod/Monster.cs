@@ -295,10 +295,11 @@ public class Monster : BaseObject<Monster>, IMonster
         set => WatchWrite(value);
     }
 
-    [BaseOffset( BaseGame.Mr2, Region.Us | Region.Japan, 0x1D4 )]
-    public ushort BattleSpecial {
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1D4)]
+    public ushort BattleSpecial
+    {
         get => Read<ushort>();
-        set => WatchWrite( value );
+        set => WatchWrite(value);
     }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1E)]
@@ -431,8 +432,8 @@ public record struct MonsterCache : IMonster
     public MonsterCache()
     {
         Name = "";
-        Moves = new List<IMonsterTechnique>();
-        MoveUseCount = new List<byte>();
+        Techs = new List<IMonsterTechnique>();
+        TechUseCount = new List<byte>();
         Age = 0;
         GenusMain = MonsterGenus.Pixie;
         GenusSub = MonsterGenus.Pixie;
@@ -546,6 +547,9 @@ public record struct MonsterCache : IMonster
         PrizeMoney = mon.PrizeMoney;
     }
 
+    public IList<IMonsterTechnique> Techs { get; set; } = new List<IMonsterTechnique>();
+    public IList<byte> TechUseCount { get; set; } = new List<byte>();
+
     public ushort Age { get; set; }
     public MonsterGenus GenusMain { get; set; }
     public MonsterGenus GenusSub { get; set; }
@@ -622,10 +626,8 @@ public class ErrantryEnemyMonster(int offset) : BaseObject<ErrantryEnemyMonster>
         set => Write(value);
     }
 
-    [BaseOffset( BaseGame.Mr2, Region.Us | Region.Japan, 0x2c )]
-    public uint TechsRaw {
-        get; set;
-    }
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2c)]
+    public uint TechsRaw { get; set; }
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x2c)]
     public byte[] Techs
@@ -738,6 +740,4 @@ public class ErrantryEnemyMonster(int offset) : BaseObject<ErrantryEnemyMonster>
         get => (BattleSpecials)Read<ushort>();
         set => Write((ushort)value);
     }
-
- 
 }
