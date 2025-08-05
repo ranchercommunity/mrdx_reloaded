@@ -129,6 +129,14 @@ public delegate void SetupCCtrlBattle(nuint battle);
 [Function(CallingConventions.Fastcall)]
 public delegate void DecrementBattleTimer(nint self);
 
+[HookDef(BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 83 EC 64")]
+[Function(CallingConventions.Fastcall)]
+public delegate void RenderElement(nint self);
+
+[HookDef(BaseGame.Mr2, Region.Us, "55 8B EC 83 EC 0C 53 56 57 8B F1")]
+[Function(CallingConventions.Fastcall)]
+public delegate void LoadDemoMonsterData(nuint self);
+
 public interface IHooks
 {
     Task<IHook<T>> AddHook<T>(T func);

@@ -295,11 +295,10 @@ public class Monster : BaseObject<Monster>, IMonster
         set => WatchWrite(value);
     }
 
-    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x1E)]
+    [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0x196)]
+    public IList<IMonsterTechnique> Techs { get; set; } = new List<IMonsterTechnique>();
 
-    public IList<IMonsterTechnique> Moves { get; set; } = new List<IMonsterTechnique>();
-
-    public IList<byte> MoveUseCount { get; set; } = new List<byte>();
+    public IList<byte> TechUseCount { get; set; } = new List<byte>();
 
     [BaseOffset(BaseGame.Mr2, Region.Us | Region.Japan, 0xDC)]
     public byte MotivationDomino
@@ -426,8 +425,8 @@ public record struct MonsterCache : IMonster
     public MonsterCache()
     {
         Name = "";
-        Moves = new List<IMonsterTechnique>();
-        MoveUseCount = new List<byte>();
+        Techs = new List<IMonsterTechnique>();
+        TechUseCount = new List<byte>();
         Age = 0;
         GenusMain = MonsterGenus.Pixie;
         GenusSub = MonsterGenus.Pixie;
@@ -523,8 +522,8 @@ public record struct MonsterCache : IMonster
         LifeType = mon.LifeType;
         ArenaSpeed = mon.ArenaSpeed;
         GutsRate = mon.GutsRate;
-        Moves = mon.Moves;
-        MoveUseCount = mon.MoveUseCount;
+        Techs = mon.Techs;
+        TechUseCount = mon.TechUseCount;
         MotivationDomino = mon.MotivationDomino;
         MotivationStudy = mon.MotivationStudy;
         MotivationRun = mon.MotivationRun;
@@ -538,6 +537,9 @@ public record struct MonsterCache : IMonster
         Name = mon.Name;
         PrizeMoney = mon.PrizeMoney;
     }
+
+    public IList<IMonsterTechnique> Techs { get; set; } = new List<IMonsterTechnique>();
+    public IList<byte> TechUseCount { get; set; } = new List<byte>();
 
     public ushort Age { get; set; }
     public MonsterGenus GenusMain { get; set; }
@@ -579,8 +581,6 @@ public record struct MonsterCache : IMonster
     public LifeType LifeType { get; set; }
     public byte ArenaSpeed { get; set; }
     public byte GutsRate { get; set; }
-    public IList<IMonsterTechnique> Moves { get; set; } = new List<IMonsterTechnique>();
-    public IList<byte> MoveUseCount { get; set; } = new List<byte>();
     public byte MotivationDomino { get; set; }
     public byte MotivationStudy { get; set; }
     public byte MotivationRun { get; set; }

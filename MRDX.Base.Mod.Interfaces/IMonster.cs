@@ -258,8 +258,8 @@ public interface IMonster
     byte ArenaSpeed { get; set; }
     byte GutsRate { get; set; }
 
-    IList<IMonsterTechnique> Moves { get; }
-    IList<byte> MoveUseCount { get; }
+    IList<IMonsterTechnique> Techs { get; set; }
+    IList<byte> TechUseCount { get; set; }
 
     byte MotivationDomino { get; set; }
     byte MotivationStudy { get; set; }
