@@ -126,10 +126,10 @@ public class Mod : ModBase // <= Do not Remove.
 
     public bool shrineReplacementActive = false;
     private MMBreed _shrineReplacementMonster;
-    private byte _shrineColorVariant;
+    private byte _shrineMonsterAlternate;
     private readonly IMonster _monsterCurrent;
 
-    private Dictionary<int, (MMBreed, byte)> _songIDMapping = new Dictionary<int, (MMBreed, byte))>();
+    private Dictionary<int, (MMBreed, byte)> _songIDMapping = new Dictionary<int, (MMBreed, byte)>();
 
 
     private IHook<H_GetMonsterBreedName> _hook_monsterBreedNames;
@@ -310,42 +310,42 @@ public class Mod : ModBase // <= Do not Remove.
         
         var mdata = File.ReadAllLines( filename );
         foreach ( var r in mdata ) {
-            var row = r.Split( "," );
+            var row = r.Split( "\t" );
 
             int songID = int.Parse(row[ 0 ]);
-            string name = row[ 1 ];
-            MonsterGenus newMain = (MonsterGenus) int.Parse( row[ 2 ] );
-            MonsterGenus newSub = (MonsterGenus) int.Parse( row[ 3 ] );
+            byte alternate = byte.Parse( row[ 1 ] );
 
-            MonsterGenus baseMain = (MonsterGenus) int.Parse( row[ 4 ] );
-            MonsterGenus baseSub = (MonsterGenus) int.Parse( row[ 5 ] );
+            string name = row[ 2 ];
+            MonsterGenus newMain = (MonsterGenus) int.Parse( row[ 3 ] );
+            MonsterGenus newSub = (MonsterGenus) int.Parse( row[ 4 ] );
 
-            ushort lifespan = ushort.Parse( row[ 6 ] );
-            short nature = short.Parse( row[ 7 ] );
-            LifeType growthPattern = (LifeType) int.Parse( row[ 8 ] );
+            MonsterGenus baseMain = (MonsterGenus) int.Parse( row[ 5 ] );
+            MonsterGenus baseSub = (MonsterGenus) int.Parse( row[ 6 ] );
 
-            ushort slif = ushort.Parse( row[ 9 ] );
-            ushort spow = ushort.Parse( row[ 10 ] );
-            ushort sint = ushort.Parse( row[ 11 ] );
-            ushort sski = ushort.Parse( row[ 12 ] );
-            ushort sspd = ushort.Parse( row[ 13 ] );
-            ushort sdef = ushort.Parse( row[ 14 ] );
+            ushort lifespan = ushort.Parse( row[ 7 ] );
+            short nature = short.Parse( row[ 8 ] );
+            LifeType growthPattern = (LifeType) int.Parse( row[ 9 ] );
 
-            byte glif = byte.Parse( row[ 15 ] );
-            byte gpow = byte.Parse( row[ 16 ] );
-            byte gint = byte.Parse( row[ 17 ] );
-            byte gski = byte.Parse( row[ 18 ] );
-            byte gspd = byte.Parse( row[ 19 ] );
-            byte gdef = byte.Parse( row[ 20 ] );
+            ushort slif = ushort.Parse( row[ 10 ] );
+            ushort spow = ushort.Parse( row[ 11 ] );
+            ushort sint = ushort.Parse( row[ 12 ] );
+            ushort sski = ushort.Parse( row[ 13 ] );
+            ushort sspd = ushort.Parse( row[ 14 ] );
+            ushort sdef = ushort.Parse( row[ 15 ] );
 
-            byte arenaspeed = byte.Parse( row[ 21 ] );
-            byte gutsrate = byte.Parse( row[ 22 ] );
-            int battlespecials = int.Parse( row[ 23 ] );
-            string techniques = row[ 24 ];
+            byte glif = byte.Parse( row[ 16 ] );
+            byte gpow = byte.Parse( row[ 17 ] );
+            byte gint = byte.Parse( row[ 18 ] );
+            byte gski = byte.Parse( row[ 19 ] );
+            byte gspd = byte.Parse( row[ 20 ] );
+            byte gdef = byte.Parse( row[ 21 ] );
 
-            ushort trainbonuses = ushort.Parse( row[ 25 ] );
+            byte arenaspeed = byte.Parse( row[ 22 ] );
+            byte gutsrate = byte.Parse( row[ 23 ] );
+            int battlespecials = int.Parse( row[ 24 ] );
+            string techniques = row[ 25 ];
 
-            byte alternate = byte.Parse( row[ 26 ] );
+            ushort trainbonuses = ushort.Parse( row[ 26 ] );
 
             MMBreed? breed = MMBreed.GetBreed( newMain, newSub );
             if ( breed == null ) {
@@ -374,7 +374,7 @@ public class Mod : ModBase // <= Do not Remove.
         if ( shrineReplacementActive ) {
             breedIdMain = (uint) _shrineReplacementMonster._genusNewMain;
             breedIdSub = (uint) _shrineReplacementMonster._genusNewSub;
-            variantID = _shrineColorVariant;
+            variantID = _shrineMonsterAlternate;
         }
 
         else {
@@ -490,7 +490,7 @@ public class Mod : ModBase // <= Do not Remove.
             if ( songID == songMap.Key ) {
                 shrineReplacementActive = true;
                 _shrineReplacementMonster = songMap.Value.Item1;
-                _shrineColorVariant = songMap.Value.Item2;
+                _shrineMonsterAlternate = songMap.Value.Item2;
             }
         }
 
@@ -553,7 +553,7 @@ public class Mod : ModBase // <= Do not Remove.
             var variant = MonsterBreed.GetBreed( _shrineReplacementMonster._genusNewMain, _shrineReplacementMonster._genusNewSub );
             WriteMonsterData( variant );
 
-            Memory.Instance.Write( address_monster_mm_variant, _shrineColorVariant );
+            Memory.Instance.Write( address_monster_mm_variant, _shrineMonsterAlternate );
 
             shrineReplacementActive = false;
         }
