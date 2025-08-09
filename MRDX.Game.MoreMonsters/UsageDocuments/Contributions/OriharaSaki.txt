@@ -24,3 +24,13 @@ Version 0.2.0
 Jill/Niton
 Phoenix/Niton
 Mock/Gaboo
+
+
+=====================================
+Version 0.2.2
+=====================================
+Ducken / Mock
+Ghost / Pixie
+Phoenix / Arrowhead
+Dragon / Gaboo
+Beaclon / Wracky

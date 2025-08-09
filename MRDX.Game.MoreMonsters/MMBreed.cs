@@ -23,11 +23,11 @@ namespace MRDX.Game.MoreMonsters
         private readonly string _filepathBase;
         private readonly string _filepathNew;
 
-        public readonly int _variantCount = 0;
+        public byte _alternateCount { get; set; }
 
         public List<MMBreedVariant> _monsterVariants;
 
-        public MMBreed ( MonsterGenus newMain, MonsterGenus newSub, MonsterGenus baseMain, MonsterGenus baseSub, int variantCount = 0 ) {
+        public MMBreed ( MonsterGenus newMain, MonsterGenus newSub, MonsterGenus baseMain, MonsterGenus baseSub, byte variantCount = 0 ) {
             _genusNewMain = newMain;
             _genusNewSub = newSub;
             _genusBaseMain = baseMain;
@@ -41,7 +41,7 @@ namespace MRDX.Game.MoreMonsters
             _filepathBase = baseMainInfo.ShortName + @"\" + baseMainInfo.ShortName[ ..2 ] + "_" + baseSubInfo.ShortName[ ..2 ];
             _filepathNew = newMainInfo.ShortName + @"\" + newMainInfo.ShortName[ ..2 ] + "_" + newSubInfo.ShortName[ ..2 ];
 
-            _variantCount = variantCount;
+            _alternateCount = variantCount;
             
             _monsterVariants = new List<MMBreedVariant>();
             NewBreeds.Add( this );

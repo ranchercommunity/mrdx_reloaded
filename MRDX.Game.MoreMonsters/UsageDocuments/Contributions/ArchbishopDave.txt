@@ -42,6 +42,11 @@ Version 0.2.0
 Henger/Niton
 Monol/Joker (Alternate #2)
 
+=====================================
+Version 0.2.2
+=====================================
+Ape / Tiger
+Niton / Mocchi
 ...
 
 and countless others for processing, stat updates and naming, and battle sprite textures!

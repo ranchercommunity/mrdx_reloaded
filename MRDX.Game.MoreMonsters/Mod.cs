@@ -129,7 +129,7 @@ public class Mod : ModBase // <= Do not Remove.
     private byte _shrineColorVariant;
     private readonly IMonster _monsterCurrent;
 
-    private Dictionary<int, MMBreed> _songIDMapping = new Dictionary<int, MMBreed>();
+    private Dictionary<int, (MMBreed, byte)> _songIDMapping = new Dictionary<int, (MMBreed, byte))>();
 
 
     private IHook<H_GetMonsterBreedName> _hook_monsterBreedNames;
@@ -240,7 +240,6 @@ public class Mod : ModBase // <= Do not Remove.
     #endregion
    
     private void FileSaveLoad(nuint self, nuint unk1, nuint unk2 ) {
-        Logger.Error( $"File Save Load {self}, {unk1}, {unk2}" );
         _hook_fileSaveLoad!.OriginalFunction( self, unk1, unk2 );
     }
 
@@ -346,17 +345,22 @@ public class Mod : ModBase // <= Do not Remove.
 
             ushort trainbonuses = ushort.Parse( row[ 25 ] );
 
-            byte alternateCount = byte.Parse( row[ 26 ] );
+            byte alternate = byte.Parse( row[ 26 ] );
 
             MMBreed? breed = MMBreed.GetBreed( newMain, newSub );
-            if ( MMBreed.GetBreed(newMain, newSub) == null ) {
-                breed = new MMBreed( newMain, newSub, baseMain, baseSub, alternateCount );
+            if ( breed == null ) {
+                breed = new MMBreed( newMain, newSub, baseMain, baseSub, alternate );
                 breed.NewBaseBreed( name, lifespan, nature, growthPattern,
                     slif, spow, sint, sski, sspd, sdef,
                     glif, gpow, gint, gski, gspd, gdef,
                     arenaspeed, gutsrate, battlespecials, techniques, trainbonuses );
-                _songIDMapping.Add( songID, breed );
+                _songIDMapping.Add( songID, (breed, alternate) );
                 Logger.Info( $"New Monster Combination Found: {newMain}, {newSub} for songID {songID}." );
+            }
+
+            else {
+                breed._alternateCount = Math.Max( breed._alternateCount, alternate );
+                _songIDMapping.Add( songID, (breed, alternate) );
             }
         }
     }
@@ -485,8 +489,8 @@ public class Mod : ModBase // <= Do not Remove.
         foreach ( var songMap in _songIDMapping ) {
             if ( songID == songMap.Key ) {
                 shrineReplacementActive = true;
-                _shrineReplacementMonster = songMap.Value;
-                _shrineColorVariant = (byte) Random.Shared.Next( _shrineReplacementMonster._variantCount == 0 ? 0 : _shrineReplacementMonster._variantCount + 1 );
+                _shrineReplacementMonster = songMap.Value.Item1;
+                _shrineColorVariant = songMap.Value.Item2;
             }
         }
 
