@@ -1,8 +1,8 @@
-﻿# More Monsters - Version 0.2.1
+﻿# More Monsters - Version 0.2.2
 
 ## Features
 
-* Adds additional species (50+!) combinations to the game and support for being able to acquire them.
+* Adds additional species (75+!) combinations to the game and support for being able to acquire them.
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
@@ -51,12 +51,20 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
+##### v0.2.2
+
+* 16 additional monster combinations have been added!
+* Monsters with alternate appearances can now be discretely generated from the shrine as opposed to randomly.
+* Fixed a bug where baby monsters who did not match the main parent were learning incorrect tech types.
+
+
+
 ##### v0.2.1
 
 * Fixed a bug where monsters rarely were not assigned a Liked item, leading to potential crashes.
 * Fixed a major bug where monster's active technique slots were not reset properly, leading to bricked technique ranges.
-* &nbsp;   - If you were affected by this bug, you will need to use Cheat Engine or another tool to manually update
-* &nbsp;     the chosen technique of your monster to something known and valid.
+*     - If you were affected by this bug, you will need to use Cheat Engine or another tool to manually update
+*       the chosen technique of your monster to something known and valid.
 
 ##### 
 
@@ -146,3 +154,11 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 * OriharaSaki
 * Kane
 * Chacolah
+* MachoCheeze
+* MooseBones
+* Plasbad
+* MapleKnight
+* JPMockMan
+
+
+

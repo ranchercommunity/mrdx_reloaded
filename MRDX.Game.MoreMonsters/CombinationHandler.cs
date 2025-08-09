@@ -752,14 +752,20 @@ public class CombinationHandler {
             }
         }
 
-        // Loop through each Tech Location (Type) (0-3), finds the first slot technique, and sets the skill if the LTT >= 1 for that type.
-        for ( var tt = 0; tt <= 3; tt++ ) {
-            if ( learnedTechTypes[ tt + 1 ] >= 1 ) {
+        // Loop through each Tech Type (1-4), finds the first slot technique, and sets the skill if the LTT >= 1 for that type.
+        for ( var tt = 1; tt <= 4; tt++ ) {
+            if ( learnedTechTypes[ tt ] >= 1 ) {
                 for ( var i = 0; i < childTechList.Count(); i++ ) {
                     var pendingTech = childTechList[ i ];
+                    ErrantryLocation loc = (ErrantryLocation) (
+                        tt == 1 ? 0 :
+                        tt == 2 ? 2 :
+                        tt == 3 ? 3 :
+                        tt == 4 ? 1 : 4 );
+
                     if ( pendingTech.ErrantryInformation.Count > 0 && 
                          pendingTech.ErrantryInformation[0].ErrantrySlot == 0 &&
-                         pendingTech.ErrantryInformation[0].Location == (ErrantryLocation) tt ) {
+                         pendingTech.ErrantryInformation[0].Location == loc ) {
                             childTechs[ pendingTech.SlotPosition * 2 ] = 1;
                             break;
                     }
