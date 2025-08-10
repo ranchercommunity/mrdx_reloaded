@@ -5,3 +5,4 @@ Monsters Developed or Contributed To
 Version 0.2.2
 =====================================
 Arrowhead / Ape
+Ghost / Mock
