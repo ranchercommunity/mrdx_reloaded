@@ -34,3 +34,11 @@ Ghost / Pixie
 Phoenix / Arrowhead
 Dragon / Gaboo
 Beaclon / Wracky
+
+=====================================
+Version 0.2.3
+=====================================
+Suezo / Mocchi
+Joker / ColorPandora
+Golem / Ape
+Mocchi / Zuum

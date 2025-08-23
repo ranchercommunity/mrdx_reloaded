@@ -47,6 +47,11 @@ Version 0.2.2
 =====================================
 Ape / Tiger
 Niton / Mocchi
+
+=====================================
+Version 0.2.3
+=====================================
+Zilla / Naga
 ...
 
 and countless others for processing, stat updates and naming, and battle sprite textures!

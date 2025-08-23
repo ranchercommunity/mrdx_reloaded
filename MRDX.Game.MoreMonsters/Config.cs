@@ -60,8 +60,7 @@ public class Config : Configurable<Config>
              "No Changes - Keeps the default behavior of combination to include the new species.\n" +
              "             Maintains the stat bonuses for combining 'rarer' breeds (lower percentages).\n" +
              "             Bug Fix: 2-3% Combination Chances apply the expected stat bonuses.\n" +
-             "Modified -   Combination chances are flatter and not breed dependent.\n" +
-             "             A flat 85% of parent stat bonuses are used (approximately 2-3%)." )]
+             "Modified -   0.2.3 - This option is no longer supported. Uses Base Game Logic (No Changes)" )]
     [DefaultValue( CombinaitonSettings.NoChanges )]
     public CombinaitonSettings CombinationChanceAdjustment { get; set; } = CombinaitonSettings.NoChanges;
 

@@ -13,3 +13,8 @@ Tiger/Henger
 Tiger/Hopper
 Zilla/Dragon
 Zilla/Ghost
+
+=====================================
+Version 0.2.3
+=====================================
+Suezo / Ape

@@ -6,3 +6,13 @@ Version 0.2.2
 =====================================
 Arrowhead / Zuum
 Gaboo / Mock
+
+=====================================
+Version 0.2.3
+=====================================
+Mocchi / Naga
+Ducken / Mocchi
+Arrowhead / Tiger
+Hopper / Hare
+Beaclon / Zuum
+Ape / ??? (Bonus Special #6)

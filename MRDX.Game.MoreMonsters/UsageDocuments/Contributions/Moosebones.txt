@@ -7,3 +7,8 @@ Version 0.2.2
 Niton / Ducken
 Ghost / Monol
 Plant / Dragon
+
+=====================================
+Version 0.2.3
+=====================================
+Jill / Hopper

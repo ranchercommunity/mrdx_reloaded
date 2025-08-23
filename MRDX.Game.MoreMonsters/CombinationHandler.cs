@@ -61,6 +61,9 @@ public class CombinationHandler {
     private (byte, int)[] _combinationParent1Offsets;
     private (byte, int)[] _combinationParent2Offsets;
 
+    private short _combinationParent1BattleSpecials;
+    private short _combinationParent2BattleSpecials;
+
     private byte _combinationParent1Scaling;
     private byte _combinationParent2Scaling;
 
@@ -108,11 +111,11 @@ public class CombinationHandler {
         if ( _overwriteCombinationLogic ) { 
             ClearCombinationList(); 
 
-            if ( _mod._configuration.CombinationChanceAdjustment == Configuration.Config.CombinaitonSettings.Modified ) {
-                GenerateCombinationListModified();
-            } else {
+            /*if ( _mod._configuration.CombinationChanceAdjustment == Configuration.Config.CombinaitonSettings.Modified ) {
                 GenerateCombinationListBaseGame();
-            }
+            } else {*/
+            GenerateCombinationListBaseGame();
+            //}
         }
 
         if ( _mod._configuration.MonsterSizesEnabled ) {
@@ -247,6 +250,9 @@ public class CombinationHandler {
         _combinationParent2Main = p2Main;
         Memory.Instance.ReadRaw( _combinationParent1Address + 0x19A, out _combinationParent1Techniques, 48 );
 
+        Memory.Instance.Read( _combinationParent1Address + 0x1D8, out _combinationParent1BattleSpecials );
+        Memory.Instance.Read( _combinationParent2Address + 0x1D8, out _combinationParent2BattleSpecials );
+
         _combinationPotentialResults = comboSorted;
     }
 
@@ -326,8 +332,6 @@ public class CombinationHandler {
 
     }
 
-
-
     /// <summary>
     ///  This function prepares for the stat bonuses call. 
     ///  If the monster is an MMBreed, we overwrite what the game tried with the base variant.
@@ -367,6 +371,7 @@ public class CombinationHandler {
         if ( _overwriteCombinationLogic ) {
             _mod.WriteMonsterData( childBreed );
             ApplyParentStatBonuses(childBreed, childGrowths );
+            ApplyBattleSpecials( childBreed );
             ApplySecretSeasoning();
 
             if ( childBreed.GenusMain == _combinationParent1Main ) { ApplyTechniquesParentSame( childBreed ); }
@@ -776,6 +781,42 @@ public class CombinationHandler {
         Memory.Instance.WriteRaw( nuint.Add( Mod.address_monster, 0x192 ), childTechs );
     }
 
+
+    private void ApplyBattleSpecials ( MonsterBreed childBreed ) {
+
+        ushort childSpecials = childBreed.BattleSpecialsRaw;
+
+        var p1 = _combinationParent1BattleSpecials;
+        var p2 = _combinationParent2BattleSpecials;
+
+        // ( SpecialPos, P1Only, P2Only, Both% ) - Reference BattleSpecials.X for positions
+        (byte, byte, byte, byte) [] inheritedSpecials = [ 
+            (2, 40, 20, 80), 
+            (3, 50, 30, 100), 
+            (4, 40, 20, 80), 
+            (5, 25, 10, 50),
+            (6, 50, 30, 100),
+            (7, 40, 20, 80),
+            (8, 50, 30, 100),
+            (9, 50, 30, 100) ];
+        
+        foreach ( var special in inheritedSpecials ) {
+            short slot = (short) (1 << special.Item1);
+            var chance = ( ( p1 & slot ) != 0 && ( p2 & slot ) == 0 ) ? special.Item2 :
+                         ( ( p1 & slot ) == 0 && ( p2 & slot ) != 0 ) ? special.Item3 :
+                         ( ( p1 & slot ) != 0 && ( p2 & slot ) != 0 ) ? special.Item4 :
+                         0;
+
+
+            if ( Random.Shared.Next(1, 100) <= chance ) {
+                childSpecials |= (ushort) ( 1 << slot );
+            }
+
+
+        }
+
+        _monsterCurrent.BattleSpecial = childSpecials;
+    }
 
 
 
