@@ -1,8 +1,8 @@
-﻿# More Monsters - Version 0.2.2
+﻿# More Monsters - Version 0.2.3
 
 ## Features
 
-* Adds additional species (75+!) combinations to the game and support for being able to acquire them.
+* Adds additional species (100+!) combinations to the game and support for being able to acquire them.
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
@@ -51,6 +51,14 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
+##### v0.2.3
+
+* 32 additional monster combinations have been added!
+* Combination logic for inheriting Battle Specials has been fixed.
+* Monsters with Joker subs now appropriately get the Real Battle Special from the Shrine
+
+
+
 ##### v0.2.2
 
 * 16 additional monster combinations have been added!
@@ -77,23 +85,6 @@ Monster size variations are random from the shrine, and partially inherited from
 * 'Bonus Monsters' are now available as a toggleable option in the configuration for MM.
 
 
-
-##### v0.1.2
-
-* Song List Fixes
-
-
-
-##### v0.1.1
-
-* Shrine generation is now considerably simplified!
-* Please read the Usage Guide above for new instructions to generate the new monsters!
-
-
-
-##### v0.1.0
-
-* Initial Release - Release the mod to the world!
 
 
 
@@ -152,13 +143,18 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 * Teawch
 * MonsterFenrick
 * OriharaSaki
-* Kane
+* Kent
 * Chacolah
 * MachoCheeze
 * MooseBones
 * Plasbad
 * MapleKnight
 * JPMockMan
-
-
-
+* ClayClem
+* fishwolf2215
+* Gwndoliva
+* kindofblue28
+* Monoski1
+* pyronsranch
+* Vyraxhaalas
+* Woody
