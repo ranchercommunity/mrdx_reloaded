@@ -143,7 +143,7 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 * Teawch
 * MonsterFenrick
 * OriharaSaki
-* Kent
+* Kane
 * Chacolah
 * MachoCheeze
 * MooseBones

@@ -99,7 +99,7 @@ public record TechniqueErrantryData : ITechniqueErrantryInformation {
         SubsRequired = new List<MonsterGenus>();
         SubsLocked = new List<MonsterGenus>();
 
-        // FFFFFFFF indicates the end of the technique.
+        // FFFFFF indicates the end of the technique.
         while ( errantryData[ dPos ] != 0xFF && errantryData[ dPos + 1 ] != 0xFF
             && errantryData[ dPos + 2 ] != 0xFF && errantryData[ dPos + 3 ] != 0xFF ) {
 
