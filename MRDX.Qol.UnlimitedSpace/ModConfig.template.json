@@ -1,0 +1,35 @@
+{
+    "ModId": "MRDX.Qol.InfiniteFreezer",
+    "ModName": "Infinite Freezer",
+    "ModAuthor": "ArchbishopDave",
+    "ModVersion": "{{ MOD_VERSION }}",
+    "ModDescription": "Provides for unlimited freezer space!",
+    "ModDll": "MRDX.Qol.InfiniteFreezer.dll",
+    "ModIcon": "Preview.png",
+    "ModR2RManagedDll32": "x86/MRDX.Qol.InfiniteFreezer.dll",
+    "ModR2RManagedDll64": "x64/MRDX.Qol.InfiniteFreezer.dll",
+    "ModNativeDll32": "",
+    "ModNativeDll64": "",
+    "IsLibrary": false,
+    "ReleaseMetadataFileName": "MRDX.Qol.InfiniteFreezer.ReleaseMetadata.json",
+    "PluginData": {
+        "GitHubRelease": {
+            "UserName": "ranchercommunity",
+            "RepositoryName": "mrdx_reloaded",
+            "UseReleaseTag": false,
+            "AssetFileName": "Mod.zip"
+        }
+    },
+    "IsUniversalMod": false,
+    "ModDependencies": [
+        "reloaded.sharedlib.hooks",
+        "reloaded.universal.redirector",
+        "MRDX.Base.Mod",
+        "MRDX.Base.ExtractDataBin"
+    ],
+    "OptionalDependencies": [],
+    "SupportedAppId": [
+        "mf2.exe"
+    ],
+    "ProjectUrl": "https://github.com/ranchercommunity/mrdx_reloaded"
+}
