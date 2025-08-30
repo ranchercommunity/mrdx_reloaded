@@ -139,7 +139,7 @@ public class Mod : ModBase // <= Do not Remove.
     public ScalingHandler handlerScaling;
     public VSHandler handlerVS;
 
-    /* Scaling Variables */
+    private int _randomCD = 1272522;
 
     public Mod(ModContext context)
     {
@@ -486,12 +486,15 @@ public class Mod : ModBase // <= Do not Remove.
         Memory.Instance.Read( nuint.Add( self, 0xcc ), out int songID );
         Logger.Debug( $"ESHRINE Post Setup: {self} {p2} {songID}", Color.Yellow );
 
-        foreach ( var songMap in _songIDMapping ) {
-            if ( songID == songMap.Key ) {
-                shrineReplacementActive = true;
-                _shrineReplacementMonster = songMap.Value.Item1;
-                _shrineMonsterAlternate = songMap.Value.Item2;
-            }
+        while ( songID == _randomCD ) {
+            songID = _songIDMapping.ElementAt( Random.Shared.Next( _songIDMapping.Count ) ).Key;
+        }
+
+        if ( _songIDMapping.ContainsKey(songID) ) {
+            var songMap = _songIDMapping[songID];
+            shrineReplacementActive = true;
+            _shrineReplacementMonster = songMap.Item1;
+            _shrineMonsterAlternate = songMap.Item2;
         }
 
         if ( _configuration.MonsterSizesGenetics == Config.ScalingGenetics.WildWest ) {
@@ -606,13 +609,11 @@ public class Mod : ModBase // <= Do not Remove.
         for ( int i = 0; i < 4; i++ ) { if ( slotChosen[i] == 0xFF ) { slotChosen[ i ] = (byte) ( i * 6 ); } }
         Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x1C8 ), slotChosen );
 
-        // Fix Empty Like Slot - Not sure why the Like slot is occasionally empty. Randomize it if it is.
-        if ( (int) _monsterCurrent.ItemLike >= 177 ) {
-            Item [] itemList = [ Item.Potato, Item.Milk, Item.Fish, Item.Meat, Item.Tablet, Item.CupJelly, Item.Play, Item.Battle, Item.Rest ];
-            Utils.Shuffle( Random.Shared, itemList );
-            _monsterCurrent.ItemLike = _monsterCurrent.ItemDislike != itemList[ 0 ] ? itemList[ 0 ] : itemList[ 1 ];
-        }
-
+        // Fix Like Slot - The monster likes are occasionally set to illegal items (or empty). Just reset it every time.
+        Item[] itemList = [ Item.Potato, Item.Milk, Item.Fish, Item.Meat, Item.Tablet, Item.CupJelly, Item.Play, Item.Battle, Item.Rest ];
+        Utils.Shuffle( Random.Shared, itemList );
+        _monsterCurrent.ItemLike = _monsterCurrent.ItemDislike != itemList[ 0 ] ? itemList[ 0 ] : itemList[ 1 ];
+        
     }
 
 
