@@ -159,7 +159,7 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_ParsingFreezerData>( SetupParsingFreezerData )
             .ContinueWith( result => _hook_parsingFreezerData = result.Result );
 
-        _iHooks.AddHook<H_FreezerFullCheck>( CheckFreezerFull ).ContinueWith( result => _hook_freezerFullCheck = result.Result );
+        _iHooks.AddHook<H_FreezerFullCheck>( CheckFreezerStatus ).ContinueWith( result => _hook_freezerFullCheck = result.Result );
         _iHooks.AddHook<UpdateGenericState>( DisableFreezerControls ).ContinueWith( result => _hook_updateGenericState = result.Result );
     }
 
@@ -173,28 +173,77 @@ public class Mod : ModBase // <= Do not Remove.
         }
     }
 
-    private int CheckFreezerFull ( nuint parent, int unk1 ) {
+    private int CheckFreezerStatus ( nuint parent, int unk1 ) {
         int ret = _hook_freezerFullCheck!.OriginalFunction( parent, unk1 );
+        Logger.Trace( $"Game is checking if freezer is full: {parent} | {unk1} || {ret}", Color.SkyBlue );
 
-        if ( unk1 == 0x3E3AA8 ) { // Magic Number 
-            return ret;
+        Memory.Instance.Read( _address_game + 0x369AB4, out byte optionSelected );
+
+        if ( optionSelected == 1 ) { // 1 == Freeze
+            if ( ret == 20 ) {
+                while ( ret == 20 ) {
+                    _freezerCurrentGroup++;
+
+                    if ( _freezerCurrentGroup <= _freezerGroupMax ) { // Start cycling through freezers until we find an open space in one.
+                        ret = 0;
+                        for ( var i = 0; i < 20; i++ ) {
+                            var slot = _freezerGroups[ _freezerCurrentGroup ].freezerSlots[ i ];
+
+                            if ( slot[ 0x170 ] != 0xFF ) {
+                                ret++;
+                            }
+                        }
+                    }
+
+                    else { // If we're at the end of the list of freezers make a new one and freeze the monster there.
+                        _freezerGroupMax++;
+                        _freezerGroups.Add( new USFreezerGroup( _freezerGroupMax ) );
+                        _freezerCurrentGroup = _freezerGroupMax;
+                    }
+                }
+
+                // Write Mod Data to Freezer Memory
+                for ( var i = 0; i < 20; i++ ) {
+                    Memory.Instance.Write( nuint.Add( _address_freezer, ( 524 * i ) ), _freezerGroups[ _freezerCurrentGroup ].freezerSlots[ i ] );
+                }
+
+                UpdateFreezerHelperText();
+
+            }
         }
 
-        Logger.Debug( $"Checking if freezer is full: {parent} | {unk1} || {ret}", Color.SkyBlue );
+        else if ( optionSelected == 2 ) { // Revive
+            if ( ret == 0 ) {
+                var originalGroup = _freezerCurrentGroup;
+                _freezerCurrentGroup = 0;
+                while ( ret == 0 ) {
+                    if ( _freezerCurrentGroup <= _freezerGroupMax ) { // Start cycling through freezers until we find one with at least 1 monster.
+                        ret = 0;
+                        for ( var i = 0; i < 20; i++ ) {
+                            var slot = _freezerGroups[ _freezerCurrentGroup ].freezerSlots[ i ];
 
-        if ( ret == 20 ) {
-            _freezerGroupMax++;
-            _freezerGroups.Add( new USFreezerGroup( _freezerGroupMax ) );
-            _freezerCurrentGroup = _freezerGroupMax;
+                            if ( slot[ 0x170 ] != 0xFF ) {
+                                ret++;
+                            }
+                        }
+                    }
 
-            // Write Mod Data to Freezer Memory
-            for ( var i = 0; i < 20; i++ ) {
-                Memory.Instance.Write( nuint.Add( _address_freezer, ( 524 * i ) ), _freezerGroups[ _freezerCurrentGroup ].freezerSlots[ i ] );
+                    else { // If we're at the and, reset the original group and return.
+                        _freezerCurrentGroup = originalGroup;
+                        return 0;
+                    }
+
+                    if ( ret == 0 ) { _freezerCurrentGroup++; }
+                }
+
+                // Write Mod Data to Freezer Memory
+                for ( var i = 0; i < 20; i++ ) {
+                    Memory.Instance.Write( nuint.Add( _address_freezer, ( 524 * i ) ), _freezerGroups[ _freezerCurrentGroup ].freezerSlots[ i ] );
+                }
+
+                UpdateFreezerHelperText();
+
             }
-
-            UpdateFreezerHelperText();
-
-            return 0;
         }
 
         return ret;
