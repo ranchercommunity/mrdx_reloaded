@@ -5,3 +5,8 @@ Monsters Developed or Contributed To
 Version 0.2.3
 =====================================
 Gali / Durahan
+
+=====================================
+Version 0.2.4
+=====================================
+Gali / Phoenix

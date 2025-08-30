@@ -5,3 +5,8 @@ Monsters Developed or Contributed To
 Version 0.2.3
 =====================================
 Mock / Gali
+
+=====================================
+Version 0.2.4
+=====================================
+Monol / Metalner

@@ -51,6 +51,13 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
+##### v0.2.4
+
+* 13 additional monster combinations have been added!
+* Fixed a bug where new monsters could occasionally like 'invalid' items (Shiny Stones, Statues, etc.)
+
+
+
 ##### v0.2.3
 
 * 32 additional monster combinations have been added!
