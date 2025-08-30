@@ -113,12 +113,17 @@ public class Mod : ModBase // <= Do not Remove.
         Logger.Info("Beginning launch of Dynamic Tournaments");
         // It will be extracted so this will not be null at this point
         _gamePath = IExtractDataBin.ExtractedPath!;
+        Logger.Trace( "Generating Monster Names" );
+        MonsterNames.InitializeMonsterNames( _tournamentDataFolder );
+
         Logger.Trace("Making new tournament data");
         _tournamentData = new TournamentData(_gamePath, _configuration);
 
         TaikaiRedirect( false );
         _tournamentData.SetupTournamentParticipantsFromTaikai();
         TaikaiRedirect( true );
+
+
     }
 
     private void TaikaiRedirect(bool enabled) {

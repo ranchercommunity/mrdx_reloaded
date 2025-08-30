@@ -16,3 +16,8 @@ Arrowhead / Tiger
 Hopper / Hare
 Beaclon / Zuum
 Ape / ??? (Bonus Special #6)
+
+=====================================
+Version 0.2.4
+=====================================
+Mocchi / Jill

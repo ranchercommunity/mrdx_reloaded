@@ -5,3 +5,8 @@ Monsters Developed or Contributed To
 Version 0.2.2
 =====================================
 Monol / Undine
+
+=====================================
+Version 0.2.4
+=====================================
+Undine / Wracky

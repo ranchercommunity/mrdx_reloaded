@@ -50,6 +50,7 @@
         <None Remove="Reloaded.Trimming.targets" />
         <None Remove="Reloaded.Checks.targets" />
         <None Update="Redirector\**\*" CopyToOutputDirectory="PreserveNewest" />
+		<None Update="TournamentData\*" CopyToOutputDirectory="PreserveNewest" />
         <!-- <None Update="ManualRedirected\**\*" CopyToOutputDirectory="PreserveNewest" /> -->
     </ItemGroup>
 

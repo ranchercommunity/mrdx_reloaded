@@ -328,7 +328,7 @@ public class TournamentMonster : BattleMonsterData
         if (Fear < 100) Fear += (byte)(TournamentData.GrowthRNG.Next() % 2);
         if (Spoil < 100) Spoil += (byte)(TournamentData.GrowthRNG.Next() % 2);
 
-        Logger.Info(
+        Logger.Trace(
             "Monster " + Name + " Completed Growth: [STATS: " + StatTotal + 
             $"[{Life}, {Power}, {Intelligence}, {Skill}, {Speed}, {Defense}], GROWTH:" +
             _growthRate +
