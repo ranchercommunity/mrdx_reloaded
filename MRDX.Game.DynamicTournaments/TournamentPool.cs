@@ -236,11 +236,15 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
         for ( var i = 0; i < TournamentData.RandomNameList.Length; i++ ) {
             if ( TournamentData.Monsters)
         }*/
-
+        var monsterName = MonsterNames.GetName( breed.GenusMain, breed.GenusSub );
+        while ( tournament.Monsters.Where(monster => monster.Name != monsterName ).Count() == 0 ) {
+            monsterName = MonsterNames.GetName( breed.GenusMain, breed.GenusSub );
+        }
+        
         var monData = new BattleMonsterData {
             GenusMain = breed.GenusMain,
             GenusSub = breed.GenusSub,
-            Name = TournamentData.RandomNameList[ Random.Shared.Next( TournamentData.RandomNameList.Length ) ],
+            Name = monsterName,
             Life = 80,
             Power = 1,
             Skill = 1,

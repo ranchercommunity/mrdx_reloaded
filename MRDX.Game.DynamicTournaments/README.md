@@ -11,6 +11,14 @@
 
 ### Latest Updates
 
+##### v0.3.3
+
+* Added over 100 new names to the pool!
+* Monsters will no longer share names.
+* Some names are reserved for certain breeds. Existing monsters can be 'reborn' and seen again for later monsters!
+
+
+
 ##### v0.3.2
 
 * Mandatory to accommodate MRDX Base Mod update.

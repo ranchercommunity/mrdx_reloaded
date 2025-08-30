@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using MRDX.Base.Mod.Interfaces;
+using Reloaded.Memory.Streams;
+
 //using static MRDX.Base.Mod.Interfaces.TournamentData;
 using Config = MRDX.Game.DynamicTournaments.Configuration.Config;
 
@@ -10,24 +12,32 @@ public class MonsterNames
 
     private static bool _initialized = false;
     public static List<MonsterNames> AllNames = new List<MonsterNames>();
-    public static List<(MonsterGenus, List<string>)> MainLocks = new List<(MonsterGenus, List<string>)>();
-    public static List<(MonsterGenus, List<string>)> SubLocks = new List<(MonsterGenus, List<string>)>();
 
     public string monsterName;
 
     public sbyte breedMainLock;
     public sbyte breedSubLock;
 
-    public static void InitializeLists() {
-        _initialized = true;
+    public static void InitializeMonsterNames( string tournamentFolder ) {
 
-        for ( var i = 0; i < 43; i++ ) {
-            MainLocks.Add( ((MonsterGenus) i, new List<string>()) );
-            SubLocks.Add( ((MonsterGenus) i, new List<string>()) );
+        var file = Path.Combine( tournamentFolder, $"MonsterNames.txt" );
+
+        if ( File.Exists( file ) ) {
+            try {
+                var mdata = File.ReadAllLines( file );
+
+                foreach ( var r in mdata ) {
+                    var row = r.Split( "\t" );
+
+                    AllNames.Add( new MonsterNames( row[ 0 ], sbyte.Parse( row[ 1 ] ), sbyte.Parse( row[ 2 ] ) ) );
+                }
+            } 
+            catch { Logger.Error( "Monster Name file could not be loaded. DT will likely fail during monster generation.", Color.Red ); }
         }
-
+        _initialized = true;
     }
 
+    
     public static string GetName( MonsterGenus main, MonsterGenus sub ) {
 
         var chosenMN = AllNames.Where( name => ( name.breedMainLock == (sbyte) main || name.breedMainLock == -1 ) &&
@@ -59,5 +69,14 @@ public class MonsterNames
                 return sList[ Random.Shared.Next( sList.Count ) ];
             }
         }*/
+    }
+
+    public MonsterNames( string name, sbyte main, sbyte sub ) {
+        monsterName = name;
+
+        breedMainLock = main;
+        breedSubLock = sub;
+
+        AllNames.Add( this );
     }
 }
