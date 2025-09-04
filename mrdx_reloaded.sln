@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Game.MoreMonsters", "M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Qol.InfiniteFreezer", "MRDX.Qol.InfiniteFreezer\MRDX.Qol.InfiniteFreezer.csproj", "{EFE1C119-E012-00F6-6C27-A5476B6BDAB6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MRDX.Ui.ViewMonsterInfo", "MRDX.Ui.ViewMonsterInfo\MRDX.Ui.ViewMonsterInfo.csproj", "{388E869F-9306-569C-BF05-D3849A720C41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -123,6 +125,10 @@ Global
 		{EFE1C119-E012-00F6-6C27-A5476B6BDAB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFE1C119-E012-00F6-6C27-A5476B6BDAB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFE1C119-E012-00F6-6C27-A5476B6BDAB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{388E869F-9306-569C-BF05-D3849A720C41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{388E869F-9306-569C-BF05-D3849A720C41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{388E869F-9306-569C-BF05-D3849A720C41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{388E869F-9306-569C-BF05-D3849A720C41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

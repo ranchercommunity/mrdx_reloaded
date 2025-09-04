@@ -25,10 +25,6 @@ public class Mod : ModBase // <= Do not Remove.
     private readonly IMonster _monsterCurrent;
 
     private readonly IRedirectorController _redirector;
-    private nuint _address_currentweek;
-
-    private nuint _address_game;
-    private nuint _address_monsterdata;
     private string? _dataPath;
 
     private IHook<UpdateGenericState>? _hook_genericUpdate;
@@ -65,10 +61,6 @@ public class Mod : ModBase // <= Do not Remove.
             _logger.WriteLine($"[{_modConfig.ModId}] Failed to get extract data bin controller.", Color.Red);
             return;
         }
-
-        var thisProcess = Process.GetCurrentProcess();
-        var module = thisProcess.MainModule!;
-        _address_game = (nuint)module.BaseAddress.ToInt64();
 
         if (_redirector == null)
         {

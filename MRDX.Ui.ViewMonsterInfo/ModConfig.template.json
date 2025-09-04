@@ -1,0 +1,35 @@
+{
+    "ModId": "MRDX.Ui.ViewMonsterInfo",
+    "ModName": "View Monster Info",
+    "ModAuthor": "fadillzzz",
+    "ModVersion": "{{ MOD_VERSION }}",
+    "ModDescription": "View Hidden Monster Info include stress, fatigue, growths, and more!",
+    "ModDll": "MRDX.Ui.ViewMonsterInfo.dll",
+    "ModIcon": "Preview.png",
+    "ModR2RManagedDll32": "x86/MRDX.Ui.ViewMonsterInfo.dll",
+    "ModR2RManagedDll64": "x64/MRDX.Ui.ViewMonsterInfo.dll",
+    "ModNativeDll32": "",
+    "ModNativeDll64": "",
+    "IsLibrary": false,
+    "ReleaseMetadataFileName": "MRDX.Ui.ViewMonsterInfo.ReleaseMetadata.json",
+    "PluginData": {
+        "GitHubRelease": {
+            "UserName": "ranchercommunity",
+            "RepositoryName": "mrdx_reloaded",
+            "UseReleaseTag": false,
+            "AssetFileName": "Mod.zip"
+        }
+    },
+    "IsUniversalMod": false,
+    "ModDependencies": [
+        "reloaded.sharedlib.hooks",
+        "reloaded.universal.redirector",
+        "MRDX.Base.Mod",
+        "MRDX.Base.ExtractDataBin"
+    ],
+    "OptionalDependencies": [],
+    "SupportedAppId": [
+        "mf2.exe"
+    ],
+    "ProjectUrl": "https://github.com/ranchercommunity/mrdx_reloaded"
+}
