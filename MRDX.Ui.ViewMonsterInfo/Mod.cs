@@ -61,7 +61,7 @@ public struct Box {
 [StructLayout( LayoutKind.Explicit )]
 public struct BoxAttribute {
     [FieldOffset( 0x0 )]
-    public byte unk1;
+    public byte Type;
 
     [FieldOffset( 0x10 )]
     public ushort Width;
@@ -112,14 +112,16 @@ public class Mod : ModBase // <= Do not Remove.
     private nuint _address_game;
     private IMonster monster;
 
-    private List<nint> allAddresses = new List<nint>();
-    private List<Box> allBoxes = new List<Box>();
+    private List<Box> boxesAll = new List<Box>();
+    private List<nint> addressesAdded = new List<nint>();
+    private List<Box> boxesAdded = new List<Box>();
 
     private nint rootBoxPtr;
     private Box rootBox;
 
     private bool initialized = false;
 
+    private nint sflhTextAddr;
     private nint stressTextAddr;
     private nint fatigueTextAddr;
     private nint lifeIndexTextAddr;
@@ -146,7 +148,7 @@ public class Mod : ModBase // <= Do not Remove.
         g!.OnMonsterChanged += MonsterChanged;
     }
 
-    private void MonsterChanged ( IMonsterChange mon ) {
+    /*private void MonsterChanged ( IMonsterChange mon ) {
         monster = mon.Current;
 
         if ( stressTextAddr != 0 ) {
@@ -173,6 +175,23 @@ public class Mod : ModBase // <= Do not Remove.
 
         lifeIndexTextAddr = Marshal.AllocCoTaskMem( lifeIndex.Length );
         Marshal.Copy( lifeIndex, 0, lifeIndexTextAddr, lifeIndex.Length );
+    }*/
+
+    private void MonsterChanged ( IMonsterChange mon ) {
+        monster = mon.Current;
+
+        if ( sflhTextAddr != 0 ) {
+            Marshal.FreeCoTaskMem( sflhTextAddr );
+        }
+
+        AllocateText( monster );
+    }
+
+    private void AllocateText ( IMonster monster ) {
+        byte[] text = $"SFLh: {monster.Stress}-{monster.Fatigue}-{getLifespanHit( monster )}".AsMr2().AsBytes();
+        sflhTextAddr = Marshal.AllocCoTaskMem( text.Length );
+        Marshal.Copy( text, 0, sflhTextAddr, text.Length );
+
     }
 
     private int getLifeIndex ( IMonster monster ) {
@@ -204,24 +223,37 @@ public class Mod : ModBase // <= Do not Remove.
             byte isDisplayed = Marshal.ReadByte( CSysFarmPtr + 0x38 );
 
             if ( initialized == true && isDisplayed == 1 ) {
-                rootBox.Next = allBoxes.Last().Next;
+                rootBox.Next = boxesAdded.Last().Next;
                 Marshal.StructureToPtr( rootBox, rootBoxPtr, false );
 
-                allBoxes = new List<Box>();
+                boxesAdded = new List<Box>();
 
-                for ( int i = 0; i < allAddresses.Count; i++ ) {
-                    Marshal.FreeCoTaskMem( allAddresses[ i ] );
+                for ( int i = 0; i < addressesAdded.Count; i++ ) {
+                    Marshal.FreeCoTaskMem( addressesAdded[ i ] );
                 }
 
-                allAddresses = new List<nint>();
+                addressesAdded = new List<nint>();
 
                 initialized = false;
+
+                
             }
         }
 
         _removeUiHook!.OriginalFunction( self );
     }
 
+    private void RebuildBoxList () {
+        boxesAll = new List<Box>();
+
+        rootBox = Marshal.PtrToStructure<Box>( rootBoxPtr );
+        boxesAll.Add( rootBox );
+
+        while ( boxesAll[boxesAll.Count - 1].Next != 0x00 ) {
+            boxesAll.Add( Marshal.PtrToStructure<Box>( boxesAll[ boxesAll.Count - 1 ].Next ) );
+        }
+
+    }
     private void PrependToBoxList ( Box box, nint boxAddr ) {
         var rootBoxNext = rootBox.Next;
         rootBox.Next = boxAddr;
@@ -238,7 +270,7 @@ public class Mod : ModBase // <= Do not Remove.
 
     private BoxAttribute GetBackgroundBoxAttribute ( ushort width, ushort height ) {
         BoxAttribute backgroundAttr = new BoxAttribute();
-        backgroundAttr.unk1 = 5;
+        backgroundAttr.Type = 5;
         backgroundAttr.Width = width;
         backgroundAttr.Height = height;
         backgroundAttr.R = 128;
@@ -250,7 +282,7 @@ public class Mod : ModBase // <= Do not Remove.
 
     private BoxAttribute GetForegroundBoxAttribute ( ushort width, ushort height ) {
         BoxAttribute backgroundAttr = new BoxAttribute();
-        backgroundAttr.unk1 = 5;
+        backgroundAttr.Type = 5;
         backgroundAttr.Width = width;
         backgroundAttr.Height = height;
         backgroundAttr.R = 64;
@@ -281,7 +313,7 @@ public class Mod : ModBase // <= Do not Remove.
         nint backgroundAttrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( backgroundAttr ) );
         Marshal.StructureToPtr( backgroundAttr, backgroundAttrPtr, false );
 
-        allAddresses = allAddresses.Prepend( backgroundAttrPtr ).ToList();
+        addressesAdded = addressesAdded.Prepend( backgroundAttrPtr ).ToList();
 
         Box box = GetBox( x, y, 2, backgroundAttrPtr );
 
@@ -289,8 +321,8 @@ public class Mod : ModBase // <= Do not Remove.
 
         PrependToBoxList( box, boxAddr );
 
-        allBoxes = allBoxes.Prepend( box ).ToList();
-        allAddresses = allAddresses.Prepend( boxAddr ).ToList();
+        boxesAdded = boxesAdded.Prepend( box ).ToList();
+        addressesAdded = addressesAdded.Prepend( boxAddr ).ToList();
 
 
         BoxAttribute foregroundAttr = GetForegroundBoxAttribute( (ushort) ( width - 4 ), (ushort) ( height - 4 ) );
@@ -298,7 +330,7 @@ public class Mod : ModBase // <= Do not Remove.
         nint foregroundAttrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( foregroundAttr ) );
         Marshal.StructureToPtr( foregroundAttr, foregroundAttrPtr, false );
 
-        allAddresses = allAddresses.Prepend( foregroundAttrPtr ).ToList();
+        addressesAdded = addressesAdded.Prepend( foregroundAttrPtr ).ToList();
 
         Box foregroundBox = GetBox( (short) ( x + 2 ), (short) ( y + 2 ), 3, foregroundAttrPtr );
 
@@ -306,8 +338,8 @@ public class Mod : ModBase // <= Do not Remove.
 
         PrependToBoxList( foregroundBox, foregroundBoxAddr );
 
-        allBoxes = allBoxes.Prepend( foregroundBox ).ToList();
-        allAddresses = allAddresses.Prepend( foregroundBoxAddr ).ToList();
+        boxesAdded = boxesAdded.Prepend( foregroundBox ).ToList();
+        addressesAdded = addressesAdded.Prepend( foregroundBoxAddr ).ToList();
     }
 
     private void DrawStressBox () {
@@ -322,6 +354,17 @@ public class Mod : ModBase // <= Do not Remove.
         DrawBox( 100, 18, 29, 56 );
     }
 
+    private void UpdateLoyaltyBoxes() {
+        for ( var i = 0; i < boxesAll.Count; i++ ) {
+            var addr = boxesAll[ i ].Next;
+            if ( addr == 0 ) { break; }
+            Memory.Instance.SafeWrite( addr + 0xC, (short) -100 + (i * 15) );
+            Memory.Instance.SafeWrite( addr + 0xE, (short) -100 + ( i * 15 ) );
+            Memory.Instance.SafeWrite( addr + 0x10, (short) -100 + ( i * 15 ) );
+            Memory.Instance.SafeWrite( addr + 0x12, (short) -100 + ( i * 15 ) );
+        }
+        DrawBox( 75, 18, -130, 56 );
+    }
     private void Init () {
         nint rootBoxPtrPtr;
         // There can be up to 4 pointers stored in an array, where each element
@@ -340,11 +383,15 @@ public class Mod : ModBase // <= Do not Remove.
             }
         }
 
-        rootBox = Marshal.PtrToStructure<Box>( rootBoxPtr );
-        DrawStressBox();
-        DrawFatigueBox();
-        DrawLifeIndexBox();
+
+        
+        RebuildBoxList();
+        UpdateLoyaltyBoxes();
+        //DrawStressBox();
+        //DrawFatigueBox();
+        //DrawLifeIndexBox();
         initialized = true;
+        Logger.Error( $"Testing {boxesAdded.Count}" );
     }
 
     private int DrawLifeIndex ( nint unk1 ) {
@@ -352,9 +399,9 @@ public class Mod : ModBase // <= Do not Remove.
             Init();
         }
 
-        _drawText!( -92, 57, stressTextAddr, 0 );
-        _drawText!( -14, 57, fatigueTextAddr, 0 );
-        _drawText!( 74, 57, lifeIndexTextAddr, 0 );
+        _drawText!( -92, 57, sflhTextAddr, 0 );
+        //_drawText!( -14, 57, fatigueTextAddr, 0 );
+        //_drawText!( 74, 57, lifeIndexTextAddr, 0 );
 
         return _loyaltyHook!.OriginalFunction( unk1 );
     }
@@ -414,4 +461,15 @@ public class Mod : ModBase // <= Do not Remove.
     private readonly IModConfig _modConfig;
 
     #endregion
+}
+
+public class UIElementBox {
+    public nuint address;
+
+    public Box box;
+    public BoxAttribute attributes;
+
+    public void WriteBoxMemory() {
+
+    }
 }
