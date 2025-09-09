@@ -5,3 +5,9 @@ Monsters Developed or Contributed To
 Version 0.2.0
 =====================================
 Wracky/??? (Bonus Special #6)
+
+=====================================
+Version 0.2.5
+=====================================
+Mock / Metalner
+Mock / ??? (Special #3)

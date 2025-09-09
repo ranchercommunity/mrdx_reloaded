@@ -5,3 +5,8 @@ Monsters Developed or Contributed To
 Version 0.1.0
 =====================================
 Monol/??? (ColorPandora MR3)
+
+=====================================
+Version 0.2.5
+=====================================
+Monol / Henger

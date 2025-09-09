@@ -7,6 +7,7 @@ Version 0.1.0
 Arrowhead/Undine
 Bajarl/Plant
 Baku/Mew
+Centaur / Gaboo
 ColorPandora/ColorPandora #2
 ColorPandora/Ducken
 Ducken/ColorPandora

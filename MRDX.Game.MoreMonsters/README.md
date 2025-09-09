@@ -51,6 +51,13 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
+##### v0.2.5
+
+* 14 additional monster combinations have been added!
+* 1 additional bonus monster combinations have been added!
+
+
+
 ##### v0.2.4
 
 * 13 additional monster combinations have been added!
@@ -165,3 +172,8 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 * pyronsranch
 * Vyraxhaalas
 * Woody
+* BigBadHyena
+* ProjectL
+* Snaid1
+* DryGuy84
+* GoldenExperience
