@@ -169,7 +169,6 @@ public class Mod : ModBase // <= Do not Remove.
     private (bool, bool) _watchMove_SLMInfo = (false, false);
 
 
-
     public Mod ( ModContext context ) {
         _modLoader = context.ModLoader;
         _hooks = context.Hooks;
@@ -230,7 +229,42 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void HFDrawMonsterInfoPage2 ( int unk1 ) {
         _watchMove_SLMInfo = (false, false);
+
+        if ( initialized == false ) { Init();
+
+            AddUIElement_StandardGrayBox( -136, 32, 52, 20 );
+            AddUIElement_StandardGrayTranslucentBox( -84, 32, 56, 20 );
+
+            AddUIElement_StandardGrayBox( -136, 52, 52, 20 );
+            AddUIElement_StandardGrayTranslucentBox( -84, 52, 56, 20 );
+
+            // Right
+            AddUIElement_StandardGrayBox( -24, 32, 76, 20 );
+            AddUIElement_StandardGrayTranslucentBox( 52, 32, 78, 20 );
+
+            AddUIElement_StandardGrayBox( -24, 52, 76, 20 );
+            AddUIElement_StandardGrayTranslucentBox( 52, 52, 78, 20 );
+
+            // Heights 19
+            // 3/7 Widths - 49
+            // 4/8 Widhts - 52
+
+            // 5/9 Widths - 71?
+            // 6/10 Widths- 78
+        }
+
+        textElements[ 3 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked ((uint) (-100)) , (ushort) (20 ));
+        textElements[ 4 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -50 )), (ushort) ( 20 ));
+        textElements[ 5 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 10 )), (ushort) ( 20 ));
+        textElements[ 6 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 86 )), (ushort) ( 20 ));
+
+        textElements[ 7 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -100 )), (ushort) ( 39 ));
+        textElements[ 8 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -50 )), (ushort) (39 ));
+        textElements[ 9 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 10 )), (ushort) ( 39 ));
+        textElements[ 10 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 86 )), (ushort) ( 39 ));
+
         _hook_drawMonsterInfoPage2!.OriginalFunction( unk1 );
+
     }
 
     private void HFDrawMonsterInfoPage3 (int unk1 ) {
@@ -267,10 +301,10 @@ public class Mod : ModBase // <= Do not Remove.
 
         else {
             textElements[ 0 ].UpdateText( TextForLifespanHit( monster ) );
-            textElements[ 5 ].UpdateText( TextForMonsterLStage( monster ) );
-            textElements[ 7 ].UpdateText( TextForMonsterLifespan( monster ) );
-            textElements[ 9 ].UpdateText( TextForGrowthPattern( monster ) );
-            textElements[ 11 ].UpdateText( TextForGrowths( monster ) );
+            textElements[ 4 ].UpdateText( TextForMonsterLStage( monster ) );
+            textElements[ 6 ].UpdateText( TextForMonsterLifespan( monster ) );
+            textElements[ 8 ].UpdateText( TextForGrowthPattern( monster ) );
+            textElements[ 10 ].UpdateText( TextForGrowths( monster ) );
         }
 
         foreach ( MR2UITextElement te in textElements ) {
@@ -304,7 +338,7 @@ public class Mod : ModBase // <= Do not Remove.
             $"{ TextForGrowthSingleStat( monster.GrowthRateIntelligence )} {TextForGrowthSingleStat( monster.GrowthRateSkill )} " +
             $"{ TextForGrowthSingleStat( monster.GrowthRateSpeed )} {TextForGrowthSingleStat( monster.GrowthRateDefense)}";
     }
-    }
+    
 
     private string TextForGrowthSingleStat( byte growth ) {
         switch (growth) {
@@ -334,7 +368,10 @@ public class Mod : ModBase // <= Do not Remove.
             byte isDisplayed = Marshal.ReadByte( CSysFarmPtr + 0x38 );
 
             if ( initialized == true && isDisplayed == 1 ) {
-                rootBox.Next = boxesAdded.Last().Next;
+                if ( boxesAdded.Count > 0 ) {
+                    rootBox.Next = boxesAdded.Last().Next;
+                }
+
                 Marshal.StructureToPtr( rootBox, rootBoxPtr, false );
 
                 boxesAdded = new List<Box>();
@@ -410,10 +447,10 @@ public class Mod : ModBase // <= Do not Remove.
         bAttr.Type = 5;
         bAttr.Width = width;
         bAttr.Height = height;
-        bAttr.R = 128;
-        bAttr.G = 128;
-        bAttr.B = 128;
-        bAttr.IsSemiTransparent = 1;
+        bAttr.R = 64;
+        bAttr.G = 64;
+        bAttr.B = 64;
+        bAttr.IsSemiTransparent = 0;
 
         return bAttr;
     }
@@ -499,7 +536,7 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     private void AddUIElement_StandardGrayBox ( short x, short y, ushort width, ushort height ) {
-        BoxAttribute backgroundAttr = SetupStandardUIBoxBackgroundBA( width, height );
+        BoxAttribute backgroundAttr = SetupStandardGrayBoxForegroundBA( width, height );
         nint backgroundAttrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( backgroundAttr ) );
         Marshal.StructureToPtr( backgroundAttr, backgroundAttrPtr, false );
 
@@ -510,31 +547,19 @@ public class Mod : ModBase // <= Do not Remove.
         addressesAdded = addressesAdded.Prepend( backgroundAttrPtr ).ToList();
         boxesAdded = boxesAdded.Prepend( box ).ToList();
         addressesAdded = addressesAdded.Prepend( boxAddr ).ToList();
-
-
-        BoxAttribute foregroundAttr = SetupStandardGrayBoxForegroundBA( (ushort) ( width - 4 ), (ushort) ( height - 4 ) );
-        nint foregroundAttrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( foregroundAttr ) );
-        Marshal.StructureToPtr( foregroundAttr, foregroundAttrPtr, false );
-
-        Box foregroundBox = GetBox( (short) ( x + 2 ), (short) ( y + 2 ), 3, foregroundAttrPtr );
-        nint foregroundBoxAddr = Marshal.AllocCoTaskMem( Marshal.SizeOf( foregroundBox ) );
-        PrependToBoxList( foregroundBox, foregroundBoxAddr );
-
-        addressesAdded = addressesAdded.Prepend( foregroundAttrPtr ).ToList();
-        boxesAdded = boxesAdded.Prepend( foregroundBox ).ToList();
-        addressesAdded = addressesAdded.Prepend( foregroundBoxAddr ).ToList();
     }
 
     private void AddUIElement_StandardGrayTranslucentBox ( short x, short y, ushort width, ushort height ) {
-        BoxAttribute bAttr = SetupStandardUIBoxBackgroundBA( width, height );
-        nint bAttrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( bAttr ) );
-        Marshal.StructureToPtr( bAttr, bAttrPtr, false );
+        BoxAttribute backgroundAttr = SetupStandardGrayBoxForegroundBA( width, height );
+        backgroundAttr.IsSemiTransparent = 1;
+        nint backgroundAttrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( backgroundAttr ) );
+        Marshal.StructureToPtr( backgroundAttr, backgroundAttrPtr, false );
 
-        Box box = GetBox( x, y, 2, bAttrPtr );
+        Box box = GetBox( x, y, 2, backgroundAttrPtr );
         nint boxAddr = Marshal.AllocCoTaskMem( Marshal.SizeOf( box ) );
         PrependToBoxList( box, boxAddr );
 
-        addressesAdded = addressesAdded.Prepend( bAttrPtr ).ToList();
+        addressesAdded = addressesAdded.Prepend( backgroundAttrPtr ).ToList();
         boxesAdded = boxesAdded.Prepend( box ).ToList();
         addressesAdded = addressesAdded.Prepend( boxAddr ).ToList();
     }
@@ -571,10 +596,7 @@ public class Mod : ModBase // <= Do not Remove.
             }
         }
 
-
-        
         RebuildBoxList();
-        UpdateLoyaltyBoxes();
         initialized = true;
     }
 
@@ -582,9 +604,12 @@ public class Mod : ModBase // <= Do not Remove.
 
         Logger.Error( $"Style {unk1}", Color.Yellow );
         if ( _watchMove_SLMInfo.Item1 ) {
-            if ( initialized == false ) { Init(); }
+            if ( initialized == false ) { 
+                Init();
+                UpdateLoyaltyBoxes();
+            }
 
-            if ( textElements.Count > 0 ) {
+            if ( textElements.Count > 0 && boxesAdded.Count > 0 ) {
                 _watchMove_SLMInfo.Item2 = false;
                 //textElements[ 0 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, (uint) (boxesAdded[ 0 ].X + 2), 98 );
                 textElements[ 0 ].DrawTextWithPadding( _drawText, (short) ( boxesAdded[ 0 ].X + 30 ), 98, 0 );
@@ -603,28 +628,9 @@ public class Mod : ModBase // <= Do not Remove.
 
         _hook_drawStyle!.OriginalFunction( unk1, y );
     }
+
     private int DrawLifeIndex ( nint unk1 ) {
-        /*_moveSLMInfo = true;
-        if ( initialized == false ) {
-            Init();
-        }
-
-        var sflh = boxesAdded[ 0 ];
-        //_drawText!( (short) (sflh.X + 28 + 32), 98 - 12, sflhTextAddr, 0 );
-
-        if ( textElements.Count > 0 ) {
-            textElements[0].DrawTextWithPadding( _drawText, (short) ( boxesAdded[0].X + 28 + 32 ), 98 - 12, 0 );
-            //textElements[ 1 ].DrawTextWithPadding( _drawText, (short) ( boxesAdded[ 1 ].X + 30 ), boxesAdded[ 1 ].Y, 0 );
-            //textElements[ 1 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, (uint) ( boxesAdded[ 1 ].X ), (ushort) boxesAdded[ 1 ].Y );
-            //textElements[ 1 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, 20, 20);
-            //textElements[ 1 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, 50, (ushort) 50 );
-            textElements[ 1 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, (uint) ( boxesAdded[ 1 ].X +32 + 34 ), (ushort) (boxesAdded[ 1 ].Y - 30) );
-
-        }
-        */
         var ret = _hook_drawLoyalty!.OriginalFunction( unk1 );
-        //_moveSLMInfo = false;
-
         return ret;
     }
 
@@ -765,8 +771,8 @@ public class MR2UITextElement {
         address_attributes = Marshal.AllocCoTaskMem( 12 );
         Memory.Instance.Write( address_attributes, 0x00000000 );
         Memory.Instance.Write( address_attributes + 4, 0x00000000 );
-        Memory.Instance.Write( address_attributes + 4, height );
-        Memory.Instance.Write( address_attributes + 6, width );
+        Memory.Instance.Write( address_attributes + 4, width);
+        Memory.Instance.Write( address_attributes + 6, height );
         Memory.Instance.Write( address_attributes + 8, color );
     }
 
