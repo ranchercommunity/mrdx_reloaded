@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using Iced.Intel;
 using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.Mod.Interfaces;
 using MRDX.Ui.ViewMonsterInfo.Configuration;
@@ -82,7 +83,20 @@ public struct BoxAttribute {
     public byte IsSemiTransparent;
 }
 
-[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 56 57 8B 7D 08 6A 03" )]
+/**
+ * Common text based drawing code used by several different text rendering routines
+ * textParams is typically 0x0010000C, represented as two shorts. 0x0010 is the 'height' of the text, 0x000C is the 'width'.
+ * colorPtr points to a representation as reversed hex. F7F700, which is a bright yellow, would be 0x007f7f
+ */
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 81 EC B0 04 00 00" )]
+[Function( CallingConventions.Fastcall )]
+public delegate int DrawTextToScreenPORT ( uint x, ushort y, nint textPtr, int textParams, nint colorPtr );
+
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 EC 78 A1 ?? ?? ?? ?? 33 C5 89 45 ?? 8B 45 ??")]
+[Function( CallingConventions.Fastcall )]
+public delegate void DrawStyle ( short unk1 );
+
+[ HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 56 57 8B 7D 08 6A 03" )]
 [Function( CallingConventions.Cdecl )]
 public delegate int DrawLoyalty ( nint unk1 );
 
@@ -94,20 +108,32 @@ public delegate int DrawTextWithPadding ( short x, short y, nint text, short pad
 // Hooking this causes various UI elements in the Farm to not function for some reason.
 [HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D 45 F4 64 A3 ?? ?? ?? ?? 8B 75 08 8B 7D 10 F6 46 0C 03 0F 84" )]
 [Function( CallingConventions.Cdecl )]
-public delegate void DrawFarmUiElements ( nint unk1, nint unk2, nint unk3 );
+public delegate int DrawFarmUiElements ( nint unk1, nint unk2, nint unk3 );
 
 [HookDef( BaseGame.Mr2, Region.Us, "80 79 38 01 75 38" )]
 [Function( CallingConventions.MicrosoftThiscall )]
 public delegate void RemovesSomeUiElements ( nint self );
+
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 81 EC C0 08 00 00 A1 ?? ?? ?? ?? 33 C4 89 84 24 ?? ?? ?? ?? 56 57 8B F2 8B F9 8B 4D ?? 8D 94 24 ?? ?? ?? ?? E8 ?? ?? ?? ?? 8D 44 24 ??" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void DrawUIBoxes ( nint dt0, nint dt1, int unk2, int unk3 );
 
     /// <summary>
     /// Your mod logic goes here.
     /// </summary>
 public class Mod : ModBase // <= Do not Remove.
 {
-    private IHook<DrawLoyalty>? _loyaltyHook;
-    private DrawTextWithPadding? _drawText;
+    private IHook<DrawStyle>? _hook_drawStyle;
+    private IHook<DrawLoyalty>? _hook_drawLoyalty;
+
+    private IHook<DrawFarmUiElements> _hook_drawFarmUIElements;
+    private IHook<DrawTextToScreenPORT> _hook_drawTextToScreen;
     private IHook<RemovesSomeUiElements>? _removeUiHook;
+    private IHook<DrawUIBoxes>? _hook_drawUIBoxes;
+
+    private ParseTextWithCommandCodes? _wrapfunc_parseTextWithCommandCodes;
+    private DrawTextWithPadding? _drawText;
+    private DrawTextToScreenPORT? _wrapfunc_drawTextToScreen;
 
     private nuint _address_game;
     private IMonster monster;
@@ -115,6 +141,9 @@ public class Mod : ModBase // <= Do not Remove.
     private List<Box> boxesAll = new List<Box>();
     private List<nint> addressesAdded = new List<nint>();
     private List<Box> boxesAdded = new List<Box>();
+
+    private List<MR2UIElementBox> boxElements = new List<MR2UIElementBox>();
+    private List<MR2UITextElement> textElements = new List<MR2UITextElement>();
 
     private nint rootBoxPtr;
     private Box rootBox;
@@ -125,6 +154,10 @@ public class Mod : ModBase // <= Do not Remove.
     private nint stressTextAddr;
     private nint fatigueTextAddr;
     private nint lifeIndexTextAddr;
+
+    private (bool, bool) _watchMove_SLMInfo = (false, false);
+
+
 
     public Mod ( ModContext context ) {
         _modLoader = context.ModLoader;
@@ -139,56 +172,74 @@ public class Mod : ModBase // <= Do not Remove.
         var module = thisProcess.MainModule!;
         _address_game = (nuint) module.BaseAddress.ToInt64();
 
+        hooks!.AddHook<DrawStyle>( HFDrawStyle ).ContinueWith( result => _hook_drawStyle = result.Result.Activate() );
+        hooks!.AddHook<DrawLoyalty>( DrawLifeIndex ).ContinueWith( result => _hook_drawLoyalty = result.Result.Activate() );
+
+        hooks!.AddHook<DrawFarmUiElements>( HFDrawFarmUIElements ).ContinueWith( result => _hook_drawFarmUIElements = result.Result.Activate() );
         hooks!.AddHook<RemovesSomeUiElements>( RestoreUiLinkedList ).ContinueWith( result => _removeUiHook = result.Result.Activate() );
-        hooks!.AddHook<DrawLoyalty>( DrawLifeIndex ).ContinueWith( result => _loyaltyHook = result.Result.Activate() );
+        
+        
+        hooks!.AddHook<DrawTextToScreenPORT>( HFDrawTextToScreen ).ContinueWith( result => _hook_drawTextToScreen = result.Result.Activate() );
+        hooks!.AddHook<DrawUIBoxes>( HFDrawUIBoxes ).ContinueWith( result => _hook_drawUIBoxes = result.Result.Activate() );
+
+        hooks!.CreateWrapper<ParseTextWithCommandCodes>().ContinueWith( result => _wrapfunc_parseTextWithCommandCodes = result.Result );
         hooks!.CreateWrapper<DrawTextWithPadding>().ContinueWith( result => _drawText = result.Result );
+        hooks!.CreateWrapper<DrawTextToScreenPORT>().ContinueWith( result => _wrapfunc_drawTextToScreen = result.Result );
 
         WeakReference<IGame> _game = _modLoader.GetController<IGame>();
         _game.TryGetTarget( out var g );
         g!.OnMonsterChanged += MonsterChanged;
+
     }
 
-    /*private void MonsterChanged ( IMonsterChange mon ) {
-        monster = mon.Current;
+    public int HFDrawFarmUIElements( nint unk1, nint unk2, nint unk3 ) {
+        _watchMove_SLMInfo.Item1 = true;
+        var ret = _hook_drawFarmUIElements!.OriginalFunction( unk1, unk2, unk3 );
+        //Logger.Error( $"Drawing Farm UI: {unk1} {unk2} {unk3} {ret}" );
+        _watchMove_SLMInfo = (false, false);
 
-        if ( stressTextAddr != 0 ) {
-            Marshal.FreeCoTaskMem( stressTextAddr );
-            Marshal.FreeCoTaskMem( fatigueTextAddr );
-            Marshal.FreeCoTaskMem( lifeIndexTextAddr );
+        return ret;
+    }
+    public int HFDrawTextToScreen ( uint x, ushort y, nint textPtr, int textParams, nint colorPtr ) {
+        
+
+        if ( _watchMove_SLMInfo.Item2 ) {
+            Logger.Error( $"Drawing Text MODIFIED: {x}, {y}, {textPtr}, {textParams}, {colorPtr}", Color.White );
+            //Memory.Instance.Write( textParams + 4, 0x0010000C );
+            //Memory.Instance.Write( colorPtr, 0xf7f700 );
+
+            return _hook_drawTextToScreen!.OriginalFunction( x - 32, (ushort) (y + 12), textPtr, textParams, colorPtr );
         }
-
-        AllocateText( monster );
+        Logger.Error( $"Drawing Text: {x}, {y}, {textPtr}, {textParams}, {colorPtr}", Color.Orange );
+        return _hook_drawTextToScreen!.OriginalFunction( x, y, textPtr, textParams, colorPtr );
     }
-
-    private void AllocateText ( IMonster monster ) {
-        byte[] stress = $"Stress:{monster.Stress}".AsMr2().AsBytes();
-
-        stressTextAddr = Marshal.AllocCoTaskMem( stress.Length );
-        Marshal.Copy( stress, 0, stressTextAddr, stress.Length );
-
-        byte[] fatigue = $"Fatigue:{monster.Fatigue}".AsMr2().AsBytes();
-
-        fatigueTextAddr = Marshal.AllocCoTaskMem( fatigue.Length );
-        Marshal.Copy( fatigue, 0, fatigueTextAddr, fatigue.Length );
-
-        byte[] lifeIndex = getLifeIndexText( monster ).AsMr2().AsBytes();
-
-        lifeIndexTextAddr = Marshal.AllocCoTaskMem( lifeIndex.Length );
-        Marshal.Copy( lifeIndex, 0, lifeIndexTextAddr, lifeIndex.Length );
-    }*/
+    private void HFDrawUIBoxes( nint dt0, nint dt1, int unk2, int unk3 ) {
+        //Logger.Error( $"Drawing UI Boxes: {dt0}, {dt1}, {unk2}, {unk3}" );
+        _hook_drawUIBoxes!.OriginalFunction( dt0, dt1, unk2, unk3 );
+    }
 
     private void MonsterChanged ( IMonsterChange mon ) {
         monster = mon.Current;
 
-        if ( sflhTextAddr != 0 ) {
-            Marshal.FreeCoTaskMem( sflhTextAddr );
+        for ( var i = 0; i < boxElements.Count; i++ ) {
+            if ( !boxElements[ i ].baseGame && boxElements[i].address != 0 ) {
+                Marshal.FreeCoTaskMem( boxElements[ i ].address );
+            }
         }
 
-        AllocateText( monster );
+        if ( textElements.Count == 0 ) {
+            textElements.Add( new MR2UITextElement( false, $"{monster.Stress}.{monster.Fatigue}.{getLifespanHit( monster )}w" ) );
+            textElements.Add( new MR2UITextElement( false, "SFLi", 10, 10, 0xffffff ) );
+        }
+
+        foreach ( MR2UITextElement te in textElements ) {
+            te.FreeMemory();
+            te.AllocateMemory(_wrapfunc_parseTextWithCommandCodes);
+        }
     }
 
     private void AllocateText ( IMonster monster ) {
-        byte[] text = $"SFLh: {monster.Stress}-{monster.Fatigue}-{getLifespanHit( monster )}".AsMr2().AsBytes();
+        byte[] text = $"{monster.Stress}.{monster.Fatigue}.{getLifespanHit( monster )}w".AsMr2().AsBytes();
         sflhTextAddr = Marshal.AllocCoTaskMem( text.Length );
         Marshal.Copy( text, 0, sflhTextAddr, text.Length );
 
@@ -241,6 +292,7 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         _removeUiHook!.OriginalFunction( self );
+        
     }
 
     private void RebuildBoxList () {
@@ -268,29 +320,42 @@ public class Mod : ModBase // <= Do not Remove.
         Marshal.StructureToPtr( box, boxAddr, false );
     }
 
-    private BoxAttribute GetBackgroundBoxAttribute ( ushort width, ushort height ) {
-        BoxAttribute backgroundAttr = new BoxAttribute();
-        backgroundAttr.Type = 5;
-        backgroundAttr.Width = width;
-        backgroundAttr.Height = height;
-        backgroundAttr.R = 128;
-        backgroundAttr.G = 128;
-        backgroundAttr.B = 128;
-        backgroundAttr.IsSemiTransparent = 0;
-        return backgroundAttr;
+    private BoxAttribute SetupStandardBlueBoxBackgroundBA ( ushort width, ushort height ) {
+        BoxAttribute bAttr = new BoxAttribute();
+        bAttr.Type = 5;
+        bAttr.Width = width;
+        bAttr.Height = height;
+        bAttr.R = 128;
+        bAttr.G = 128;
+        bAttr.B = 128;
+        bAttr.IsSemiTransparent = 0;
+        return bAttr;
     }
 
-    private BoxAttribute GetForegroundBoxAttribute ( ushort width, ushort height ) {
-        BoxAttribute backgroundAttr = new BoxAttribute();
-        backgroundAttr.Type = 5;
-        backgroundAttr.Width = width;
-        backgroundAttr.Height = height;
-        backgroundAttr.R = 64;
-        backgroundAttr.G = 64;
-        backgroundAttr.B = 128;
-        backgroundAttr.IsSemiTransparent = 1;
+    private BoxAttribute SetupStandardBlueBoxForegroundBA ( ushort width, ushort height ) {
+        BoxAttribute bAttr = new BoxAttribute();
+        bAttr.Type = 5;
+        bAttr.Width = width;
+        bAttr.Height = height;
+        bAttr.R = 64;
+        bAttr.G = 64;
+        bAttr.B = 128;
+        bAttr.IsSemiTransparent = 1;
 
-        return backgroundAttr;
+        return bAttr;
+    }
+
+    private BoxAttribute SetupBorderlessBlueBA ( ushort width, ushort height ) {
+        BoxAttribute bAttr = new BoxAttribute();
+        bAttr.Type = 1;
+        bAttr.Width = width;
+        bAttr.Height = height;
+        bAttr.R = 64;
+        bAttr.G = 64;
+        bAttr.B = 128;
+        bAttr.IsSemiTransparent = 1;
+
+        return bAttr;
     }
 
     private Box GetBox ( short x, short y, short z, nint boxAttrPtr ) {
@@ -307,8 +372,8 @@ public class Mod : ModBase // <= Do not Remove.
         return box;
     }
 
-    private void DrawBox ( ushort width, ushort height, short x, short y ) {
-        BoxAttribute backgroundAttr = GetBackgroundBoxAttribute( width, height );
+    private void AddUIElement_StandardBlueBox ( short x, short y, ushort width, ushort height ) {
+        BoxAttribute backgroundAttr = SetupStandardBlueBoxBackgroundBA( width, height );
 
         nint backgroundAttrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( backgroundAttr ) );
         Marshal.StructureToPtr( backgroundAttr, backgroundAttrPtr, false );
@@ -325,7 +390,7 @@ public class Mod : ModBase // <= Do not Remove.
         addressesAdded = addressesAdded.Prepend( boxAddr ).ToList();
 
 
-        BoxAttribute foregroundAttr = GetForegroundBoxAttribute( (ushort) ( width - 4 ), (ushort) ( height - 4 ) );
+        BoxAttribute foregroundAttr = SetupStandardBlueBoxForegroundBA( (ushort) ( width - 4 ), (ushort) ( height - 4 ) );
 
         nint foregroundAttrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( foregroundAttr ) );
         Marshal.StructureToPtr( foregroundAttr, foregroundAttrPtr, false );
@@ -342,28 +407,36 @@ public class Mod : ModBase // <= Do not Remove.
         addressesAdded = addressesAdded.Prepend( foregroundBoxAddr ).ToList();
     }
 
-    private void DrawStressBox () {
-        DrawBox( 75, 18, -130, 56 );
-    }
+    private void AddUIElement_BorderlessBlueBox( short x, short y, ushort width, ushort height ) {
+        BoxAttribute bAttr = SetupBorderlessBlueBA( width, height );
+        nint attrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( bAttr ) );
+        Marshal.StructureToPtr( bAttr, attrPtr, false );
 
-    private void DrawFatigueBox () {
-        DrawBox( 78, 18, -52, 56 );
-    }
+        Box blBox = GetBox( x, y, 3, attrPtr );
+        nint boxPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( blBox ) );
+        PrependToBoxList( blBox, boxPtr );
 
-    private void DrawLifeIndexBox () {
-        DrawBox( 100, 18, 29, 56 );
+        boxesAdded.Add( blBox );
+        addressesAdded.Add( attrPtr );
+        addressesAdded.Add( boxPtr );
+
+        //boxesAdded = boxesAdded.Prepend( blBox ).ToList();
+        //addressesAdded = addressesAdded.Prepend( attrPtr ).ToList();
+        //addressesAdded = addressesAdded.Prepend( boxPtr ).ToList();
     }
 
     private void UpdateLoyaltyBoxes() {
         for ( var i = 0; i < boxesAll.Count; i++ ) {
             var addr = boxesAll[ i ].Next;
             if ( addr == 0 ) { break; }
-            Memory.Instance.SafeWrite( addr + 0xC, (short) -100 + (i * 15) );
-            Memory.Instance.SafeWrite( addr + 0xE, (short) -100 + ( i * 15 ) );
-            Memory.Instance.SafeWrite( addr + 0x10, (short) -100 + ( i * 15 ) );
-            Memory.Instance.SafeWrite( addr + 0x12, (short) -100 + ( i * 15 ) );
+            Memory.Instance.SafeWrite( addr + 0xC, boxesAll[ i + 1].XCopy - 32  );
+            Memory.Instance.SafeWrite( addr + 0xE, boxesAll[ i + 1 ].YCopy + 12 );
+            Memory.Instance.SafeWrite( addr + 0x10, boxesAll[ i + 1 ].XCopy - 32 );
+            Memory.Instance.SafeWrite( addr + 0x12, boxesAll[ i + 1 ].YCopy + 12 );
         }
-        DrawBox( 75, 18, -130, 56 );
+
+        AddUIElement_BorderlessBlueBox( 88, 90, 30, 10 );
+        AddUIElement_StandardBlueBox( 86, 96, 66, 20 );
     }
     private void Init () {
         nint rootBoxPtrPtr;
@@ -387,23 +460,45 @@ public class Mod : ModBase // <= Do not Remove.
         
         RebuildBoxList();
         UpdateLoyaltyBoxes();
-        //DrawStressBox();
-        //DrawFatigueBox();
-        //DrawLifeIndexBox();
         initialized = true;
-        Logger.Error( $"Testing {boxesAdded.Count}" );
     }
 
+    private void HFDrawStyle ( short unk1 ) {
+        
+        if ( initialized == false ) { Init(); }
+
+        if ( textElements.Count > 0 ) {
+            _watchMove_SLMInfo.Item2 = false;
+            textElements[ 0 ].DrawTextWithPadding( _drawText, (short) ( boxesAdded[ 0 ].X + 28 ), 98, 0 );
+            textElements[ 1 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, (uint) ( boxesAdded[ 1 ].X + 36 ), (ushort) ( boxesAdded[ 1 ].Y - 18 ) );
+        }
+
+        _watchMove_SLMInfo.Item2 = _watchMove_SLMInfo.Item1;
+        _hook_drawStyle!.OriginalFunction( unk1 );
+    }
     private int DrawLifeIndex ( nint unk1 ) {
+        /*_moveSLMInfo = true;
         if ( initialized == false ) {
             Init();
         }
 
-        _drawText!( -92, 57, sflhTextAddr, 0 );
-        //_drawText!( -14, 57, fatigueTextAddr, 0 );
-        //_drawText!( 74, 57, lifeIndexTextAddr, 0 );
+        var sflh = boxesAdded[ 0 ];
+        //_drawText!( (short) (sflh.X + 28 + 32), 98 - 12, sflhTextAddr, 0 );
 
-        return _loyaltyHook!.OriginalFunction( unk1 );
+        if ( textElements.Count > 0 ) {
+            textElements[0].DrawTextWithPadding( _drawText, (short) ( boxesAdded[0].X + 28 + 32 ), 98 - 12, 0 );
+            //textElements[ 1 ].DrawTextWithPadding( _drawText, (short) ( boxesAdded[ 1 ].X + 30 ), boxesAdded[ 1 ].Y, 0 );
+            //textElements[ 1 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, (uint) ( boxesAdded[ 1 ].X ), (ushort) boxesAdded[ 1 ].Y );
+            //textElements[ 1 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, 20, 20);
+            //textElements[ 1 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, 50, (ushort) 50 );
+            textElements[ 1 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, (uint) ( boxesAdded[ 1 ].X +32 + 34 ), (ushort) (boxesAdded[ 1 ].Y - 30) );
+
+        }
+        */
+        var ret = _hook_drawLoyalty!.OriginalFunction( unk1 );
+        //_moveSLMInfo = false;
+
+        return ret;
     }
 
     #region For Exports, Serialization etc.
@@ -463,13 +558,94 @@ public class Mod : ModBase // <= Do not Remove.
     #endregion
 }
 
-public class UIElementBox {
-    public nuint address;
+public class MR2UIElementBox {
+    public bool baseGame = true;
+
+    public nint address;
 
     public Box box;
     public BoxAttribute attributes;
 
-    public void WriteBoxMemory() {
+    public MR2UIElementBox( short x, short y, short z, BoxAttribute attribute ) {
 
+
+        Box box = new Box();
+        //box.Attribute = boxAttrPtr;
+        box.Attribute = 0;
+        box.X = x;
+        box.Y = y;
+        box.XCopy = box.X;
+        box.YCopy = box.Y;
+        box.Z = z;
+        box.XOffset = 0;
+        box.YOffset = 0;
+
+        
     }
+    public void WriteBoxMemory() {
+        Marshal.StructureToPtr<Box>( box, address, false );
+    }
+}
+
+public class MR2UITextElement {
+    public bool baseGame = true;
+
+    public nint address_text;
+    public nint address_text_parsed;
+    public nint address_attributes;
+
+    public string text;
+    public byte[] rawText;
+
+    public ushort height;
+    public ushort width;
+
+    public int color;
+
+    public MR2UITextElement(bool _base, string _text, ushort _height = 0x10, ushort _width = 0x0C, int _color = 0x7f7f7f) {
+        baseGame = _base;
+        text = _text;
+        rawText = text.AsMr2().AsBytes();
+
+        height = _height;
+        width = _width;
+        color = _color;
+    }
+
+    public void FreeMemory() {
+        if ( address_text == 0 ) { return; }
+
+        Marshal.FreeCoTaskMem( address_text );
+        Marshal.FreeCoTaskMem( address_text_parsed );
+        Marshal.FreeCoTaskMem( address_attributes );
+        address_text = 0;
+    }
+
+    public void AllocateMemory(ParseTextWithCommandCodes _func) {
+        if ( address_text != 0 ) { return; }
+
+        address_text = Marshal.AllocCoTaskMem( rawText.Length );
+        Marshal.Copy( rawText, 0, address_text, rawText.Length );
+
+        address_text_parsed = Marshal.AllocCoTaskMem( 1028 );
+        _func!( address_text, address_text_parsed, 0 );
+
+        address_attributes = Marshal.AllocCoTaskMem( 12 );
+        Memory.Instance.Write( address_attributes, 0x00000000 );
+        Memory.Instance.Write( address_attributes + 4, 0x00000000 );
+        Memory.Instance.Write( address_attributes + 4, height );
+        Memory.Instance.Write( address_attributes + 6, width );
+        Memory.Instance.Write( address_attributes + 8, color );
+    }
+
+    public void DrawTextToScreen( DrawTextToScreenPORT _func, uint x, ushort y ) {
+        if ( address_text == 0 ) { return; }
+        _func!( x - 32, (ushort) ( y + 12 ), address_text_parsed, (int) address_attributes, address_attributes + 8 );
+    }
+
+    public void DrawTextWithPadding( DrawTextWithPadding _func, short x, short y, short padding ) {
+        if ( address_text == 0 ) { return; }
+        _func!( x, y, address_text, padding );
+    }
+
 }
