@@ -108,6 +108,10 @@ public delegate void DrawMonsterInfoPage2 ( int unk1 );
 [Function( CallingConventions.Fastcall )]
 public delegate void DrawMonsterInfoPage3 ( int unk1 );
 
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 81 EC 7C 09 00 00" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void DrawMonsterInfoPage4 ( int unk1 );
+
 [HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 81 EC ?? ?? ?? ?? A1 ?? ?? ?? ?? 33 C4 89 84 24 ?? ?? ?? ?? 53 56 8B 75 08 8D 44 24 14" )]
 [Function( CallingConventions.Fastcall )]
 public delegate int DrawTextWithPadding ( short x, short y, nint text, short padding );
@@ -127,6 +131,7 @@ public delegate void RemovesSomeUiElements ( nint self );
 public delegate void DrawUIBoxes ( nint dt0, nint dt1, int unk2, int unk3 );
 
 
+// TODO - This signature is wrong. However, it's also not needed.
 [HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 EC 48 A1 ?? ?? ?? ?? 33 C5 89 45 ?? 8B 45 ?? 53 56")]
 [Function( CallingConventions.Fastcall )]
 public delegate int UNKModifyRootBox ( ushort unk1, nuint unk2, int unk3 );
@@ -134,6 +139,15 @@ public delegate int UNKModifyRootBox ( ushort unk1, nuint unk2, int unk3 );
 [HookDef( BaseGame.Mr2, Region.Us, "53 8B D9 56 8B 34 9D ?? ?? ?? ??")]
 [Function( CallingConventions.Fastcall )]
 public delegate void UNKClearRootBox ( int unk1 );
+
+
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 EC 10 53 33 C0")]
+[Function( CallingConventions.Fastcall )]
+public delegate void UNKTechniquePageChangeTech ( nuint unk1 );
+
+[HookDef( BaseGame.Mr2, Region.Us, "56 8B F1 57 8B 86 ?? ?? ?? ?? 8B BE ?? ?? ?? ??" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void UNKTechniqueUpdateSelectedData ( nuint unk1 );
 
 /// <summary>
 /// Your mod logic goes here.
@@ -150,15 +164,22 @@ public class Mod : ModBase // <= Do not Remove.
 
     private IHook<DrawMonsterInfoPage2>? _hook_drawMonsterInfoPage2;
     private IHook<DrawMonsterInfoPage3>? _hook_drawMonsterInfoPage3;
+    private IHook<DrawMonsterInfoPage4>? _hook_drawMonsterInfoPage4;
 
     private IHook<UNKClearRootBox>? _hook_clearRootBox;
     private IHook<UNKModifyRootBox>? _hook_modifyRootBox;
+
+    private IHook<UNKTechniquePageChangeTech> _hook_techPageChangeTech;
+    private IHook<UNKTechniqueUpdateSelectedData> _hook_techPageUpdateSelected;
+    private byte _techSelected = 0;
+    private byte[] _techUses = new byte[24];
 
     private ParseTextWithCommandCodes? _wrapfunc_parseTextWithCommandCodes;
     private DrawTextWithPadding? _wrapfunc_drawTextWithPadding;
     private DrawTextToScreenPORT? _wrapfunc_drawTextToScreen;
 
     private nuint _address_game;
+    private nuint _address_monster;
     private IMonster monster;
 
     private List<Box> boxesAll = new List<Box>();
@@ -175,6 +196,7 @@ public class Mod : ModBase // <= Do not Remove.
     private int _previousFarmStatus = -1;
     private bool initialized = false;
     private bool initialized_mp3 = false;
+    private bool initialized_mp4 = false;
 
     private (bool, bool) _watchMove_SLMInfo = (false, false);
 
@@ -191,6 +213,7 @@ public class Mod : ModBase // <= Do not Remove.
         var thisProcess = Process.GetCurrentProcess();
         var module = thisProcess.MainModule!;
         _address_game = (nuint) module.BaseAddress.ToInt64();
+        _address_monster = nuint.Add( _address_game, 0x37667C );
 
         hooks!.AddHook<DrawStyle>( HFDrawStyle ).ContinueWith( result => _hook_drawStyle = result.Result.Activate() );
         hooks!.AddHook<DrawLoyalty>( DrawLifeIndex ).ContinueWith( result => _hook_drawLoyalty = result.Result.Activate() );
@@ -203,6 +226,7 @@ public class Mod : ModBase // <= Do not Remove.
         hooks!.AddHook<DrawUIBoxes>( HFDrawUIBoxes ).ContinueWith( result => _hook_drawUIBoxes = result.Result.Activate() );
         hooks!.AddHook<DrawMonsterInfoPage2>( HFDrawMonsterInfoPage2 ).ContinueWith( result => _hook_drawMonsterInfoPage2 = result.Result.Activate() );
         hooks!.AddHook<DrawMonsterInfoPage3>( HFDrawMonsterInfoPage3 ).ContinueWith( result => _hook_drawMonsterInfoPage3 = result.Result.Activate() );
+        hooks!.AddHook<DrawMonsterInfoPage4>( HFDrawMonsterInfoPage4 ).ContinueWith( result => _hook_drawMonsterInfoPage4 = result.Result.Activate() );
 
         hooks!.CreateWrapper<ParseTextWithCommandCodes>().ContinueWith( result => _wrapfunc_parseTextWithCommandCodes = result.Result );
         hooks!.CreateWrapper<DrawTextWithPadding>().ContinueWith( result => _wrapfunc_drawTextWithPadding = result.Result );
@@ -211,29 +235,51 @@ public class Mod : ModBase // <= Do not Remove.
         //hooks!.AddHook<UNKModifyRootBox>( HFModifyRootBox ).ContinueWith( result => _hook_modifyRootBox = result.Result.Activate() );
         hooks!.AddHook<UNKClearRootBox>( HFClearRootBox ).ContinueWith( result => _hook_clearRootBox = result.Result.Activate() );
 
+        hooks!.AddHook<UNKTechniquePageChangeTech>( HFTechniquePageChangeTech ).ContinueWith( result => _hook_techPageChangeTech = result.Result.Activate() );
+        hooks!.AddHook<UNKTechniqueUpdateSelectedData>( HFTechniqueUpdateSelectedData ).ContinueWith( result => _hook_techPageUpdateSelected = result.Result.Activate() );
+
         WeakReference<IGame> _game = _modLoader.GetController<IGame>();
         _game.TryGetTarget( out var g );
         g!.OnMonsterChanged += MonsterChanged;
+
 
     }
 
     public int HFModifyRootBox ( ushort unk1, nuint unk2, int unk3 ) {
         int ret = _hook_modifyRootBox!.OriginalFunction( unk1, unk2, unk3 );
-        Logger.Error( $"ModifyRootBox: {unk1} {unk2} {unk3} : {ret}" );
+        //Logger.Error( $"ModifyRootBox: {unk1} {unk2} {unk3} : {ret}" );
         return ret;
     }
 
 
     public void HFClearRootBox ( int unk1 ) {
-        Logger.Error( $"ClearRootBox: {unk1}" );
+        //Logger.Error( $"ClearRootBox: {unk1}" );
         RestoreUILinkedList();
         _hook_clearRootBox!.OriginalFunction( unk1 );
+    }
+
+    public void HFTechniquePageChangeTech ( nuint unk1 ) {
+        //Logger.Error( $"TechPageChangeTech: {unk1.ToString( "X" )}" );
+        _hook_techPageChangeTech!.OriginalFunction( unk1 );
+        
+    }
+
+    public void HFTechniqueUpdateSelectedData ( nuint unk1 ) {
+        Logger.Error( $"TechniqueUpdateSelected: {unk1.ToString( "X" )}" );
+
+        _hook_techPageUpdateSelected!.OriginalFunction( unk1 );
+        Memory.Instance.Read( unk1 + 0x108, out nuint techChosenPtr );
+        Memory.Instance.Read( techChosenPtr, out _techSelected );
+
+        textElements[ 16 ].UpdateText( _techUses[ _techSelected ].ToString() );
+        textElements[ 16 ].FreeMemory();
+        textElements[ 16 ].AllocateMemory( _wrapfunc_parseTextWithCommandCodes );
     }
 
     public int HFDrawFarmUIElements( nint unk1, nint unk2, nint unk3 ) {
         _watchMove_SLMInfo.Item1 = true;
         var ret = _hook_drawFarmUIElements!.OriginalFunction( unk1, unk2, unk3 );
-        Logger.Error( $"Drawing Farm UI: {unk1.ToString("X")} {unk2.ToString( "X" )} {unk3.ToString( "X" )} {ret}" );
+        //Logger.Error( $"Drawing Farm UI: {unk1.ToString("X")} {unk2.ToString( "X" )} {unk3.ToString( "X" )} {ret}" );
 
  
         //Logger.Error( $"Drawing Farm UI: {unk1} {unk2} {unk3} {ret}" );
@@ -315,6 +361,27 @@ public class Mod : ModBase // <= Do not Remove.
         _hook_drawMonsterInfoPage3!.OriginalFunction( unk1 );
     }
 
+    private void HFDrawMonsterInfoPage4 ( int unk1 ) {
+        Logger.Error( $"Page 4 : {unk1}", Color.Green);
+        
+
+        if ( CheckAndInitialize( ref initialized_mp4 ) ) {
+
+            // Row 3
+            AddUIElement_StandardGrayDarkTranslucentBox( -8, 76, 96, 20 );
+            AddUIElement_StandardGrayDarkTranslucentBox( 96, 76, 30, 20 );
+
+
+        }
+
+        textElements[ 15 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, 26, 78, 0 );
+        textElements[ 16 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, 111, 78, 0 );
+
+
+
+        _hook_drawMonsterInfoPage4!.OriginalFunction( unk1 );
+    }
+
     private void MonsterChanged ( IMonsterChange mon ) {
         monster = mon.Current;
 
@@ -335,7 +402,6 @@ public class Mod : ModBase // <= Do not Remove.
             textElements.Add( new MR2UITextElement( false, $"L.Stage" ) );
             textElements.Add( new MR2UITextElement( false, TextForMonsterLStage( monster ) ) );
 
-
             textElements.Add( new MR2UITextElement( false, $"Growths" ) );
             textElements.Add( new MR2UITextElement( false, TextForGrowths( monster ) ) );
 
@@ -347,6 +413,11 @@ public class Mod : ModBase // <= Do not Remove.
 
             textElements.Add( new MR2UITextElement( false, $"A.Speed" ) );
             textElements.Add( new MR2UITextElement( false, TextForGrowths( monster ) ) );
+
+            textElements.Add( new MR2UITextElement( false, "Tech Uses" ) );
+            textElements.Add( new MR2UITextElement( false, "0" ) ); // 16
+
+            GetTechUses( monster );
         }
 
         else {
@@ -360,6 +431,8 @@ public class Mod : ModBase // <= Do not Remove.
 
             textElements[ 12 ].UpdateText( TextForGuts( monster ) );
             textElements[ 14 ].UpdateText( TextForArenaSpeed( monster ) );
+
+            GetTechUses( monster );
         }
 
         foreach ( MR2UITextElement te in textElements ) {
@@ -424,6 +497,19 @@ public class Mod : ModBase // <= Do not Remove.
         return $"{monster.Stress} {monster.Fatigue} {lifeIndexHit}";
     }
 
+    private void GetTechUses ( IMonster monster ) {
+        // TODO - MoveUseCount is never set up properly. Once that's fixed use it.
+        byte[] raw = new byte[ 48 ];
+        Memory.Instance.ReadRaw( _address_monster + 0x192, out raw, 48 );
+        for ( var i = 0; i < 24; i++ ) {
+            _techUses[ i ] = raw[ ( i * 2 ) + 1 ]; // Skip every other byte starting with 1
+        }
+            //for ( var i = 0; i < 24; i++ ) { 
+            //    _techUses[ i ] = 0; 
+            //}
+            //monster.MoveUseCount.CopyTo( _techUses, 0 );
+        }
+
     private void RestoreUiLinkedList ( nint self ) {
         Logger.Error( "RemoveSomeUIElements called.", Color.Red );
         nint CSysFarmPtrPtr = Marshal.ReadInt32( (nint) _address_game + 0x372308 );
@@ -460,6 +546,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         initialized = false;
         initialized_mp3 = false;
+        initialized_mp4 = false;
     }
 
     private void RebuildBoxList () {
@@ -520,6 +607,19 @@ public class Mod : ModBase // <= Do not Remove.
         bAttr.R = 64;
         bAttr.G = 64;
         bAttr.B = 64;
+        bAttr.IsSemiTransparent = 0;
+
+        return bAttr;
+    }
+
+    private BoxAttribute SetupStandardGrayDarkBoxBA ( ushort width, ushort height ) {
+        BoxAttribute bAttr = new BoxAttribute();
+        bAttr.Type = 5;
+        bAttr.Width = width;
+        bAttr.Height = height;
+        bAttr.R = 32;
+        bAttr.G = 32;
+        bAttr.B = 32;
         bAttr.IsSemiTransparent = 0;
 
         return bAttr;
@@ -619,8 +719,25 @@ public class Mod : ModBase // <= Do not Remove.
         addressesAdded = addressesAdded.Prepend( boxAddr ).ToList();
     }
 
+
+
     private void AddUIElement_StandardGrayTranslucentBox ( short x, short y, ushort width, ushort height ) {
         BoxAttribute backgroundAttr = SetupStandardGrayBoxForegroundBA( width, height );
+        backgroundAttr.IsSemiTransparent = 1;
+        nint backgroundAttrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( backgroundAttr ) );
+        Marshal.StructureToPtr( backgroundAttr, backgroundAttrPtr, false );
+
+        Box box = GetBox( x, y, 2, backgroundAttrPtr );
+        nint boxAddr = Marshal.AllocCoTaskMem( Marshal.SizeOf( box ) );
+        PrependToBoxList( box, boxAddr );
+
+        addressesAdded = addressesAdded.Prepend( backgroundAttrPtr ).ToList();
+        boxesAdded = boxesAdded.Prepend( box ).ToList();
+        addressesAdded = addressesAdded.Prepend( boxAddr ).ToList();
+    }
+
+    private void AddUIElement_StandardGrayDarkTranslucentBox ( short x, short y, ushort width, ushort height ) {
+        BoxAttribute backgroundAttr = SetupStandardGrayDarkBoxBA( width, height );
         backgroundAttr.IsSemiTransparent = 1;
         nint backgroundAttrPtr = Marshal.AllocCoTaskMem( Marshal.SizeOf( backgroundAttr ) );
         Marshal.StructureToPtr( backgroundAttr, backgroundAttrPtr, false );
