@@ -230,20 +230,36 @@ public class Mod : ModBase // <= Do not Remove.
     private void HFDrawMonsterInfoPage2 ( int unk1 ) {
         _watchMove_SLMInfo = (false, false);
 
-        if ( initialized == false ) { Init();
 
-            AddUIElement_StandardGrayBox( -136, 32, 52, 20 );
-            AddUIElement_StandardGrayTranslucentBox( -84, 32, 56, 20 );
 
-            AddUIElement_StandardGrayBox( -136, 52, 52, 20 );
-            AddUIElement_StandardGrayTranslucentBox( -84, 52, 56, 20 );
+        _hook_drawMonsterInfoPage2!.OriginalFunction( unk1 );
 
-            // Right
-            AddUIElement_StandardGrayBox( -24, 32, 76, 20 );
-            AddUIElement_StandardGrayTranslucentBox( 52, 32, 78, 20 );
+    }
 
-            AddUIElement_StandardGrayBox( -24, 52, 76, 20 );
-            AddUIElement_StandardGrayTranslucentBox( 52, 52, 78, 20 );
+    private void HFDrawMonsterInfoPage3 (int unk1 ) {
+        _watchMove_SLMInfo = (false, false);
+
+        if ( initialized == false ) {
+            Init();
+
+            /* TODO FIX THIS
+            // Top
+            AddUIElement_StandardGrayBox( -140, -40, 70, 20 );
+            AddUIElement_StandardGrayTranslucentBox( -70, -40, 78, 20 );
+
+            AddUIElement_StandardGrayBox( 30, -40, 52, 20 );
+            AddUIElement_StandardGrayTranslucentBox( 80, -40, 56, 20 );
+
+
+            // Bottom
+            AddUIElement_StandardGrayBox( -140, -20, 70, 20 );
+            AddUIElement_StandardGrayTranslucentBox( -70, -20, 78, 20 );
+
+
+            AddUIElement_StandardGrayBox( 30, -20, 52, 20 );
+            AddUIElement_StandardGrayTranslucentBox( 80, -20, 56, 20 );
+            */
+
 
             // Heights 19
             // 3/7 Widths - 49
@@ -253,22 +269,18 @@ public class Mod : ModBase // <= Do not Remove.
             // 6/10 Widths- 78
         }
 
-        textElements[ 3 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked ((uint) (-100)) , (ushort) (20 ));
-        textElements[ 4 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -50 )), (ushort) ( 20 ));
-        textElements[ 5 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 10 )), (ushort) ( 20 ));
-        textElements[ 6 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 86 )), (ushort) ( 20 ));
+        textElements[ 3 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -104 )), unchecked ((ushort) ( -60 )) );
+        textElements[ 4 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -34 )), unchecked((ushort) ( -60 )) );
 
-        textElements[ 7 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -100 )), (ushort) ( 39 ));
-        textElements[ 8 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -50 )), (ushort) (39 ));
-        textElements[ 9 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 10 )), (ushort) ( 39 ));
-        textElements[ 10 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 86 )), (ushort) ( 39 ));
+        textElements[ 5 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 56 )), unchecked((ushort) ( -60 )) );
+        textElements[ 6 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 108 )), unchecked((ushort) ( -60 )) );
 
-        _hook_drawMonsterInfoPage2!.OriginalFunction( unk1 );
+        textElements[ 7 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -104 )), unchecked((ushort) ( -40 )) );
+        textElements[ 8 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -34 )), unchecked((ushort) ( -40 )) );
 
-    }
+        textElements[ 9 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 56 )), unchecked((ushort) ( -40 )) );
+        textElements[ 10 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 108 )), unchecked((ushort) ( -40 )) );
 
-    private void HFDrawMonsterInfoPage3 (int unk1 ) {
-        _watchMove_SLMInfo = (false, false);
         _hook_drawMonsterInfoPage3!.OriginalFunction( unk1 );
     }
 
@@ -286,25 +298,30 @@ public class Mod : ModBase // <= Do not Remove.
             textElements.Add( new MR2UITextElement( false, "SFLi", 10, 10, 0xffffff ) );
             textElements.Add( new MR2UITextElement( false, "SFLi", 10, 10, 0x000000 ) );
 
+            textElements.Add( new MR2UITextElement( false, $"Lifespan" ) );
+            textElements.Add( new MR2UITextElement( false, TextForMonsterLifespan( monster ) ) );
+
             textElements.Add( new MR2UITextElement( false, $"L.Stage" ) );
             textElements.Add( new MR2UITextElement( false, TextForMonsterLStage( monster ) ) );
 
-            textElements.Add( new MR2UITextElement( false, $"Lifespan" ) );
-            textElements.Add( new MR2UITextElement( false, TextForMonsterLifespan( monster ) ) );
+
+            textElements.Add( new MR2UITextElement( false, $"Growths" ) );
+            textElements.Add( new MR2UITextElement( false, TextForGrowths( monster ) ) );
 
             textElements.Add( new MR2UITextElement( false, $"G.Pat" ) );
             textElements.Add( new MR2UITextElement( false, TextForGrowthPattern( monster ) ) );
 
-            textElements.Add( new MR2UITextElement( false, $"Growths" ) );
-            textElements.Add( new MR2UITextElement( false, TextForGrowths(monster) ) );
+            
         }
 
         else {
             textElements[ 0 ].UpdateText( TextForLifespanHit( monster ) );
-            textElements[ 4 ].UpdateText( TextForMonsterLStage( monster ) );
-            textElements[ 6 ].UpdateText( TextForMonsterLifespan( monster ) );
-            textElements[ 8 ].UpdateText( TextForGrowthPattern( monster ) );
-            textElements[ 10 ].UpdateText( TextForGrowths( monster ) );
+
+            textElements[ 4 ].UpdateText( TextForMonsterLifespan( monster ) );
+            textElements[ 6 ].UpdateText( TextForMonsterLStage( monster ) );
+            
+            textElements[ 8 ].UpdateText( TextForGrowths( monster ) );
+            textElements[ 10 ].UpdateText( TextForGrowthPattern( monster ) );
         }
 
         foreach ( MR2UITextElement te in textElements ) {

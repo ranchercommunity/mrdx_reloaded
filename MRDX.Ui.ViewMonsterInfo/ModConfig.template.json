@@ -1,9 +1,9 @@
 {
     "ModId": "MRDX.Ui.ViewMonsterInfo",
     "ModName": "View Monster Info",
-    "ModAuthor": "fadillzzz",
+    "ModAuthor": "ArchbishopDave / fadillzzz",
     "ModVersion": "{{ MOD_VERSION }}",
-    "ModDescription": "View Hidden Monster Info include stress, fatigue, growths, and more!",
+    "ModDescription": "View Hidden Monster Info including stress, fatigue, growths, and more!",
     "ModDll": "MRDX.Ui.ViewMonsterInfo.dll",
     "ModIcon": "Preview.png",
     "ModR2RManagedDll32": "x86/MRDX.Ui.ViewMonsterInfo.dll",
