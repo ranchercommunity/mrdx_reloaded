@@ -126,9 +126,18 @@ public delegate void RemovesSomeUiElements ( nint self );
 [Function( CallingConventions.Fastcall )]
 public delegate void DrawUIBoxes ( nint dt0, nint dt1, int unk2, int unk3 );
 
-    /// <summary>
-    /// Your mod logic goes here.
-    /// </summary>
+
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 EC 48 A1 ?? ?? ?? ?? 33 C5 89 45 ?? 8B 45 ?? 53 56")]
+[Function( CallingConventions.Fastcall )]
+public delegate int UNKModifyRootBox ( ushort unk1, nuint unk2, int unk3 );
+
+[HookDef( BaseGame.Mr2, Region.Us, "53 8B D9 56 8B 34 9D ?? ?? ?? ??")]
+[Function( CallingConventions.Fastcall )]
+public delegate void UNKClearRootBox ( int unk1 );
+
+/// <summary>
+/// Your mod logic goes here.
+/// </summary>
 public class Mod : ModBase // <= Do not Remove.
 {
     private IHook<DrawStyle>? _hook_drawStyle;
@@ -142,8 +151,11 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<DrawMonsterInfoPage2>? _hook_drawMonsterInfoPage2;
     private IHook<DrawMonsterInfoPage3>? _hook_drawMonsterInfoPage3;
 
+    private IHook<UNKClearRootBox>? _hook_clearRootBox;
+    private IHook<UNKModifyRootBox>? _hook_modifyRootBox;
+
     private ParseTextWithCommandCodes? _wrapfunc_parseTextWithCommandCodes;
-    private DrawTextWithPadding? _drawText;
+    private DrawTextWithPadding? _wrapfunc_drawTextWithPadding;
     private DrawTextToScreenPORT? _wrapfunc_drawTextToScreen;
 
     private nuint _address_game;
@@ -156,15 +168,13 @@ public class Mod : ModBase // <= Do not Remove.
     private List<MR2UIElementBox> boxElements = new List<MR2UIElementBox>();
     private List<MR2UITextElement> textElements = new List<MR2UITextElement>();
 
+    private nint _rootBoxPtrPrev;
     private nint rootBoxPtr;
     private Box rootBox;
 
+    private int _previousFarmStatus = -1;
     private bool initialized = false;
-
-    private nint sflhTextAddr;
-    private nint stressTextAddr;
-    private nint fatigueTextAddr;
-    private nint lifeIndexTextAddr;
+    private bool initialized_mp3 = false;
 
     private (bool, bool) _watchMove_SLMInfo = (false, false);
 
@@ -195,8 +205,11 @@ public class Mod : ModBase // <= Do not Remove.
         hooks!.AddHook<DrawMonsterInfoPage3>( HFDrawMonsterInfoPage3 ).ContinueWith( result => _hook_drawMonsterInfoPage3 = result.Result.Activate() );
 
         hooks!.CreateWrapper<ParseTextWithCommandCodes>().ContinueWith( result => _wrapfunc_parseTextWithCommandCodes = result.Result );
-        hooks!.CreateWrapper<DrawTextWithPadding>().ContinueWith( result => _drawText = result.Result );
+        hooks!.CreateWrapper<DrawTextWithPadding>().ContinueWith( result => _wrapfunc_drawTextWithPadding = result.Result );
         hooks!.CreateWrapper<DrawTextToScreenPORT>().ContinueWith( result => _wrapfunc_drawTextToScreen = result.Result );
+
+        //hooks!.AddHook<UNKModifyRootBox>( HFModifyRootBox ).ContinueWith( result => _hook_modifyRootBox = result.Result.Activate() );
+        hooks!.AddHook<UNKClearRootBox>( HFClearRootBox ).ContinueWith( result => _hook_clearRootBox = result.Result.Activate() );
 
         WeakReference<IGame> _game = _modLoader.GetController<IGame>();
         _game.TryGetTarget( out var g );
@@ -204,10 +217,26 @@ public class Mod : ModBase // <= Do not Remove.
 
     }
 
+    public int HFModifyRootBox ( ushort unk1, nuint unk2, int unk3 ) {
+        int ret = _hook_modifyRootBox!.OriginalFunction( unk1, unk2, unk3 );
+        Logger.Error( $"ModifyRootBox: {unk1} {unk2} {unk3} : {ret}" );
+        return ret;
+    }
+
+
+    public void HFClearRootBox ( int unk1 ) {
+        Logger.Error( $"ClearRootBox: {unk1}" );
+        RestoreUILinkedList();
+        _hook_clearRootBox!.OriginalFunction( unk1 );
+    }
+
     public int HFDrawFarmUIElements( nint unk1, nint unk2, nint unk3 ) {
         _watchMove_SLMInfo.Item1 = true;
         var ret = _hook_drawFarmUIElements!.OriginalFunction( unk1, unk2, unk3 );
-        Logger.Error( $"Drawing Farm UI: {unk1} {unk2} {unk3} {ret}" );
+        Logger.Error( $"Drawing Farm UI: {unk1.ToString("X")} {unk2.ToString( "X" )} {unk3.ToString( "X" )} {ret}" );
+
+ 
+        //Logger.Error( $"Drawing Farm UI: {unk1} {unk2} {unk3} {ret}" );
         _watchMove_SLMInfo = (false, false);
 
         return ret;
@@ -229,57 +258,59 @@ public class Mod : ModBase // <= Do not Remove.
 
     private void HFDrawMonsterInfoPage2 ( int unk1 ) {
         _watchMove_SLMInfo = (false, false);
-
-
-
         _hook_drawMonsterInfoPage2!.OriginalFunction( unk1 );
-
     }
 
     private void HFDrawMonsterInfoPage3 (int unk1 ) {
         _watchMove_SLMInfo = (false, false);
 
-        if ( initialized == false ) {
-            Init();
+        if ( CheckAndInitialize(ref initialized_mp3) ) {
 
-            /* TODO FIX THIS
-            // Top
-            AddUIElement_StandardGrayBox( -140, -40, 70, 20 );
-            AddUIElement_StandardGrayTranslucentBox( -70, -40, 78, 20 );
+            // Row 3
+            AddUIElement_StandardGrayBox( -140, -42, 64, 20 );
+            AddUIElement_StandardGrayTranslucentBox( -76, -42, 84, 20 );
 
-            AddUIElement_StandardGrayBox( 30, -40, 52, 20 );
-            AddUIElement_StandardGrayTranslucentBox( 80, -40, 56, 20 );
+            AddUIElement_StandardGrayBox( 20, -42, 52, 20 );
+            AddUIElement_StandardGrayTranslucentBox( 72, -42, 64, 20 );
 
 
-            // Bottom
-            AddUIElement_StandardGrayBox( -140, -20, 70, 20 );
-            AddUIElement_StandardGrayTranslucentBox( -70, -20, 78, 20 );
+            // Row 2
+            AddUIElement_StandardGrayBox( -140, -22, 64, 20 );
+            AddUIElement_StandardGrayTranslucentBox( -76, -22, 84, 20 );
+
+            AddUIElement_StandardGrayBox( 20, -22, 52, 20 );
+            AddUIElement_StandardGrayTranslucentBox( 72, -22, 64, 20 );
 
 
-            AddUIElement_StandardGrayBox( 30, -20, 52, 20 );
-            AddUIElement_StandardGrayTranslucentBox( 80, -20, 56, 20 );
-            */
+            // Row 3
+            AddUIElement_StandardGrayBox( -140, -2, 64, 20 );
+            AddUIElement_StandardGrayTranslucentBox( -76, -2, 84, 20 );
 
+            AddUIElement_StandardGrayBox( 20, -2, 52, 20 );
+            AddUIElement_StandardGrayTranslucentBox( 72, -2, 64, 20 );
 
-            // Heights 19
-            // 3/7 Widths - 49
-            // 4/8 Widhts - 52
-
-            // 5/9 Widths - 71?
-            // 6/10 Widths- 78
         }
 
-        textElements[ 3 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -104 )), unchecked ((ushort) ( -60 )) );
-        textElements[ 4 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -34 )), unchecked((ushort) ( -60 )) );
+        textElements[ 3 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, -107 , -40, 0 );
+        textElements[ 4 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, -34, -40, 0 );
 
-        textElements[ 5 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 56 )), unchecked((ushort) ( -60 )) );
-        textElements[ 6 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 108 )), unchecked((ushort) ( -60 )) );
+        textElements[ 7 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, -107, -20, 0 );
+        textElements[ 8 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, -34, -20, 0 );
 
-        textElements[ 7 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -104 )), unchecked((ushort) ( -40 )) );
-        textElements[ 8 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( -34 )), unchecked((ushort) ( -40 )) );
 
-        textElements[ 9 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 56 )), unchecked((ushort) ( -40 )) );
-        textElements[ 10 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, unchecked((uint) ( 108 )), unchecked((ushort) ( -40 )) );
+        textElements[ 5 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, 46, -40, 0 );
+        textElements[ 6 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, 105, -40, 0 );
+
+        textElements[ 9 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, 46, -20, 0 );
+        textElements[ 10 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, 105, -20, 0 );
+
+
+        textElements[ 11 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, -107, 0, 0 );
+        textElements[ 12 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, -34, 0, 0 );
+
+        textElements[ 13 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, 46, 0, 0 );
+        textElements[ 14 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, 105, 0, 0 );
+
 
         _hook_drawMonsterInfoPage3!.OriginalFunction( unk1 );
     }
@@ -311,7 +342,11 @@ public class Mod : ModBase // <= Do not Remove.
             textElements.Add( new MR2UITextElement( false, $"G.Pat" ) );
             textElements.Add( new MR2UITextElement( false, TextForGrowthPattern( monster ) ) );
 
-            
+            textElements.Add( new MR2UITextElement( false, $"Guts" ) );
+            textElements.Add( new MR2UITextElement( false, TextForGrowthPattern( monster ) ) );
+
+            textElements.Add( new MR2UITextElement( false, $"A.Speed" ) );
+            textElements.Add( new MR2UITextElement( false, TextForGrowths( monster ) ) );
         }
 
         else {
@@ -322,6 +357,9 @@ public class Mod : ModBase // <= Do not Remove.
             
             textElements[ 8 ].UpdateText( TextForGrowths( monster ) );
             textElements[ 10 ].UpdateText( TextForGrowthPattern( monster ) );
+
+            textElements[ 12 ].UpdateText( TextForGuts( monster ) );
+            textElements[ 14 ].UpdateText( TextForArenaSpeed( monster ) );
         }
 
         foreach ( MR2UITextElement te in textElements ) {
@@ -355,7 +393,6 @@ public class Mod : ModBase // <= Do not Remove.
             $"{ TextForGrowthSingleStat( monster.GrowthRateIntelligence )} {TextForGrowthSingleStat( monster.GrowthRateSkill )} " +
             $"{ TextForGrowthSingleStat( monster.GrowthRateSpeed )} {TextForGrowthSingleStat( monster.GrowthRateDefense)}";
     }
-    
 
     private string TextForGrowthSingleStat( byte growth ) {
         switch (growth) {
@@ -367,9 +404,19 @@ public class Mod : ModBase // <= Do not Remove.
             default: return "X";
         }
     }
+
+    private string TextForArenaSpeed ( IMonster monster ) {
+        return TextForGrowthSingleStat( monster.ArenaSpeed );
+    }
+
+    private string TextForGuts( IMonster monster ) {
+        double gps = 30.0 / monster.GutsRate;
+        return $"{monster.GutsRate} - {gps.ToString("0.#")}/s";
+    }
+
     private string TextForLifespanHit ( IMonster monster ) {
         int lifeIndex = monster.Fatigue + ( monster.Stress * 2 );
-        int lifeIndexHit = ( -1 * ( ( lifeIndex - 70 ) / 35 + 1 ) );
+        int lifeIndexHit = ( -1 * ( Math.Max(0, lifeIndex - 70 ) / 35 + 1 ) );
         if ( lifeIndex >= 280 ) {
             lifeIndexHit = -7;
         }
@@ -378,6 +425,7 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     private void RestoreUiLinkedList ( nint self ) {
+        Logger.Error( "RemoveSomeUIElements called.", Color.Red );
         nint CSysFarmPtrPtr = Marshal.ReadInt32( (nint) _address_game + 0x372308 );
 
         if ( CSysFarmPtrPtr != 0 ) {
@@ -385,28 +433,33 @@ public class Mod : ModBase // <= Do not Remove.
             byte isDisplayed = Marshal.ReadByte( CSysFarmPtr + 0x38 );
 
             if ( initialized == true && isDisplayed == 1 ) {
-                if ( boxesAdded.Count > 0 ) {
-                    rootBox.Next = boxesAdded.Last().Next;
-                }
-
-                Marshal.StructureToPtr( rootBox, rootBoxPtr, false );
-
-                boxesAdded = new List<Box>();
-
-                for ( int i = 0; i < addressesAdded.Count; i++ ) {
-                    Marshal.FreeCoTaskMem( addressesAdded[ i ] );
-                }
-
-                addressesAdded = new List<nint>();
-
-                initialized = false;
-
-                
+                RestoreUILinkedList();
             }
         }
 
         _removeUiHook!.OriginalFunction( self );
         
+    }
+
+    private void RestoreUILinkedList() {
+        if ( boxesAdded.Count > 0 ) {
+            rootBox.Next = boxesAdded.Last().Next;
+        }
+
+        if ( rootBoxPtr != 0 ) {
+            Marshal.StructureToPtr( rootBox, rootBoxPtr, false );
+        } rootBoxPtr = 0;
+
+        boxesAdded = new List<Box>();
+
+        for ( int i = 0; i < addressesAdded.Count; i++ ) {
+            Marshal.FreeCoTaskMem( addressesAdded[ i ] );
+        }
+
+        addressesAdded = new List<nint>();
+
+        initialized = false;
+        initialized_mp3 = false;
     }
 
     private void RebuildBoxList () {
@@ -595,7 +648,41 @@ public class Mod : ModBase // <= Do not Remove.
         AddUIElement_StandardBlueBox( 86, 96, 66, 20 );
     }
 
-    private void Init () {
+    public bool CheckAndInitialize(ref bool _initialized) {
+        if ( _initialized ) { return false; }
+
+        // There can be up to 4 pointers stored in an array, where each element
+        // will point to a linked list of UI elements to draw.
+        // We're reading the array from behind as a hack to get around an issue
+        // with the item shop, where if you back out of the item shop
+        // the linked list that we're interested in would be stored at the back 
+        // of the array because for a split second multiple linked list of UI
+        // elements are rendered.
+
+        var reinit = false;
+        for ( int i = 3; i >= 0; i-- ) {
+            var rbPtr = Marshal.ReadInt32( (nint) (_address_game + (nuint) (0x369900 + 4 * i)) );
+
+            if ( rbPtr != 0 ) {
+                if ( rbPtr != _rootBoxPtrPrev ) {
+                    reinit = true;
+                    RestoreUILinkedList();
+
+                    rootBoxPtr = rbPtr;
+                }
+            }
+        }
+
+        if ( reinit ) {
+            RebuildBoxList();
+            _initialized = true;
+            return true;
+        }
+
+        return false;
+        
+    }
+    private void Init ( ref bool _initialized ) {
         nint rootBoxPtrPtr;
         // There can be up to 4 pointers stored in an array, where each element
         // will point to a linked list of UI elements to draw.
@@ -614,22 +701,29 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         RebuildBoxList();
-        initialized = true;
+        _initialized = true;
     }
 
     private void HFDrawStyle ( int unk1, int y ) {
 
-        Logger.Error( $"Style {unk1}", Color.Yellow );
+
+        Logger.Error( $"Style {unk1} {_watchMove_SLMInfo.Item1} {initialized}", Color.Yellow );
         if ( _watchMove_SLMInfo.Item1 ) {
-            if ( initialized == false ) { 
-                Init();
+
+            /*if ( _previousFarmStatus != 0 ) {
+                _previousFarmStatus = 0;
+                RestoreUILinkedList();
+            }*/
+
+            
+            if ( CheckAndInitialize( ref initialized ) ) { 
                 UpdateLoyaltyBoxes();
             }
 
             if ( textElements.Count > 0 && boxesAdded.Count > 0 ) {
                 _watchMove_SLMInfo.Item2 = false;
-                //textElements[ 0 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, (uint) (boxesAdded[ 0 ].X + 2), 98 );
-                textElements[ 0 ].DrawTextWithPadding( _drawText, (short) ( boxesAdded[ 0 ].X + 30 ), 98, 0 );
+                
+                textElements[ 0 ].DrawTextWithPadding( _wrapfunc_drawTextWithPadding, (short) ( boxesAdded[ 0 ].X + 30 ), 98, 0 );
 
                 textElements[ 1 ].DrawTextToScreen( _wrapfunc_drawTextToScreen, (uint) ( boxesAdded[ 1 ].X + 36 ), (ushort) ( boxesAdded[ 1 ].Y - 18 ) );
 
