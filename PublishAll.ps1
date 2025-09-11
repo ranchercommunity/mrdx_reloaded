@@ -30,7 +30,7 @@ $AllProjects = @(
     @("MRDX.Qol.SkipDrillAnim", "1.3.3", $false),
     @("MRDX.Qol.TurboInput", "1.0.7", $false),
     @("MRDX.Ui.RawTechValues", "1.0.10", $false),
-    @("MRDX.Ui.ViewMonsterInfo", "0.0.1", $false)
+    @("MRDX.Ui.ViewMonsterInfo", "0.1.0", $false)
 )
 
 Write-Output "Starting Publish All"

@@ -265,7 +265,7 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     public void HFTechniqueUpdateSelectedData ( nuint unk1 ) {
-        Logger.Error( $"TechniqueUpdateSelected: {unk1.ToString( "X" )}" );
+        //Logger.Error( $"TechniqueUpdateSelected: {unk1.ToString( "X" )}" );
 
         _hook_techPageUpdateSelected!.OriginalFunction( unk1 );
         Memory.Instance.Read( unk1 + 0x108, out nuint techChosenPtr );
@@ -362,7 +362,7 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     private void HFDrawMonsterInfoPage4 ( int unk1 ) {
-        Logger.Error( $"Page 4 : {unk1}", Color.Green);
+        //Logger.Error( $"Page 4 : {unk1}", Color.Green);
         
 
         if ( CheckAndInitialize( ref initialized_mp4 ) ) {
@@ -447,7 +447,7 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     private string TextForMonsterLifespan( IMonster monster ) {
-        return $"{monster.InitalLifespan - monster.Lifespan}/{monster.InitalLifespan}";
+        return $"{monster.Lifespan} / {monster.InitalLifespan}";
     }
 
     private string TextForGrowthPattern( IMonster monster ) {
@@ -483,13 +483,13 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     private string TextForGuts( IMonster monster ) {
-        double gps = 30.0 / monster.GutsRate;
+        double gps = 30.0 / (Math.Max( (byte) 1, monster.GutsRate) );
         return $"{monster.GutsRate} - {gps.ToString("0.#")}/s";
     }
 
     private string TextForLifespanHit ( IMonster monster ) {
         int lifeIndex = monster.Fatigue + ( monster.Stress * 2 );
-        int lifeIndexHit = ( -1 * ( Math.Max(0, lifeIndex - 70 ) / 35 + 1 ) );
+        int lifeIndexHit = ( -1 * ( Math.Max(0, (int) Math.Ceiling((lifeIndex - 70.0)  / 35.0 )) ) );
         if ( lifeIndex >= 280 ) {
             lifeIndexHit = -7;
         }
@@ -824,7 +824,7 @@ public class Mod : ModBase // <= Do not Remove.
     private void HFDrawStyle ( int unk1, int y ) {
 
 
-        Logger.Error( $"Style {unk1} {_watchMove_SLMInfo.Item1} {initialized}", Color.Yellow );
+        //Logger.Error( $"Style {unk1} {_watchMove_SLMInfo.Item1} {initialized}", Color.Yellow );
         if ( _watchMove_SLMInfo.Item1 ) {
 
             /*if ( _previousFarmStatus != 0 ) {
