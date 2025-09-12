@@ -1,7 +1,7 @@
 ﻿using Reloaded.Mod.Interfaces;
-using MRDX.Ui.ViewMonsterInfo.Configuration;
+using MRDX.Ui.AdditionalMonsterInfo.Configuration;
 
-namespace MRDX.Ui.ViewMonsterInfo.Template.Configuration;
+namespace MRDX.Ui.AdditionalMonsterInfo.Template.Configuration;
 
 /// <summary>
 /// Creates the various different configurations used by the mod.

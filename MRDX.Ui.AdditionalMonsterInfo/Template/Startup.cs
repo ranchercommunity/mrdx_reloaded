@@ -7,10 +7,10 @@
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
 using Reloaded.Hooks.Definitions;
-using MRDX.Ui.ViewMonsterInfo.Template.Configuration;
-using MRDX.Ui.ViewMonsterInfo.Configuration;
+using MRDX.Ui.AdditionalMonsterInfo.Template.Configuration;
+using MRDX.Ui.AdditionalMonsterInfo.Configuration;
 
-namespace MRDX.Ui.ViewMonsterInfo.Template;
+namespace MRDX.Ui.AdditionalMonsterInfo.Template;
 
 public class Startup : IMod
 {

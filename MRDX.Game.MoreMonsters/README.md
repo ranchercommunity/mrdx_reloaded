@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.2.3
+﻿# More Monsters - Version 0.2.5
 
 ## Features
 

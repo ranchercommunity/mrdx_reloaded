@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace MRDX.Ui.ViewMonsterInfo.Template.Configuration;
+namespace MRDX.Ui.AdditionalMonsterInfo.Template.Configuration;
 
 public class Utilities
 {

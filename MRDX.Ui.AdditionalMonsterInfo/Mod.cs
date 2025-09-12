@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Xml;
 using System.Xml.Linq;
 using Iced.Intel;
 using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.Mod.Interfaces;
-using MRDX.Ui.ViewMonsterInfo.Configuration;
-using MRDX.Ui.ViewMonsterInfo.Template;
+using MRDX.Ui.AdditionalMonsterInfo.Configuration;
+using MRDX.Ui.AdditionalMonsterInfo.Template;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.X86;
 using Reloaded.Memory.Sources;
@@ -14,7 +15,7 @@ using Reloaded.Mod.Interfaces;
 using Reloaded.Universal.Redirector.Interfaces;
 using CallingConventions = Reloaded.Hooks.Definitions.X86.CallingConventions;
 
-namespace MRDX.Ui.ViewMonsterInfo;
+namespace MRDX.Ui.AdditionalMonsterInfo;
 
 [StructLayout( LayoutKind.Explicit )]
 public struct Box {
@@ -189,7 +190,8 @@ public class Mod : ModBase // <= Do not Remove.
     private List<MR2UIElementBox> boxElements = new List<MR2UIElementBox>();
     private List<MR2UITextElement> textElements = new List<MR2UITextElement>();
 
-    private nint _rootBoxPtrPrev;
+    private byte _activeRootBoxes;
+    private byte _rootBoxPtrPos;
     private nint rootBoxPtr;
     private Box rootBox;
 
@@ -206,6 +208,7 @@ public class Mod : ModBase // <= Do not Remove.
         _hooks = context.Hooks;
         _logger = context.Logger;
         _owner = context.Owner;
+        _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
         _modLoader.GetController<IHooks>().TryGetTarget( out var hooks );
@@ -219,7 +222,7 @@ public class Mod : ModBase // <= Do not Remove.
         hooks!.AddHook<DrawLoyalty>( DrawLifeIndex ).ContinueWith( result => _hook_drawLoyalty = result.Result.Activate() );
 
         hooks!.AddHook<DrawFarmUiElements>( HFDrawFarmUIElements ).ContinueWith( result => _hook_drawFarmUIElements = result.Result.Activate() );
-        hooks!.AddHook<RemovesSomeUiElements>( RestoreUiLinkedList ).ContinueWith( result => _removeUiHook = result.Result.Activate() );
+        //hooks!.AddHook<RemovesSomeUiElements>( RestoreUiLinkedList ).ContinueWith( result => _removeUiHook = result.Result.Activate() );
         
         
         hooks!.AddHook<DrawTextToScreenPORT>( HFDrawTextToScreen ).ContinueWith( result => _hook_drawTextToScreen = result.Result.Activate() );
@@ -242,7 +245,7 @@ public class Mod : ModBase // <= Do not Remove.
         _game.TryGetTarget( out var g );
         g!.OnMonsterChanged += MonsterChanged;
 
-
+        Logger.SetLogLevel( _configuration.LogLevel );
     }
 
     public int HFModifyRootBox ( ushort unk1, nuint unk2, int unk3 ) {
@@ -253,19 +256,29 @@ public class Mod : ModBase // <= Do not Remove.
 
 
     public void HFClearRootBox ( int unk1 ) {
-        //Logger.Error( $"ClearRootBox: {unk1}" );
+        Logger.Debug( $"ClearRootBox: {unk1}", Color.BlueViolet );
+        /*for ( int i = 0; i <= 3; i++ ) {
+            var rbPtr = Marshal.ReadInt32( (nint) ( _address_game + (nuint) ( 0x369900 + 4 * i ) ) );
+            if ( rootBoxPtr != rbPtr && rbPtr != 0 ) {
+                break;
+            }
+
+            else if ( rootBoxPtr == rbPtr && rbPtr != 0 ) {
+                RestoreUILinkedList();
+            }
+        }*/
         RestoreUILinkedList();
         _hook_clearRootBox!.OriginalFunction( unk1 );
     }
 
     public void HFTechniquePageChangeTech ( nuint unk1 ) {
-        //Logger.Error( $"TechPageChangeTech: {unk1.ToString( "X" )}" );
+        Logger.Debug( $"TechPageChangeTech: {unk1.ToString( "X" )}", Color.BlueViolet );
         _hook_techPageChangeTech!.OriginalFunction( unk1 );
         
     }
 
     public void HFTechniqueUpdateSelectedData ( nuint unk1 ) {
-        //Logger.Error( $"TechniqueUpdateSelected: {unk1.ToString( "X" )}" );
+        Logger.Debug( $"TechniqueUpdateSelected: {unk1.ToString( "X" )}", Color.BlueViolet );
 
         _hook_techPageUpdateSelected!.OriginalFunction( unk1 );
         Memory.Instance.Read( unk1 + 0x108, out nuint techChosenPtr );
@@ -279,10 +292,8 @@ public class Mod : ModBase // <= Do not Remove.
     public int HFDrawFarmUIElements( nint unk1, nint unk2, nint unk3 ) {
         _watchMove_SLMInfo.Item1 = true;
         var ret = _hook_drawFarmUIElements!.OriginalFunction( unk1, unk2, unk3 );
-        //Logger.Error( $"Drawing Farm UI: {unk1.ToString("X")} {unk2.ToString( "X" )} {unk3.ToString( "X" )} {ret}" );
+        Logger.Trace( $"Drawing Farm UI: {unk1.ToString("X")} {unk2.ToString( "X" )} {unk3.ToString( "X" )} {ret}", Color.BlueViolet );
 
- 
-        //Logger.Error( $"Drawing Farm UI: {unk1} {unk2} {unk3} {ret}" );
         _watchMove_SLMInfo = (false, false);
 
         return ret;
@@ -290,24 +301,26 @@ public class Mod : ModBase // <= Do not Remove.
     public int HFDrawTextToScreen ( uint x, ushort y, nint textPtr, int textParams, nint colorPtr ) {
        
         if ( _watchMove_SLMInfo.Item2 ) {
-            //Logger.Error( $"Drawing Text MODIFIED: {x}, {y}, {textPtr}, {textParams}, {colorPtr}", Color.White );
+            Logger.Trace( $"Drawing Text MODIFIED: {x}, {y}, {textPtr}, {textParams}, {colorPtr}", Color.BlueViolet );
             return _hook_drawTextToScreen!.OriginalFunction( x - 32, (ushort) (y + 12), textPtr, textParams, colorPtr );
         }
-        //Logger.Error( $"Drawing Text: {x}, {y}, {textPtr}, {textParams}, {colorPtr}", Color.Orange );
+        Logger.Trace( $"Drawing Text: {x}, {y}, {textPtr}, {textParams}, {colorPtr}", Color.BlueViolet );
         return _hook_drawTextToScreen!.OriginalFunction( x, y, textPtr, textParams, colorPtr );
     }
 
     private void HFDrawUIBoxes( nint dt0, nint dt1, int unk2, int unk3 ) {
-        //Logger.Error( $"Drawing UI Boxes: {dt0}, {dt1}, {unk2}, {unk3}" );
+        Logger.Trace( $"Drawing UI Boxes: {dt0}, {dt1}, {unk2}, {unk3}" );
         _hook_drawUIBoxes!.OriginalFunction( dt0, dt1, unk2, unk3 );
     }
 
     private void HFDrawMonsterInfoPage2 ( int unk1 ) {
+        Logger.Trace( $"Drawing MIP2: {unk1}", Color.BlueViolet );
         _watchMove_SLMInfo = (false, false);
         _hook_drawMonsterInfoPage2!.OriginalFunction( unk1 );
     }
 
     private void HFDrawMonsterInfoPage3 (int unk1 ) {
+        Logger.Trace( $"Drawing MIP3: {unk1}", Color.BlueViolet );
         _watchMove_SLMInfo = (false, false);
 
         if ( CheckAndInitialize(ref initialized_mp3) ) {
@@ -362,8 +375,8 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     private void HFDrawMonsterInfoPage4 ( int unk1 ) {
-        //Logger.Error( $"Page 4 : {unk1}", Color.Green);
-        
+        Logger.Trace( $"Drawing MIP4: {unk1}", Color.BlueViolet );
+
 
         if ( CheckAndInitialize( ref initialized_mp4 ) ) {
 
@@ -510,22 +523,6 @@ public class Mod : ModBase // <= Do not Remove.
             //monster.MoveUseCount.CopyTo( _techUses, 0 );
         }
 
-    private void RestoreUiLinkedList ( nint self ) {
-        Logger.Error( "RemoveSomeUIElements called.", Color.Red );
-        nint CSysFarmPtrPtr = Marshal.ReadInt32( (nint) _address_game + 0x372308 );
-
-        if ( CSysFarmPtrPtr != 0 ) {
-            nint CSysFarmPtr = Marshal.ReadInt32( CSysFarmPtrPtr + 0x3C );
-            byte isDisplayed = Marshal.ReadByte( CSysFarmPtr + 0x38 );
-
-            if ( initialized == true && isDisplayed == 1 ) {
-                RestoreUILinkedList();
-            }
-        }
-
-        _removeUiHook!.OriginalFunction( self );
-        
-    }
 
     private void RestoreUILinkedList() {
         if ( boxesAdded.Count > 0 ) {
@@ -775,18 +772,22 @@ public class Mod : ModBase // <= Do not Remove.
         // the linked list that we're interested in would be stored at the back 
         // of the array because for a split second multiple linked list of UI
         // elements are rendered.
-
+        _activeRootBoxes = 0;
         var reinit = false;
         for ( int i = 3; i >= 0; i-- ) {
             var rbPtr = Marshal.ReadInt32( (nint) (_address_game + (nuint) (0x369900 + 4 * i)) );
 
-            if ( rbPtr != 0 ) {
-                if ( rbPtr != _rootBoxPtrPrev ) {
-                    reinit = true;
-                    RestoreUILinkedList();
+            if ( rbPtr != 0 && !reinit) {
+                reinit = true;
+                //rootBoxPtr = rbPtr;
+                RestoreUILinkedList();
 
-                    rootBoxPtr = rbPtr;
-                }
+                rootBoxPtr = rbPtr;
+                _rootBoxPtrPos = (byte) i;
+            }
+
+            if (rbPtr != 0 ) {
+                _activeRootBoxes++;
             }
         }
 
@@ -799,32 +800,10 @@ public class Mod : ModBase // <= Do not Remove.
         return false;
         
     }
-    private void Init ( ref bool _initialized ) {
-        nint rootBoxPtrPtr;
-        // There can be up to 4 pointers stored in an array, where each element
-        // will point to a linked list of UI elements to draw.
-        // We're reading the array from behind as a hack to get around an issue
-        // with the item shop, where if you back out of the item shop
-        // the linked list that we're interested in would be stored at the back 
-        // of the array because for a split second multiple linked list of UI
-        // elements are rendered.
-        for ( int i = 3; i >= 0; i-- ) {
-            rootBoxPtrPtr = (nint) _address_game + 0x369900 + 4 * i;
-            rootBoxPtr = Marshal.ReadInt32( rootBoxPtrPtr );
-
-            if ( rootBoxPtr != 0 ) {
-                break;
-            }
-        }
-
-        RebuildBoxList();
-        _initialized = true;
-    }
-
     private void HFDrawStyle ( int unk1, int y ) {
 
 
-        //Logger.Error( $"Style {unk1} {_watchMove_SLMInfo.Item1} {initialized}", Color.Yellow );
+        Logger.Trace( $"Drawing Style: {unk1}, {y}", Color.BlueViolet );
         if ( _watchMove_SLMInfo.Item1 ) {
 
             /*if ( _previousFarmStatus != 0 ) {
@@ -832,9 +811,13 @@ public class Mod : ModBase // <= Do not Remove.
                 RestoreUILinkedList();
             }*/
 
-            
-            if ( CheckAndInitialize( ref initialized ) ) { 
-                UpdateLoyaltyBoxes();
+            if ( CheckAndInitialize( ref initialized ) ) {
+                if ( _activeRootBoxes == 1 ) {
+                    UpdateLoyaltyBoxes();
+                }
+                else {
+                    initialized = false;
+                }
             }
 
             if ( textElements.Count > 0 && boxesAdded.Count > 0 ) {

@@ -1,29 +1,23 @@
 ﻿using System.ComponentModel;
-using MRDX.Ui.ViewMonsterInfo.Template.Configuration;
+using MRDX.Base.Mod.Interfaces;
+using MRDX.Ui.AdditionalMonsterInfo.Template.Configuration;
 using Reloaded.Mod.Interfaces.Structs;
 
-namespace MRDX.Ui.ViewMonsterInfo.Configuration;
+namespace MRDX.Ui.AdditionalMonsterInfo.Configuration;
 
 public class Config : Configurable<Config>
 {
-    [DisplayName("Banana Type")]
-    [Description("Magic Bananas will always apply the following set of effects.\n" +
-    "Stress Banana: +10 Fear/Spoil, -1 Form, -10 Stress\n" +
-    "Mixed Banana: -10 Fear, +10 Spoil, -15 Fatigue, -5 Stress\n" +
-    "Fatigue Banana: -10 Fear/Spoil, +1 Form, -30 Fatigue")]
-    [DefaultValue(EConfBananaType.Stress)]
-
-    public EConfBananaType _config_bananaType { get; set; } = EConfBananaType.Stress;
-
-    public enum EConfBananaType { Stress, Mixed, Fatigue }
-
-    [DisplayName( "Banana Coloration" )]
-    [Description( "Enables gentle coloration reminders of the selected banana type from this mod.\n" +
-    "Stress Banana: These bananas are not looking so ripe.\n" +
-    "Mixed Banana: Your regular yellow bananas. Just the way you remember them.\n" +
-    "Fatigue Banana: These banans may be past their ripeness." )]
-    [DefaultValue( true )]
-    public bool _conifg_bananaColors { get; set; } = true;
+    [Category( "Advanced - Mod Debugging" )]
+    [DisplayName( "Reloaded Message Verbosity" )]
+    [Description(
+    "Enables internal printouts to the Reloaded Log file to help debug issues or track mod performance.\n" +
+    "Error - No debug messages printed except dire, urgent issues. For normal gameplay.\n" +
+    "Warning - Prints messages for major events only.\n" +
+    "Info - Prints lots messages. Useful if there is consistent crashing.\n" +
+    "Debug - Considerably helpful for diagnoisng issues though.\n" +
+    "Trace - Meant for diagnosing issues internal to the mod's performance itself." )]
+    [DefaultValue( Logger.LogLevel.Error )]
+    public Logger.LogLevel LogLevel { get; set; } = Logger.LogLevel.Error;
 
     /*
     [DisplayName( "String" )]

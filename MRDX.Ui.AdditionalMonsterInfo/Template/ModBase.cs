@@ -1,6 +1,6 @@
-﻿using MRDX.Ui.ViewMonsterInfo.Configuration;
+﻿using MRDX.Ui.AdditionalMonsterInfo.Configuration;
 
-namespace MRDX.Ui.ViewMonsterInfo.Template;
+namespace MRDX.Ui.AdditionalMonsterInfo.Template;
 
 /// <summary>
 /// Base class for implementing mod functionality.

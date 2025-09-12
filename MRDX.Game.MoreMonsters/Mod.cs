@@ -224,9 +224,7 @@ public class Mod : ModBase // <= Do not Remove.
         var exeBaseAddress = module.BaseAddress.ToInt64();
         address_game = (nuint) exeBaseAddress;
 
-
-
-        Logger.SetLogLevel( Logger.LogLevel.Debug );
+        Logger.SetLogLevel( _configuration.LogLevel );
     }
 
     #region For Exports, Serialization etc.
