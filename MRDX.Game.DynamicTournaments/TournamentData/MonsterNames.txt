@@ -87,6 +87,7 @@ Venxaacmir	1	-1
 Calcucrath	1	-1
 Urindaak	1	-1
 Taampikimer	1	-1
+Bahamut	1	-1
 Agatethon	2	-1
 Salmareo	2	-1
 Acasaestus	2	-1
@@ -165,6 +166,8 @@ Bulad	11	-1
 Lovan	11	-1
 Zuris	11	-1
 Teefies	11	-1
+Biscuit	11	-1
+Barley	11	-1
 Crajor	12	-1
 Kocryn	12	-1
 Freorient	12	-1
@@ -187,6 +190,7 @@ Faerieth	13	-1
 Ravaralei	13	-1
 Brumgrim	14	-1
 Hjoldario	14	-1
+Django	14	-1
 Hap-mu	15	-1
 Nofre-ka	15	-1
 Amasis	15	-1
@@ -199,6 +203,9 @@ Fuzzball	16	-1
 Keah	16	-1
 Stinkfish	16	-1
 Bitty	16	-1
+Baby	16	-1
+Taffy	16	-1
+Squishy	16	-1
 Mondrosker	17	-1
 Laboth	17	-1
 Ytaus	17	-1
@@ -209,6 +216,37 @@ Haithaba	18	-1
 Kathaina	18	-1
 Miskaal	18	-1
 Ghaida	18	-1
+Doodle	19	-1
+Gimmles	19	-1
+Vorton	19	-1
+Tuskies	19	-1
+Pickle	19	-1
+Swissmiss	19	-1
+Murph	19	-1
+Kitten	19	-1
+Bobbles	19	-1
+Officer	19	-1
+Werebaby	19	-1
+Taki	20	-1
+Huang	20	-1
+Minora	20	-1
+Spookler	21	-1
+The Hattler	21	-1
+Showtime	21	-1
+Houdini	21	-1
+Copperfield	21	-1
+Dynamo	21	-1
+Adelaide	21	-1
+Thurston	21	-1
+Xeno	22	-1
+Ooeffoh	22	-1
+Elzot	22	-1
+Duhrall	22	-1
+Luheans	22	-1
+Voyant	23	-1
+Great Seer	23	-1
+Refractor	23	-1
+
 Cimasio	-1	-1
 Kyrades	-1	-1
 Ambroros	-1	-1
@@ -498,14 +536,12 @@ Angerstomp	-1	-1
 Aybeedee	-1	-1
 Bajor	-1	-1
 Beekler	-1	-1
-Bobbles	-1	-1
 Buu	-1	-1
 Brainstorm	-1	-1
 Bracer	-1	-1
 Basselt	-1	-1
 Boggycreek	-1	-1
 Boggart	-1	-1
-Bahamut	-1	-1
 Baretree	-1	-1
 Birchbellow	-1	-1
 Big Fen	-1	-1
@@ -523,7 +559,6 @@ David	-1	-1
 Dingus	-1	-1
 Dakadaka	-1	-1
 Dill	-1	-1
-Doodle	-1	-1
 Daydream	-1	-1
 Dreameater	-1	-1
 Diablo	-1	-1
@@ -546,7 +581,6 @@ Feathers	-1	-1
 Fuzzball	-1	-1
 Foolcaller	-1	-1
 Gronkula	-1	-1
-Gimmles	-1	-1
 Golox	-1	-1
 Gargamel	-1	-1
 Gutterman	-1	-1
@@ -623,13 +657,11 @@ Ox	-1	-1
 Otherwilds	-1	-1
 Outerspace	-1	-1
 Oiler	-1	-1
-Officer	-1	-1
 Omexx	-1	-1
 Ocus	-1	-1
 Oddball	-1	-1
 Oakleydude	27	-1
 Parrix	-1	-1
-Pickle	-1	-1
 Piledriver	-1	-1
 Puffpuff	-1	-1
 Peachclaw	-1	-1
@@ -668,7 +700,6 @@ Tav	-1	-1
 Traveller	-1	-1
 Taximon	-1	-1
 Truegold	-1	-1
-Tuskies	-1	-1
 Tinkertot	-1	-1
 Terminus	-1	-1
 Tamil	-1	-1
@@ -677,14 +708,12 @@ Uco	-1	-1
 Unibrow	-1	-1
 Valiant	-1	-1
 Violence	-1	-1
-Vorton	-1	-1
 Voodoo	-1	-1
 Veuve	-1	-1
 Vexee	-1	-1
 Volance	-1	-1
 Wabberjack	-1	-1
 Warbler	-1	-1
-Werebaby	-1	-1
 Wisk	-1	-1
 Whiskey	-1	-1
 Woobert	-1	-1
@@ -739,3 +768,11 @@ Lessio	-1	-1
 Mogimomo	-1	-1
 Octoroller	-1	-1
 Zantasimal	-1	-1
+Oranjallo	-1	-1
+Lehmonjello	-1	-1
+Shadiemon	-1	-1
+Gloopy	-1	-1
+Heartthrob	-1	-1
+Sirduvil	-1	-1
+Veronzail	-1	-1
+Rompirun	-1	-1

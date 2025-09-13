@@ -210,10 +210,10 @@ public class TournamentMonster : BattleMonsterData
             else if (_growthIntensity == 2)
                 gopts = [10, 8, 8, 5, 11, 2];
             else if (_growthIntensity == 3)
-                gopts = [12, 2, 10, 6, 13, 10];
+                gopts = [12, 2, 10, 4, 13, 10];
             else if (_growthIntensity == 4)
-                gopts = [10, 2, 8, 10, 10, 8];
-            else if (_growthIntensity == 5) gopts = [12, 10, 10, 13, 13, 2];
+                gopts = [10, 2, 8, 8, 13, 8];
+            else if (_growthIntensity == 5) gopts = [12, 10, 10, 11, 15, 2];
 
 
         }
@@ -229,9 +229,9 @@ public class TournamentMonster : BattleMonsterData
             else if (_growthIntensity == 3)
                 gopts = [9, 2, 15, 9, 3, 10];
             else if (_growthIntensity == 4)
-                gopts = [6, 7, 13, 8, 2, 2];
+                gopts = [6, 7, 13, 4, 6, 2];
             else if (_growthIntensity == 5) 
-                gopts = [9, 10, 15, 9, 3, 2];
+                gopts = [9, 10, 15, 3, 9, 2];
         }
 
         else if (_growthGroup == GrowthGroups.Speedy)

@@ -1,4 +1,4 @@
-﻿# Dynamic Tournament Progression for MR2DX
+﻿# Dynamic Tournament Progression for MR2DX - v0.3.4
 
 * Tournament Monsters (the opponents you fight against) are both randomly generated, and grow alongside you as months pass.
 * Tournament Monsters will rank up, learn techniques, and become stronger alongside you!
@@ -10,6 +10,15 @@
 
 
 ### Latest Updates
+
+##### v0.3.4
+
+* Added an additional 50 new names to the pool!
+* Monsters will *actually* no longer share names!
+* Fixed an issue where the Dragon Tusk and Double-Edge fights were providing the opposite opponent.
+* Slightly increased the chance of a monster prioritizing defense over speed for its primary defensive stat.
+
+
 
 ##### v0.3.3
 

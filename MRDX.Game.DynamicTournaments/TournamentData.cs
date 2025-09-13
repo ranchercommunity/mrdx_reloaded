@@ -50,76 +50,6 @@ public enum EMonsterRegion {
 
 public class TournamentData
 {
-    public static readonly string[] RandomNameList =
-    [
-        "Cimasio", "Kyrades", "Ambroros", "Teodeus", "Lazan", "Pegetus", "Perseos", "Asandrou", "Agametrios",
-        "Lazion", "Morphosyne", "Gelantinos", "Narkelous", "Taloclus", "Baltsalus", "Hypnaeon", "Atrol", "Alexede",
-        "Baccinos", "Idastos", "Ophyroe", "Larissa", "Asperata",
-        "Alnifolia", "Dentala", "Celsa", "Hempera", "Laurel", "Haldiphe", "Saffronea", "Quinn",
-        "Poplarbush", "Snowdrop", "Funnyfluff", "Firo", "Limespice", "Herb", "Twinklespa", "Spring", "Shinyglade",
-        "Almond", "Foggytree", "Pecan", "Jesterfeet", "Skylark", "Rainbow", "Snow", "Oakswamp", "Liri", "Briarpuff",
-        "Extos", "Grimes", "Talis", "Anemia", "Tinder", "Neige", "Lec", "Chinook", "Graund", "Greidax", "Pigatt",
-        "Kuanezz", "Nidar", "Danuzz", "Razodrug", "Krorodurr", "Galae",
-        "Tepua", "Uvle", "Ujay", "Surlul", "Razsa", "Dezunu", "Urabu", "Sholgokoh", "Abedin", "Yetsi", "Jaedrey",
-        "Leadeth", "Baudr", "Araldyng", "Gilparymr", "Sawah", "Mazraeh",
-        "Aayuh", "Grimstriker", "Twistmight", "Pyregaze", "Heatmarch", "Omega", "Dalton", "Alpha", "Beta", "Gamma",
-        "Zeta", "Phi", "Jaeger", "Dimbranch", "Raindust", "Hillbrace", "Storm", "Sohish", "Sunhol", "Ehtae", "Lilsof",
-        "Ghostsign", "Snowlock", "Mystic", "Nevi", "Azahz", "Owen", "Denzel", "Robinson",
-        "Blossom", "Yarn", "Skitter", "Mercy", "Firj", "Blubber", "Dribble", "Angel", "Tank", "Dottie", "Taugh",
-        "Liberi", "Thespia", "Pirene", "Isonei", "Harrow", "Bakano", "Polo", "Okal", "Ochen", "Mhina", "Siaka", "Tamba",
-        "Savane", "Boukary", "Traore", "Yaya", "Dia", "Dio", "Aaron", "Prizo", "Dimitri", "Dashaco",
-        "Mathis", "Calamity", "Buve", "Hosho", "Zimba", "Tsun", "Mawere", "Rufaro", "Emoger", "Fida", "Thorns",
-        "Saffron", "Teddago", "Skelyte", "Chilleni", "Slowhawk", "Jagola",
-        "Zhar", "Dim", "Cleoz", "Rav", "Membut", "Dazam", "Groznur", "Aqrat", "Azzac", "Tergu", "Kirchon", "Nilla",
-        "Ricryll", "Imnor", "Lanceruil", "Ballion",
-        "Quosa", "Yesnorin", "Caina", "Holyn", "Athena", "Nandra", "Beratha", "Libgalyn", "Galin", "Heleto", "Faerona",
-        "Fairest", "Chuckles", "Darkness",
-        "Shiner", "Monkeytime", "Noper", "Willow", "Grassfall", "Misty", "Mantle", "Painscribe", "Plainwood", "Orbgold",
-        "Ragespear", "Dawnward", "Clair", "Caffal", "Ronch", "Pola", "Moux", "Ranteau", "Nothier", "Peseul", "Astellon",
-        "Glide", "Roughkiss", "Mosswisp", "Shadow", "Autumn",
-        "Voidbane", "Voidsicle", "Kingsmith", "Kingly", "Peasant", "Pleasant", "Swellow", "Alexa", "Luitgard", "Ede",
-        "Medou", "Branka", "Devotee", "Aura",
-        "Outlaw", "Jade", "Nocturne", "Jarvis", "Beeps", "Faint", "Perkless", "Yill", "Quona", "Washerguard", "Eda",
-        "Rosery", "Tapper", "Undergrow", "Ova",
-        "Adamant", "Silverlock", "Dobby", "Finx", "Gar", "Hope", "Jewel", "Kattery", "Languish", "Zephyr", "Xilla",
-        "Cedar", "Villa", "Branx", "Naught", "Midas",
-        "Atronaph", "Argus", "Aideen", "Alias", "Adonay", "Anno", "Apollo", "Aydin", "Asakoa", "Aviri", "Adelynn",
-        "Arsonwheel", "Angerstomp", "Aybeedee",
-        "Bajor", "Beekler", "Bobbles", "Buu", "Brainstorm", "Bracer", "Basselt", "Boggycreek", "Boggart", "Bahamut",
-        "Baretree", "Birchbellow", "Big Fen",
-        "Calaphyx", "Cawcaws", "Cix", "Cerrusio", "Creator", "Clipse", "Conjus", "Chanceux", "Ciorliath", "Clearwish",
-        "David", "Dingus", "Dakadaka", "Dill", "Doodle", "Daydream", "Dreameater", "Diablo", "Diabolos", "Dunker",
-        "Dragonfly", "Eater", "Eo", "Endofall", "Exuberance", "Etresse", "Elan", "Entun", "Earthtender",
-        "Fargus", "Fillero", "Ferrus", "Faunus", "Feathers", "Fuzzball", "Foolcaller",
-        "Gronkula", "Gimmles", "Golox", "Gargamel", "Gutterman", "Gale", "Gemlashes", "Gotusloop", "Goldenboy",
-        "Hardness", "Herman", "Hillox", "Hundredyear", "Hurlante", "Hazel", "Hanzel", "Hatemonger",
-        "Io", "Iodine", "Iaz", "Illomens", "Incarnate", "Isaias", "Islecrusher", "Iaull", "Itong", "Iilos",
-        "Jax", "Jack", "Jillian", "Jellyjam", "Julius", "Jasmine", "Jazlynn", "Jayrhoe", "Jumbojack",
-        "Kawkaws", "Ki", "Kallus", "Keith", "Kevin", "Kitten", "Kedijah", "Keah", "Kammi", "Kisseh",
-        "Larrius", "Lengeru", "Ludwiz", "Longboy", "Llij", "Liyong", "Laylah",
-        "Moparscape", "Mardok", "Mueller", "Mastodon", "Morphius", "Murph", "McNasty", "Mehret", "Mordheim", "Mors",
-        "Magician", "Morefather", "Meander",
-        "Nilus", "Neo", "Nevarine", "Nix", "Nemo", "Nangara", "Neta", "Nontoun",
-        "Ox", "Otherwilds", "Outerspace", "Oiler", "Officer", "Omexx", "Ocus", "Oddball", "Oakleydude",
-        "Parrix", "Pickle", "Piledriver", "Puffpuff", "Peachclaw", "Peargrinder", "Paraema", "Pollenpuff",
-        "Quizler", "Qix", "Quark", "Qidus", "Quid", "Quiverdance",
-        "Roachest", "Rizz", "Rue", "Ramman", "Rammuh", "Ragdoll", "Rose",
-        "Savi", "Serenity", "Silverhand", "Sammy", "Soothsayer", "Swissmiss", "Sully", "Semere", "Spiris", "Splinter",
-        "Sandytwist", "Seatsaidh", "Solodiah", "Sunni", "Shredder",
-        "Tav", "Traveller", "Taximon", "Truegold", "Tuskies", "Tinkertot", "Terminus", "Tamil",
-        "Underway", "Uco", "Unibrow",
-        "Valiant", "Violence", "Vorton", "Voodoo", "Veuve", "Vexee", "Volance",
-        "Wabberjack", "Warbler", "Werebaby", "Wisk", "Whiskey", "Woobert", "Wodyeith",
-        "Xilla", "Xerces",
-        "Yoyo", "Yanger", "Yucca", "Yew", "Yewflower",
-        "Zoro", "Zewdi", "Zaben", "Zookeeper",
-        "Donatello", "Leonardo", "Raphael", "Michelan",
-        "DaVinci", "Kahlo", "Picasso", "Gogh", "Monet", "Keeffe", "Rembrandt", "Vermeer", "Pollock", "Dali", "Cassatt",
-        "Degas", "Artemisia", "Caravaggio", "Renoir", "Warhol", "Kandinsky", "Valezquez", "Titian", "Delacroix",
-        "Goya", "Magritte", "Basquiat", "Gauguin", "El Grico", "Courbet", "Bierstadt", "Banksy", "Rockwell",
-        "Dakkung", "Gitano", "Lessio", "Mogimomo", "Octoroller", "Zantasimal"
-    ];
-
     public static readonly Random GrowthRNG = new(Random.Shared.Next());
     public static readonly Random LifespanRNG = new(Random.Shared.Next());
     public static Dictionary<EMonsterRank, Range<int>>? RankBSTRanges;
@@ -163,15 +93,15 @@ public class TournamentData
 
         addParticipants( 8, EPool.M ); // 54-61
 
-        addParticipants( 3, EPool.A_Phoenix );
-        addParticipants( 1, EPool.A_DEdge );
-        addParticipants( 1, EPool.B_Dragon );
+        addParticipants( 3, EPool.A_Phoenix ); //62-64 Phoenix
+        addParticipants( 1, EPool.B_Dragon ); // 65 Dragon
+        addParticipants( 1, EPool.A_DEdge ); // 66 Durahan
 
-        addParticipants( 5, EPool.F_Hero );
-        addParticipants( 5, EPool.F_Heel );
-        addParticipants( 3, EPool.F_Elder );
+        addParticipants( 5, EPool.F_Hero ); // 67 - 71 Hero
+        addParticipants( 5, EPool.F_Heel ); // 72 - 76 Heel
+        addParticipants( 3, EPool.F_Elder ); // 77-79 Elder
 
-        addParticipants( 4, EPool.S_FIMBA );
+        addParticipants( 4, EPool.S_FIMBA ); 
         addParticipants( 4, EPool.A_FIMBA );
         addParticipants( 4, EPool.B_FIMBA );
         addParticipants( 4, EPool.C_FIMBA );
@@ -239,10 +169,6 @@ public class TournamentData
             }
         }
 
-        /*(Logger.Debug("Finished Advancing Weeks, Checking Pools", Color.Yellow);
-        foreach (var pool in TournamentPools.Values)
-            while (Monsters.Count(m => m.Pools.Contains(pool)) < pool.Info.Size)
-                Monsters.Add(pool.GenerateNewValidMonster(_unlockedTournamentBreeds));*/
 
         Logger.Debug( "Finished advancing weeks, checking pools.", Color.Yellow );
         foreach (var pool in TournamentPools.Values) {

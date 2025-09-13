@@ -237,7 +237,7 @@ public class TournamentPool(TournamentData tournament, Config conf, EPool pool)
             if ( TournamentData.Monsters)
         }*/
         var monsterName = MonsterNames.GetName( breed.GenusMain, breed.GenusSub );
-        while ( tournament.Monsters.Where(monster => monster.Name != monsterName ).Count() == 0 ) {
+        while ( tournament.Monsters.Where(monster => monster.Name == monsterName ).Count() != 0 ) {
             monsterName = MonsterNames.GetName( breed.GenusMain, breed.GenusSub );
         }
         
