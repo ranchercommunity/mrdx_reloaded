@@ -9,3 +9,9 @@ Gaboo / Pixie
 Gaboo / Bajarl
 ColorPandora / Durahan
 Joker / Jill
+
+=====================================
+Version 0.2.6
+=====================================
+Undine / Naga
+Durahan / Centaur

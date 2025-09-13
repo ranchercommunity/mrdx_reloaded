@@ -679,6 +679,9 @@ public class CombinationHandler {
         for ( var i = 0; i < techList.Count; i++ ) { shuffle[ i ] = i; }
         Utils.Shuffle( Random.Shared, shuffle );
 
+        byte[] slotChosen = new byte[ 4 ];
+        Memory.Instance.ReadRaw( nuint.Add( Mod.address_monster, 0x1C8 ), out slotChosen, 4 );
+
         // Assign Non-Special, Non-Learned techs to the monster based on the inheritedCount.
         var inheritedCount = (int) Math.Floor ( ( learnedTechTypes[ 6 ] - ( learnedTechTypes[ 5 ] + 2 ) ) * 2.0 / 3.0 );
         var learnedTechs = 0;
@@ -715,6 +718,7 @@ public class CombinationHandler {
 
                     if ( childTechs[ slot ] == 0 && _combinationParent1Techniques[ slot ] == 1 && pendingTech.Type != ErrantryType.Special && learnable ) {
                         childTechs[ slot ] = 1;
+                        slotChosen[ (int) pendingTech.Range ] = pendingTech.SlotPosition < slotChosen[ (int) pendingTech.Range ] ? pendingTech.SlotPosition : slotChosen[ (int) pendingTech.Range ];
                         learnedTechs++;
                         oneBonus++;
                     }
@@ -731,6 +735,7 @@ public class CombinationHandler {
             }
         }
 
+        Memory.Instance.WriteRaw( nuint.Add( Mod.address_monster, 0x1C8 ), slotChosen );
         Memory.Instance.WriteRaw( nuint.Add( Mod.address_monster, 0x192 ), childTechs );
     }
 
@@ -757,7 +762,11 @@ public class CombinationHandler {
             }
         }
 
+        byte[] slotChosen = new byte[ 4 ];
+        Memory.Instance.ReadRaw( nuint.Add( Mod.address_monster, 0x1C8 ), out slotChosen, 4 );
         // Loop through each Tech Type (1-4), finds the first slot technique, and sets the skill if the LTT >= 1 for that type.
+        // Also sets up the chosen technique slot to the appropriate value.
+
         for ( var tt = 1; tt <= 4; tt++ ) {
             if ( learnedTechTypes[ tt ] >= 1 ) {
                 for ( var i = 0; i < childTechList.Count(); i++ ) {
@@ -771,13 +780,17 @@ public class CombinationHandler {
                     if ( pendingTech.ErrantryInformation.Count > 0 && 
                          pendingTech.ErrantryInformation[0].ErrantrySlot == 0 &&
                          pendingTech.ErrantryInformation[0].Location == loc ) {
+
                             childTechs[ pendingTech.SlotPosition * 2 ] = 1;
+                            slotChosen[ (int) pendingTech.Range ] = pendingTech.SlotPosition < slotChosen[ (int) pendingTech.Range ] ? pendingTech.SlotPosition : slotChosen[ (int) pendingTech.Range ];
+
                             break;
                     }
                 }
             }
         }
 
+        Memory.Instance.WriteRaw( nuint.Add( Mod.address_monster, 0x1C8 ), slotChosen );
         Memory.Instance.WriteRaw( nuint.Add( Mod.address_monster, 0x192 ), childTechs );
     }
 

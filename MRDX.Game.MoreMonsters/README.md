@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.2.5
+﻿# More Monsters - Version 0.2.6
 
 ## Features
 
@@ -50,6 +50,13 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.2.6
+
+* 9 additional monster combinations have been added!
+* Minor adjustments to battle textures for some monsters.
+
+
 
 ##### v0.2.5
 
@@ -177,3 +184,4 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 * Snaid1
 * DryGuy84
 * GoldenExperience
+* TheBigWaloo

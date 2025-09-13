@@ -604,7 +604,7 @@ public class Mod : ModBase // <= Do not Remove.
         foreach ( IMonsterTechnique technique in breed.TechsKnown ) {
             slotChosen[(int) technique.Range] = technique.SlotPosition < slotChosen[ (int) technique.Range ] ? technique.SlotPosition : slotChosen[ (int) technique.Range ];
         }
-        for ( int i = 0; i < 4; i++ ) { if ( slotChosen[i] == 0xFF ) { slotChosen[ i ] = (byte) ( i * 6 ); } }
+        for ( int i = 0; i < 4; i++ ) { if ( slotChosen[i] == 0xFF ) { slotChosen[ i ] = 24; } }
         Memory.Instance.WriteRaw( nuint.Add( address_monster, 0x1C8 ), slotChosen );
 
         // Fix Like Slot - The monster likes are occasionally set to illegal items (or empty). Just reset it every time.

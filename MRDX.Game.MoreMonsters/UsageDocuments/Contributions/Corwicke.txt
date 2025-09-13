@@ -10,3 +10,9 @@ Phoenix / Ape
 Version 0.2.5
 =====================================
 Bajarl / Undine
+
+=====================================
+Version 0.2.6
+=====================================
+ColorPandora / Naga
+Zilla / Mocchi

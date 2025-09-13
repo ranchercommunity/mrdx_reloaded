@@ -15,7 +15,6 @@ Ducken/Phoenix
 Durahan/Ducken
 Gaboo/Ape 
 Gaboo/Centaur
-Gaboo/Centaur #2
 Gali/Joker
 Ghost/Joker
 Golem/Gaboo
@@ -53,6 +52,12 @@ Niton / Mocchi
 Version 0.2.3
 =====================================
 Zilla / Naga
+
+=====================================
+Version 0.2.6
+=====================================
+Gaboo / Centaur (Alternate #1)
+
 ...
 
 and countless others for processing, stat updates and naming, and battle sprite textures!

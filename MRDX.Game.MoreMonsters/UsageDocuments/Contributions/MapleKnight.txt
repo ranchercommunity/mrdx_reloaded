@@ -30,3 +30,9 @@ Durahan / Ape
 Mocchi / Suezo
 Zuum / Durahan
 Zuum / ??? (Bonus Special #6)
+
+=====================================
+Version 0.2.6
+=====================================
+Hare / ColorPandora
+Zilla / Centaur
