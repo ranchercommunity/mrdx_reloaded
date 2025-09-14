@@ -55,6 +55,7 @@ Monster size variations are random from the shrine, and partially inherited from
 
 * 9 additional monster combinations have been added!
 * Minor adjustments to battle textures for some monsters.
+* Fixed an issue where techs were not properly assigned for combined monsters.
 
 
 

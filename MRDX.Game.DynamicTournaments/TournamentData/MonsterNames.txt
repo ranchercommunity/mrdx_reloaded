@@ -246,7 +246,6 @@ Luheans	22	-1
 Voyant	23	-1
 Great Seer	23	-1
 Refractor	23	-1
-
 Cimasio	-1	-1
 Kyrades	-1	-1
 Ambroros	-1	-1
