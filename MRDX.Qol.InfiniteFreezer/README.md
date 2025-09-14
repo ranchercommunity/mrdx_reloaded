@@ -1,4 +1,4 @@
-﻿# Infinite Freezer - v0.1.1
+﻿# Infinite Freezer - v0.1.2
 
 * Allows for save files to have unlimited freezer space.
 * Manually change/create new freezers using Left and Right DPAD on the revive or freeze menus.
@@ -26,10 +26,9 @@
 
 ### Latest Updates
 
+##### v0.1.1 - v0.1.2
 
-
-##### v0.1.1
-
+* v0.1.2 - Hotfix for freezer helper text not updating.
 * Fixed an issue where deleting or selling monsters was not updating the freezer properly.
 * Fixed an issue where freezer groups could not be changed when trying to delete a monster.
 * 'Fixed' an issue where combining monsters across multiple freezer groups could cause crashes or combine the wrong monsters.
@@ -39,8 +38,6 @@
 *Note: The above fix prevents the swapping of freezer groups when combining. A warning message is displayed as well.*
 
 *As such, when combining monsters, the monsters must be in the same freezer group.*
-
-
 
 
 

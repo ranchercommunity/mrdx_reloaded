@@ -316,8 +316,8 @@ public class Mod : ModBase // <= Do not Remove.
             WriteModToFreezer( _freezerCurrentGroup );
 
             // Write Freezer Page Help Data - Freezer Numbers
+            _helperTextSetup = false;
             UpdateFreezerHelperText();
-
         }
 
         _heldLeft = swapLeft;

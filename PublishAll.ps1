@@ -26,7 +26,7 @@ $AllProjects = @(
     @("MRDX.Qol.BattleTimer", "1.0.5", $false),
     @("MRDX.Qol.FastForward", "1.3.7", $false),
     @("MRDX.Qol.MagicBananaStatic", "0.1.2", $false),
-    @("MRDX.Qol.InfiniteFreezer", "0.1.1", $false),
+    @("MRDX.Qol.InfiniteFreezer", "0.1.2", $false),
     @("MRDX.Qol.SkipDrillAnim", "1.3.3", $false),
     @("MRDX.Qol.TurboInput", "1.0.7", $false),
     @("MRDX.Ui.AdditionalMonsterInfo", "0.1.0", $false),
