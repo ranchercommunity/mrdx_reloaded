@@ -41,6 +41,8 @@ public class Mod : ModBase // <= Do not Remove.
     private nuint _address_freezer_help_pointer2 { get { return _address_game + 0x1DF11B4; } }
     private nuint _address_freezer_help_pointer3 { get { return _address_game + 0x1DF11B8; } }
 
+    private FreezerMenuOptions _freezerStatus;
+
     public static byte[] emptyFreezerSlotTemplate =
         [   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x00, 0x00, 0x00, 0x2E, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -164,11 +166,19 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     private void SetupParsingFreezerData ( nuint parent, int unk1 ) {
-        Logger.Debug( $"Enabling Freezer Controls: {parent} | {unk1} ", Color.SkyBlue );
-        _freezerControlsEnabled = true;
+        Memory.Instance.Read( _address_game + 0x369AB4, out byte optionSelected );
+        _freezerStatus = (FreezerMenuOptions) optionSelected;
+
+        if ( _freezerStatus != FreezerMenuOptions.Combine ) {
+            Logger.Debug( $"Enabling Freezer Controls: {parent} | {unk1} | {optionSelected} ", Color.SkyBlue );
+            _freezerControlsEnabled = true;
+        }
+
         _hook_parsingFreezerData!.OriginalFunction( parent, unk1 );
 
-        if ( !_helperTextSetup ) {
+        if ( _freezerStatus == FreezerMenuOptions.Combine ) {
+            UpdateFreezerHelperText( "Freezer Locked" );
+        } else {
             UpdateFreezerHelperText();
         }
     }
@@ -178,9 +188,12 @@ public class Mod : ModBase // <= Do not Remove.
         Logger.Trace( $"Game is checking if freezer is full: {parent} | {unk1} || {ret}", Color.SkyBlue );
 
         Memory.Instance.Read( _address_game + 0x369AB4, out byte optionSelected );
+        _freezerStatus = (FreezerMenuOptions) optionSelected;
 
-        if ( optionSelected == 1 ) { // 1 == Freeze
+        if ( _freezerStatus == FreezerMenuOptions.Freeze ) { 
             if ( ret == 20 ) {
+                WriteFreezerToMod( _freezerCurrentGroup );
+
                 while ( ret == 20 ) {
                     _freezerCurrentGroup++;
 
@@ -202,18 +215,19 @@ public class Mod : ModBase // <= Do not Remove.
                     }
                 }
 
-                // Write Mod Data to Freezer Memory
-                for ( var i = 0; i < 20; i++ ) {
-                    Memory.Instance.Write( nuint.Add( _address_freezer, ( 524 * i ) ), _freezerGroups[ _freezerCurrentGroup ].freezerSlots[ i ] );
-                }
+                
+                WriteModToFreezer( _freezerCurrentGroup );
 
                 UpdateFreezerHelperText();
 
             }
         }
 
-        else if ( optionSelected == 2 ) { // Revive
+        else if ( _freezerStatus == FreezerMenuOptions.Combine || _freezerStatus == FreezerMenuOptions.Revive ||
+            _freezerStatus == FreezerMenuOptions.Delete ) { 
             if ( ret == 0 ) {
+                WriteFreezerToMod( _freezerCurrentGroup );
+
                 var originalGroup = _freezerCurrentGroup;
                 _freezerCurrentGroup = 0;
                 while ( ret == 0 ) {
@@ -237,11 +251,14 @@ public class Mod : ModBase // <= Do not Remove.
                 }
 
                 // Write Mod Data to Freezer Memory
-                for ( var i = 0; i < 20; i++ ) {
-                    Memory.Instance.Write( nuint.Add( _address_freezer, ( 524 * i ) ), _freezerGroups[ _freezerCurrentGroup ].freezerSlots[ i ] );
-                }
+                WriteModToFreezer( _freezerCurrentGroup );
 
-                UpdateFreezerHelperText();
+                if ( _freezerStatus == FreezerMenuOptions.Combine ) {
+                    UpdateFreezerHelperText( "Freezer Locked" );
+                } else {
+                    UpdateFreezerHelperText();
+                }
+             
 
             }
         }
@@ -256,6 +273,8 @@ public class Mod : ModBase // <= Do not Remove.
             Logger.Debug( $"Disabling Freezer Controls", Color.SkyBlue );
             _freezerControlsEnabled = false;
         }
+
+        _helperTextSetup = false;
 
     }
     private void FreezerSwapLR ( IInput input ) {
@@ -289,18 +308,12 @@ public class Mod : ModBase // <= Do not Remove.
         if ( subMod != 0 ) {
 
             // Write Freezer Memory to Mod Data
-            var monData = new byte[ 524 ];
-            for ( var i = 0; i < 20; i++ ) {
-                Memory.Instance.ReadRaw( nuint.Add( _address_freezer, ( 524 * i ) ), out monData, 524 );
-                Array.Copy( monData, _freezerGroups[ _freezerCurrentGroup ].freezerSlots[i], 524 );
-            }
+            WriteFreezerToMod( _freezerCurrentGroup );
 
             _freezerCurrentGroup = (byte) ( _freezerCurrentGroup + subMod );
 
             // Write Mod Data to Freezer Memory
-            for ( var i = 0; i < 20; i++ ) {
-                Memory.Instance.Write( nuint.Add( _address_freezer, ( 524 * i ) ), _freezerGroups[ _freezerCurrentGroup ].freezerSlots[ i ] );
-            }
+            WriteModToFreezer( _freezerCurrentGroup );
 
             // Write Freezer Page Help Data - Freezer Numbers
             UpdateFreezerHelperText();
@@ -311,21 +324,52 @@ public class Mod : ModBase // <= Do not Remove.
         _heldRight = swapRight;
     }
 
-    private void UpdateFreezerHelperText() {
+    /// <summary>
+    /// This function is used to replace the in memory freezer data with the mod's freeer group data.
+    /// </summary>
+    /// <param name="group"></param>
+    private void WriteModToFreezer(ushort group) {
+        for ( var i = 0; i < 20; i++ ) {
+            Memory.Instance.Write( nuint.Add( _address_freezer, ( 524 * i ) ), _freezerGroups[ group ].freezerSlots[ i ] );
+        }
+    }
+
+    /// <summary>
+    /// This function is used to replace a mod's group with the current state of the active in-game freezer.
+    /// </summary>
+    /// <param name="group"></param>
+    private void WriteFreezerToMod(ushort group) {
+        var monData = new byte[ 524 ];
+        for ( var i = 0; i < 20; i++ ) {
+            Memory.Instance.ReadRaw( nuint.Add( _address_freezer, ( 524 * i ) ), out monData, 524 );
+            Array.Copy( monData, _freezerGroups[ group ].freezerSlots[ i ], 524 );
+        }
+    }
+
+    private void UpdateFreezerHelperText( string customMessage = "" ) {
+        if ( _helperTextSetup ) { return; }
         var ftext = System.Text.Encoding.Unicode.GetBytes(
             $"Freezer: {( _freezerCurrentGroup + 1 )}/" +
             $"{( _freezerGroupMax + 1 )}               x" );
 
-        var ftextShort = new byte[ 17 ];
+        var r1Message = new byte[ 17 ];
         for ( var j = 0; j < 17; j++ ) {
-            ftextShort[ j ] = ftext[ j * 2 ];
+            r1Message[ j ] = ftext[ j * 2 ];
+        }
+
+        var r3Message = new byte[ 17 ];
+        if ( customMessage != "" ) {
+            var text = System.Text.Encoding.Unicode.GetBytes( customMessage + "                      " );
+            for ( var j = 0; j < 17; j++ ) {
+                r3Message[ j ] = text[ j * 2 ];
+            }
         }
 
         Memory.Instance.Read( _address_freezer_help_pointer1, out nuint addr_help1 );
 
         if ( addr_help1 == 0x00 ) { return; } // It doesn't write these addresses until it's needed.
 
-        Memory.Instance.WriteRaw( addr_help1, ftextShort );
+        Memory.Instance.WriteRaw( addr_help1, r1Message );
 
         // Write Freezer Page Help Data - Freezer Name
         Memory.Instance.Read( _address_freezer_help_pointer2, out nuint addr_help2 );
@@ -333,7 +377,9 @@ public class Mod : ModBase // <= Do not Remove.
 
         // Write Freezer Page Help Data - Empty
         Memory.Instance.Read( _address_freezer_help_pointer3, out nuint addr_help3 );
-        Memory.Instance.WriteRaw( addr_help3, new byte[ 17 ] );
+        Memory.Instance.WriteRaw( addr_help3, r3Message );
+
+        _helperTextSetup = true;
     }
 
     private void SaveFreezerData ( ISaveFileEntry savefile ) {
@@ -460,6 +506,8 @@ public class Mod : ModBase // <= Do not Remove.
             }
         }
     }
+
+    private enum FreezerMenuOptions { Combine, Freeze, Revive, Delete, Analyze }
 
     #region For Exports, Serialization etc.
 
