@@ -36,3 +36,12 @@ Version 0.2.6
 =====================================
 Hare / ColorPandora
 Zilla / Centaur
+
+=====================================
+Version 0.2.7
+=====================================
+Beaclon / Arrowhead
+Centaur / Zilla
+Phoenix / Monol
+Tiger / Beaclon
+

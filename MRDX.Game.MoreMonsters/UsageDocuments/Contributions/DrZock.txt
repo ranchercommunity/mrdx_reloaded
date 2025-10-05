@@ -1,0 +1,8 @@
+DrZock
+=====================================
+Monsters Developed or Contributed To
+=====================================
+Version 0.2.7
+=====================================
+Arrowhead / Dragon
+Ducken / Mock

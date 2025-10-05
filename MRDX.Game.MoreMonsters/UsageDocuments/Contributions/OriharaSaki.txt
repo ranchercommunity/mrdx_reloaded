@@ -52,3 +52,12 @@ Phoenix / Metalner
 Version 0.2.5
 =====================================
 Naga / Phoenix
+
+=====================================
+Version 0.2.7
+=====================================
+Durahan / Monol
+ColorPandora / Joker
+Joker / Mock
+Zuum / Phoenix
+

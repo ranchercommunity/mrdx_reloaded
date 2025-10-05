@@ -23,7 +23,7 @@ To generate new monsters, follow the below steps.
 
 
 
-For example, to generate Durandal the new Centaur/Henger monster, enter 'More Monsters' for the Title and 'C' for the Arist, then select 'Centaur / Henger' from the Artist list.
+For example, to generate Durandal the new Centaur/Henger monster, enter 'More Monsters' for the Title and 'C' for the Artist, then select 'Centaur / Henger' from the Artist list.
 
 
 
@@ -41,6 +41,8 @@ Monster size variations are random from the shrine, and partially inherited from
 
 * 19 additional monster combinations have been added!
 * Battle texture fixes for numerous monsters.
+* Ducken/Mock has been replaced with an entirely new monster texture/name to better reflect Mock.
+* The 0.2.2 version of Ducken/Mock is now Ducken/Special #3.
 
 
 

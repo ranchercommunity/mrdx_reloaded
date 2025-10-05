@@ -21,3 +21,10 @@ Kato / Golem
 Version 0.2.6
 =====================================
 Zuum / Mew
+
+=====================================
+Version 0.2.7
+=====================================
+Gali / Ape
+ColorPandora / Kato
+Cenatur / Zuum

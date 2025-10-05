@@ -5,3 +5,9 @@ Monsters Developed or Contributed To
 Version 0.2.6
 =====================================
 Gaboo / Metalner
+
+=====================================
+Version 0.2.7
+=====================================
+Jell / Bajarl
+Tiger / Phoenix
