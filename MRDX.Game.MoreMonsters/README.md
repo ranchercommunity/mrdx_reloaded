@@ -1,26 +1,12 @@
-﻿# More Monsters - Version 0.2.6
+﻿# More Monsters - Version 0.2.7
 
 ## Features
 
-* Adds additional species (100+!) combinations to the game and support for being able to acquire them.
+* Adds additional species (150+!) combinations to the game and support for being able to acquire them.
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
 * Monsters are supported for VS Play!
-
-
-
-##### Updating to 0.2.0+ from 0.1.2 or earlier:
-
-The update from 0.1.2 to 0.2.0 has involved considerable changes to the way monster information is stored to allow for VS Mode uploads.
-
-With this in mind, all monsters generated with the mod and in the freezer will immediately be altered, and any monsters currently being
-
-used will be affected when frozen. Unfortunately, there was no way to handle all cases (existing Non-MM Saves, MM-Saves, a mixture of both)
-
-and the decision was made to break existing MM-Saves. It is recommended that all existing monsters be deleted and the save continued.
-
-This update should not cause any issues with the save itself, only the monsters generated prior to the save.
 
 
 
@@ -50,6 +36,13 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.2.7
+
+* 18 additional monster combinations have been added!
+* Battle texture fixes for Beaclon/Metalner, Jell/Ghost, Phoenix/Dragon, Zilla/Dragon, Zilla/Ghost, and Mocchi/Jill
+
+
 
 ##### v0.2.6
 
@@ -186,3 +179,6 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 * DryGuy84
 * GoldenExperience
 * TheBigWaloo
+* DrZock
+* Bag
+* Yams
