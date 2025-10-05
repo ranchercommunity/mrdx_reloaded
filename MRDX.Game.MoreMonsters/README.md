@@ -2,7 +2,7 @@
 
 ## Features
 
-* Adds additional species (150+!) combinations to the game and support for being able to acquire them.
+* Adds additional species (160+!) combinations to the game and support for being able to acquire them.
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
@@ -39,8 +39,8 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ##### v0.2.7
 
-* 18 additional monster combinations have been added!
-* Battle texture fixes for Beaclon/Metalner, Jell/Ghost, Phoenix/Dragon, Zilla/Dragon, Zilla/Ghost, and Mocchi/Jill
+* 19 additional monster combinations have been added!
+* Battle texture fixes for numerous monsters.
 
 
 
