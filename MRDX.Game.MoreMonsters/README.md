@@ -1,8 +1,8 @@
-﻿# More Monsters - Version 0.2.7
+﻿# More Monsters - Version 0.2.8
 
 ## Features
 
-* Adds additional species (160+!) combinations to the game and support for being able to acquire them.
+* Adds additional species (170+!) combinations to the game and support for being able to acquire them.
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
@@ -37,12 +37,20 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
+##### v0.2.8
+
+* Hotfix for ColorPandora/Kato battle texture.
+* Hotfix for Mocchi/Jill battle texture.
+* Hotfix for Ghost/Worm battle texture.
+
+
+
 ##### v0.2.7
 
 * 19 additional monster combinations have been added!
 * Battle texture fixes for numerous monsters.
 * Ducken/Mock has been replaced with an entirely new monster texture/name to better reflect Mock.
-* The 0.2.2 version of Ducken/Mock is now Ducken/Special #3.
+* The 0.2.2 version of Ducken/Mock (Ducken Doll) is now Ducken/Special #3.
 
 
 
