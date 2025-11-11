@@ -61,3 +61,8 @@ ColorPandora / Joker
 Joker / Mock
 Zuum / Phoenix
 
+=====================================
+Version 0.2.9
+=====================================
+Gaboo / Golem
+Monol / Bajarl

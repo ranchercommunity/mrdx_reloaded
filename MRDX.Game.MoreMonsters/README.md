@@ -1,8 +1,8 @@
-﻿# More Monsters - Version 0.2.8
+﻿# More Monsters - Version 0.2.9
 
 ## Features
 
-* Adds additional species (170+!) combinations to the game and support for being able to acquire them.
+* Adds additional species (190+!) combinations to the game and support for being able to acquire them.
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
@@ -11,8 +11,6 @@
 
 
 ## Usage Guide
-
-New monsters have replaced the existing monster generated for CD Slots starting with the letter of the main species for the Artist Name.
 
 To generate new monsters, follow the below steps.
 
@@ -31,11 +29,22 @@ Alternatively to obtain the new species, combine monsters with the main/subs of 
 
 
 
+Alternatively (again!), Enter 'More Monsters' for the title of the song, and select 'All Random'!
+
+
+
 Monster size variations are random from the shrine, and partially inherited from parents when combining.
 
 
 
 ## Update History
+
+##### v0.2.9
+
+* 22 additional monster combinations have been added!
+* 1 additional bonus monster combination has been added!
+
+
 
 ##### v0.2.8
 
@@ -65,7 +74,7 @@ Monster size variations are random from the shrine, and partially inherited from
 ##### v0.2.5
 
 * 14 additional monster combinations have been added!
-* 1 additional bonus monster combinations have been added!
+* 1 additional bonus monster combination has been added!
 
 
 

@@ -6,3 +6,11 @@ Version 0.2.7
 =====================================
 Arrowhead / Dragon
 Ducken / Mock
+
+=====================================
+Version 0.2.9
+=====================================
+ColorPandora / Henger
+Ducken / Tiger
+Ducken / Henger
+Joker / Zilla

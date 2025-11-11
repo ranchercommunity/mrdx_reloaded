@@ -5,3 +5,8 @@ Monsters Developed or Contributed To
 Version 0.2.7
 =====================================
 Ghost / Jell
+
+=====================================
+Version 0.2.9
+=====================================
+Ghost / Gali

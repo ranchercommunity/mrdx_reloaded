@@ -45,3 +45,8 @@ Centaur / Zilla
 Phoenix / Monol
 Tiger / Beaclon
 
+=====================================
+Version 0.2.9
+=====================================
+Dragon / Hopper
+Hopper / Jell

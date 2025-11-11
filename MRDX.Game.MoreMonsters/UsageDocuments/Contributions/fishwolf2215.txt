@@ -28,3 +28,11 @@ Version 0.2.7
 Gali / Ape
 ColorPandora / Kato
 Cenatur / Zuum
+
+=====================================
+Version 0.2.9
+=====================================
+Ducken / Niton
+Hare / Arrowhead
+Mock / Henger
+Tiger / Joker
