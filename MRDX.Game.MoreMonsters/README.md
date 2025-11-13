@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.2.9
+﻿# More Monsters - Version 0.2.10
 
 ## Features
 
@@ -39,27 +39,21 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
-##### v0.2.9
+##### v0.2.9 - v0.2.10
 
 * 22 additional monster combinations have been added!
 * 1 additional bonus monster combination has been added!
+* 0.2.10 - Hotfixes for various monster battle textures.
 
 
 
-##### v0.2.8
-
-* Hotfix for ColorPandora/Kato battle texture.
-* Hotfix for Mocchi/Jill battle texture.
-* Hotfix for Ghost/Worm battle texture.
-
-
-
-##### v0.2.7
+##### v0.2.7 - 0.2.8
 
 * 19 additional monster combinations have been added!
 * Battle texture fixes for numerous monsters.
 * Ducken/Mock has been replaced with an entirely new monster texture/name to better reflect Mock.
 * The 0.2.2 version of Ducken/Mock (Ducken Doll) is now Ducken/Special #3.
+* 0.2.8 - Hotfix for various battle textures.
 
 
 
@@ -173,31 +167,4 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 
 
 
-* ArchbishopDave
-* Teawch
-* MonsterFenrick
-* OriharaSaki
-* Kane
-* Chacolah
-* MachoCheeze
-* MooseBones
-* Plasbad
-* MapleKnight
-* JPMockMan
-* ClayClem
-* fishwolf2215
-* Gwndoliva
-* kindofblue28
-* Monoski1
-* pyronsranch
-* Vyraxhaalas
-* Woody
-* BigBadHyena
-* ProjectL
-* Snaid1
-* DryGuy84
-* GoldenExperience
-* TheBigWaloo
-* DrZock
-* Bag
-* Yams
+* ArchbishopDave, Teawch, MonsterFenrick, OriharaSaki, Kane, Chacolah, MachoCheeze, MooseBones, Plasbad, MapleKnight, JPMockMan, ClayClem, fishwolf2215, Gwndoliva, kindofblue28, Monoski1, pyronsranch, Vyraxhaalas, Woody, BigBadHyena ,ProjectL, Snaid1, DryGuy84, GoldenExperience, TheBigWaloo, DrZock, Bag, Yams, Kenichi Kuroki, TentaCole, TheGamingChuck, Zecster
