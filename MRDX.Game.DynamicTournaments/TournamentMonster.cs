@@ -101,6 +101,9 @@ public class TournamentMonster : BattleMonsterData
         Logger.Debug("Loading monster from DTP Save File.", Color.Lime);
 
         BreedInfo = MonsterBreed.GetBreed(GenusMain, GenusSub)!;
+        if ( BreedInfo == null ) {
+            BreedInfo = MonsterBreed.GetBreed( GenusMain, GenusMain );
+        }
 
         LifeTotal = BitConverter.ToUInt16(rawdtpmonster, 0);
         Lifespan = BitConverter.ToUInt16(rawdtpmonster, 2);
