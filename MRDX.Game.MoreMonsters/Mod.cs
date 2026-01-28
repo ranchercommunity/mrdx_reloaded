@@ -70,6 +70,11 @@ public delegate void H_FileSaveLoad ( nuint self, nuint unk1, nuint unk2 );
 [Function( CallingConventions.Fastcall )]
 public delegate void H_FileSave ( nuint self, nuint unk1);
 
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 53 8B 5D ?? 8A C3" )]
+[Function( CallingConventions.MicrosoftThiscall )]
+public delegate nuint H_ShrineMonsterUnlockedChecker ( nuint self, int unk1, int unk2 );
+
+
 
 public class Mod : ModBase // <= Do not Remove.
 {
@@ -121,6 +126,8 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<UpdateGenericState> _hook_updateGenericState;
     private IHook<H_FileSaveLoad> _hook_fileSaveLoad;
     private IHook<H_FileSave> _hook_fileSave;
+
+    private IHook<H_ShrineMonsterUnlockedChecker> _hook_shrineMonsterUnlockedChecker;
 
     private int _loadedFileCorrectFreezer = 0;
 
@@ -209,6 +216,8 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_FileSaveLoad>( FileSaveLoad ).ContinueWith( result => _hook_fileSaveLoad = result.Result );
         _iHooks.AddHook<H_FileSave>( FileSave ).ContinueWith( result => _hook_fileSave = result.Result );
 
+        _iHooks.AddHook<H_ShrineMonsterUnlockedChecker>( CheckShrineMonsterUnlocked ).ContinueWith( result => _hook_shrineMonsterUnlockedChecker = result.Result );
+
         handlerFreezer = new FreezerHandler( this, _iHooks, _monsterCurrent );
         handlerCombination = new CombinationHandler( this, _iHooks, _monsterCurrent );
         handlerScaling = new ScalingHandler( this, _iHooks, _monsterCurrent );
@@ -266,6 +275,7 @@ public class Mod : ModBase // <= Do not Remove.
 
             Memory.Instance.Write( nuint.Add( address_game, 0x3492A5 + 27 ), bn ); // Monster Species Pages
             Memory.Instance.Write( nuint.Add( address_game, 0x354E45 + 27), bn ); // Combination References
+            Memory.Instance.Write( nuint.Add( address_game, 0x357ED0 ), bn ); // HoF References
             Logger.Trace( $"Wrote : {newBreed._monsterVariants[ 0 ].Name} to {nuint.Add( address_game, 0x3492A6 )}", Color.OrangeRed );
         }
 
@@ -273,7 +283,8 @@ public class Mod : ModBase // <= Do not Remove.
         else if ( mainBreedID == 0 && subBreedID == 0 ) {
             byte[] pixieData = { 0xb5, 0x0f, 0xb5, 0x22, 0xb5, 0x31, 0xb5, 0x22, 0xb5, 0x1e, 0xff };
             Memory.Instance.Write( nuint.Add( address_game, 0x3492A5 + 27 ), pixieData ); // Monster Species Pages
-            Memory.Instance.Write( nuint.Add( address_game, 0x354E45 + 27 ), pixieData ); // Combination References                                              
+            Memory.Instance.Write( nuint.Add( address_game, 0x354E45 + 27 ), pixieData ); // Combination References
+            Memory.Instance.Write( nuint.Add( address_game, 0x357ED0 ), pixieData ); // HoF References
         }
 
         int ret = _hook_monsterBreedNames!.OriginalFunction( mainBreedID, subBreedID );
@@ -659,6 +670,7 @@ public class Mod : ModBase // <= Do not Remove.
     private void CheckUpdateLoadedFreezer ( nint parent ) {
         _hook_updateGenericState!.OriginalFunction( parent );
 
+        Logger.Trace( "Generic State Update", Color.Beige );
         if ( _loadedFileCorrectFreezer == 2 ) {
             PostSaveLoadFreezerDataCorrections();
             Logger.Info("Updated Freezer with MM Data Post-Load", Color.Aqua );
@@ -703,6 +715,24 @@ public class Mod : ModBase // <= Do not Remove.
 
         Logger.Info( "File Saved with VS Mode Fixed Monster Data", Color.Aqua );
         _hook_fileSave!.OriginalFunction( self, unk1 );
+    }
+
+    /// <summary>
+    /// This function is called after confirming a song ID from the shrine. 
+    /// It checks whether the monster unlock flags are set for a specific monster, and returns 1 if unlocked, 0 otherwise.
+    /// We need to hook this function to disable shrine replacement (monster replacement basically) if the shrine fails to
+    /// generate a monster. This was breaking a ton of stuff down the line otherwise.
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="unk1"></param>
+    /// <param name="unk2"></param>
+    /// <returns></returns>
+    private nuint CheckShrineMonsterUnlocked ( nuint self, int unk1, int unk2 ) {
+        Logger.Trace( $"Checking if the monster is unlocked at the shrine. {unk1} {unk2}", Color.Yellow );
+        nuint ret = _hook_shrineMonsterUnlockedChecker!.OriginalFunction( self, unk1, unk2 );
+
+        if ( ret == 0 ) { shrineReplacementActive = false; }
+        return ret;
     }
 
     private void PostSaveFreezerDataCorrections ( ISaveFileEntry savefile ) {
@@ -750,6 +780,8 @@ public class Mod : ModBase // <= Do not Remove.
         _loadedFileCorrectFreezer = 1;
     }
 
+    // Card Information For Later
+    // b5 13 b5 21 b5 1e b5 2b b5 1e
     #region Standard Overrides
 
     public override void ConfigurationUpdated(Configuration.Config configuration)

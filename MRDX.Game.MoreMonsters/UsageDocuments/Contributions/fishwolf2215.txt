@@ -36,3 +36,8 @@ Ducken / Niton
 Hare / Arrowhead
 Mock / Henger
 Tiger / Joker
+
+=====================================
+Version 0.2.11
+=====================================
+Joker / Naga

@@ -101,9 +101,6 @@ public class TournamentMonster : BattleMonsterData
         Logger.Debug("Loading monster from DTP Save File.", Color.Lime);
 
         BreedInfo = MonsterBreed.GetBreed(GenusMain, GenusSub)!;
-        if ( BreedInfo == null ) {
-            BreedInfo = MonsterBreed.GetBreed( GenusMain, GenusMain );
-        }
 
         LifeTotal = BitConverter.ToUInt16(rawdtpmonster, 0);
         Lifespan = BitConverter.ToUInt16(rawdtpmonster, 2);
@@ -138,6 +135,13 @@ public class TournamentMonster : BattleMonsterData
         _trainerIntelligence = (Config.TechInt)rawdtpmonster[20];
 
         Region = (EMonsterRegion) rawdtpmonster[21];
+
+        /* This section handles the situation where a previously entered monster breed is no longer valid. This could happen through some obscure solar flare,
+         * or more likely, the More Monsters mod is enabled and then later disabled, setting the monster to an invalid breed. */
+        if ( BreedInfo == null ) {
+            BreedInfo = MonsterBreed.GetBreed( GenusMain, GenusMain );
+            GenusSub = GenusMain;
+        }
         // DEBUG DEBUG DEBUG
         // for ( var i = 0; i < techniques.Count; i++ ) { TournamentData._mod.DebugLog( 2, monster.name + " has " + techniques[ i ], Color.Orange ); }
     }

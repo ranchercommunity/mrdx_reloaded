@@ -10,3 +10,10 @@ Ghost / Jell
 Version 0.2.9
 =====================================
 Ghost / Gali
+
+=====================================
+Version 0.2.11
+=====================================
+Durahan / Wracky
+Durahan / Mocchi
+Durahan / Gali

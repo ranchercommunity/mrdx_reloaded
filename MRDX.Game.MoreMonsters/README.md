@@ -2,7 +2,7 @@
 
 ## Features
 
-* Adds additional species (190+!) combinations to the game and support for being able to acquire them.
+* Adds additional species (200+!) combinations to the game and support for being able to acquire them.
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
@@ -38,6 +38,14 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.2.11
+
+* 11 additional monster combinations have been added!
+* Fixes an issue where 'Pixie' was displayed instead of the proper monster species with MM monsters were in the Hall of Fame.
+* Fixes an issue where attempting to shrine a More Monsters Monster that was not unlocked broke various things until restarting MR2.
+
+
 
 ##### v0.2.9 - v0.2.10
 

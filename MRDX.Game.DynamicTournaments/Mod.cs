@@ -80,7 +80,6 @@ public class Mod : ModBase // <= Do not Remove.
         }
 
         
-        Logger.Trace("Setting up learning testing callback");
 
         var maybeHooks = _modLoader.GetController<IHooks>();
         if (maybeHooks != null && maybeHooks.TryGetTarget(out var hooks))

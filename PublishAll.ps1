@@ -18,10 +18,10 @@ $AllProjects = @(
     @("MRDX.Base.ExtractDataBin", "1.1.6", $false),
     @("MRDX.Base.Mod", $BaseModInterfaceVersion, $false),
     @("MRDX.Game.HardMode", "2.1.5", $false),
-    @("MRDX.Game.DynamicTournaments", "0.3.5", $false),
+    @("MRDX.Game.DynamicTournaments", "0.3.6", $false),
 #    Not ready for release yet, so leave it commented out for now
 #    @("MRDX.Game.MonsterEditor", "1.0.0", $false),
-    @("MRDX.Game.MoreMonsters", "0.2.10", $false),
+    @("MRDX.Game.MoreMonsters", "0.2.11", $false),
     @("MRDX.Graphics.Widescreen", "1.2.5", $false),
     @("MRDX.Qol.BattleTimer", "1.0.5", $false),
     @("MRDX.Qol.FastForward", "1.3.7", $false),

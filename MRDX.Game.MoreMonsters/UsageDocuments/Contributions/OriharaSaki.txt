@@ -66,3 +66,11 @@ Version 0.2.9
 =====================================
 Gaboo / Golem
 Monol / Bajarl
+
+=====================================
+Version 0.2.11
+=====================================
+Dragon / Phoenix
+Plant / Ape
+Gali / Henger
+Centaur / Gali
