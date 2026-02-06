@@ -822,7 +822,7 @@ public class CombinationHandler {
 
 
             if ( Random.Shared.Next(1, 100) <= chance ) {
-                childSpecials |= (ushort) ( 1 << slot );
+                childSpecials |= (ushort) slot;
             }
 
 

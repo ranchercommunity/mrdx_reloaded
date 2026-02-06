@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.2.10
+﻿# More Monsters - Version 0.2.12
 
 ## Features
 
@@ -38,6 +38,12 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.2.12 - 2/6/26
+
+* Fixes an issue where improper battle specials were passed on when combining monsters.
+
+
 
 ##### v0.2.11
 

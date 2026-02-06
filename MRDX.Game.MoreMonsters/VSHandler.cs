@@ -57,9 +57,6 @@ public class VSHandler {
         Logger.Info( $"Vs Mode Monster Date Overwrite Complete {self}, {monsterSlot}, {unk2}", Color.Aqua );
         _vsModeActive = false;
 
-
-
-
         return ret;
     }
 
@@ -86,7 +83,6 @@ public class VSHandler {
                 if ( _vsMonsterSlot == 1 ) {
                     Memory.Instance.Read( addr + scaleMM, out byte scaling );
                     _mod.handlerScaling.opponentScalingFactor = scaling;
-
                 }
             }
 
