@@ -25,16 +25,21 @@ public class ScalingHandler {
     [Function( CallingConventions.Fastcall )]
     public delegate void H_VertexScalingCheck ( nuint self );
 
+    [HookDef( BaseGame.Mr2, Region.Us, "33 C0 C7 41 ?? 00 10 00 10" )]
+    [Function( CallingConventions.Fastcall )]
+    public delegate void H_VertexScalingReset ( nuint location );
+
     private Mod _mod;
     private readonly IHooks _iHooks;
     private IMonster _monsterCurrent;
 
     private IHook<UpdateGenericState> _hook_updateGenericState;
     private IHook<H_VertexScalingCheck> _hook_vertexScalingCheck;
+    private IHook<H_VertexScalingReset> _hook_vertexScalingReset;
     private short _lastVertexCurrent;
 
     public int opponentScalingFactor = 0;
-    private nuint _address_monster_mm_scaling_opponent { get { return Mod.address_game + 0x6015D8; } }
+    private nuint _address_monster_mm_scaling_opponent = Mod.address_game + 0x6015D8;
     private short _lastVertexOpponent;
 
     public Dictionary<MonsterGenus, byte> MonsterScalingFactors = new Dictionary<MonsterGenus, byte>() 
@@ -85,6 +90,7 @@ public class ScalingHandler {
 
         //_iHooks.AddHook<UpdateGenericState>( CheckVertexScalingUpdate ).ContinueWith( result => _hook_updateGenericState = result.Result );
         _iHooks.AddHook<H_VertexScalingCheck>( CheckVertexScalingUpdate2 ).ContinueWith( result => _hook_vertexScalingCheck = result.Result );
+        _iHooks.AddHook<H_VertexScalingReset>( UpdateVertexResetLocation ).ContinueWith( result => _hook_vertexScalingReset = result.Result );
     }
 
     /// <summary>
@@ -156,5 +162,29 @@ public class ScalingHandler {
                 _lastVertexOpponent = (short) ( vertexScalingA * scaling );
             }
         }
+    }
+
+    private void UpdateVertexResetLocation ( nuint location ) {
+        _address_monster_mm_scaling_opponent = Mod.address_game + 0x6015D8;
+
+        Logger.Debug( $"Update Vertex Reset Location updated to: {location + 16}" );
+        _hook_vertexScalingCheck!.OriginalFunction( location );
+
+        if ( ( location + 16 ) != Mod.address_monster_vertex_scaling ) {
+            _address_monster_mm_scaling_opponent = ( location + 16 );
+        }
+
+        /*
+        if ( !_mod._configuration.MonsterSizesEnabled ) { return; }
+
+        Memory.Instance.Read( Mod.address_monster_vertex_scaling, out ushort vertexScalingA );
+        if ( vertexScalingA != _lastVertexCurrent ) {
+            UpdateVertexScaling( Mod.address_monster_vertex_scaling );
+        }
+
+        Memory.Instance.Read( _address_monster_mm_scaling_opponent, out ushort vertexScalingO );
+        if ( vertexScalingO != _lastVertexOpponent ) {
+            UpdateVertexScaling( _address_monster_mm_scaling_opponent, false );
+        }*/
     }
 }

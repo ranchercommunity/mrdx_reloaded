@@ -5,3 +5,9 @@ Monsters Developed or Contributed To
 Version 0.2.4
 =====================================
 Ape / Pixie
+
+=====================================
+Version 0.3.0
+=====================================
+Ape / Metalner
+Ape / Wracky

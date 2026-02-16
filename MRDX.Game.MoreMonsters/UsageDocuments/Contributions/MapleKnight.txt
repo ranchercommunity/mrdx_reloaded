@@ -50,3 +50,9 @@ Version 0.2.9
 =====================================
 Dragon / Hopper
 Hopper / Jell
+
+=====================================
+Version 0.3.0
+=====================================
+Arrowhead / Mocchi
+Suezo / Beaclon

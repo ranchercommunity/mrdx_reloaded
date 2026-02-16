@@ -54,7 +54,7 @@ public class VSHandler {
         _vsMonsterSlot = monsterSlot;
 
         uint ret = _hook_VSModeMonsterTemporaryStorage!.OriginalFunction( self, monsterSlot, unk2 );
-        Logger.Info( $"Vs Mode Monster Date Overwrite Complete {self}, {monsterSlot}, {unk2}", Color.Aqua );
+        Logger.Info( $"Vs Mode Monster Data Overwrite Complete {self}, {monsterSlot}, {unk2}", Color.Aqua );
         _vsModeActive = false;
 
         return ret;
@@ -66,6 +66,7 @@ public class VSHandler {
             nuint subActual = 0x8;
             nuint gutsActual = 0x1D3;
 
+            nuint alternateMM = 0x168;
             nuint scaleMM = 0x169;
             nuint subMM = 0x16A;
             nuint gutsMM = 0x16B;
@@ -79,9 +80,11 @@ public class VSHandler {
                 Memory.Instance.Write( addr + subActual, sub - 1 );
                 Memory.Instance.Write( addr + gutsActual, guts );
 
-                // Set the scaling value for the opponent only.
+                // Set the scaling and alternate values for the opponent only.
                 if ( _vsMonsterSlot == 1 ) {
+                    Memory.Instance.Read( addr + alternateMM, out byte alt );
                     Memory.Instance.Read( addr + scaleMM, out byte scaling );
+                    _mod._monsterInsideAlternate = alt;
                     _mod.handlerScaling.opponentScalingFactor = scaling;
                 }
             }

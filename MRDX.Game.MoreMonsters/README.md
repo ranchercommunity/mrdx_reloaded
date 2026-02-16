@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.2.12
+﻿# More Monsters - Version 0.3.0
 
 ## Features
 
@@ -38,6 +38,16 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+
+
+##### v0.3.0 - 2/16/26
+
+* 5 additional monster combinations have been added!
+* Fixes a VS Mode issue where monster scaling and monster alternates were not applied properly to the P2 Monster slot.
+* VS Mode has been tested and completely works now! 
+
+##### 
 
 ##### v0.2.12 - 2/6/26
 

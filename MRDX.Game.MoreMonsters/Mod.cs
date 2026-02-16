@@ -117,8 +117,11 @@ public class Mod : ModBase // <= Do not Remove.
     private uint _monsterInsideBattleRedirects = 0;
     private uint _monsterInsideBattleMain = 0;
     private uint _monsterInsideBattleSub = 0;
+    public uint _monsterInsideAlternate = 0;
     public bool monsterReplaceEnabled = false;
     public bool retriggerReplacement = false;
+
+
 
     private IHook<H_EarlyShrine> _hook_earlyShrine;
     private IHook<H_WriteSDATAMemory> _hook_writeSDATAMemory;
@@ -399,6 +402,7 @@ public class Mod : ModBase // <= Do not Remove.
             if ( _monsterInsideBattleRedirects == 2 ) {
                 _monsterInsideBattleMain = breedIdMain;
                 _monsterInsideBattleSub = breedIdSub;
+                //_monsterInsideAlternate = GetOpponentMonsterVariantData(); TODO : This should be from DT. VS Handler sets it up internally.
                 //Logger.Info( "InsideBattleStartup, Redirects == 2", Color.Green );
             }
         }
@@ -638,7 +642,7 @@ public class Mod : ModBase // <= Do not Remove.
         if ( _monsterInsideBattleStartup ) {
             //_logger.WriteLineAsync( $"Inside File Checking for Monsters", Color.Orange );
             if ( _monsterInsideBattleRedirects == 1 ) {
-                RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub );
+                RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub, (int) _monsterInsideAlternate );
                 // Load the tournament monsters? I think?
             }
 
