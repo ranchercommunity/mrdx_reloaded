@@ -27,7 +27,11 @@ public delegate void H_CombinationListGenerationStarted ( nuint self );
 [Function( CallingConventions.Fastcall )]
 public delegate void H_CombinationListGenerationFinished ( nuint self );
 
-[HookDef( BaseGame.Mr2, Region.Us, "8B D1 80 BA ?? ?? ?? ?? FF" )]
+[HookDef( BaseGame.Mr2, Region.Us, "53 56 8B D9 33 F6 57 8D BB ?? ?? ?? ??" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void H_CombinationSelectResult ( nuint self );
+
+[ HookDef( BaseGame.Mr2, Region.Us, "8B D1 80 BA ?? ?? ?? ?? FF" )]
 [Function( CallingConventions.Fastcall )]
 public delegate void H_CombinationRenameFirstChoice ( nuint self );
 
@@ -44,10 +48,13 @@ public class CombinationHandler {
     private IHook<H_CombinationRenameFirstChoice> _hook_combinationRenameFirstChoice;
     private IHook<H_CombinationListGenerationStarted> _hook_combinationListGenerationStarted;
     private IHook<H_CombinationListGenerationFinished> _hook_combinationListGenerationFinished;
+    private IHook<H_CombinationSelectResult> _hook_combinationSelectResult;
     private IHook<H_CombinationFinalStatsUpdate> _hook_combinationFinalStatsUpdate;
 
     private nuint _combinationChosenMonsterAddress;
     private nuint _combinationListAddress;
+    private nuint _combinationAddressGeneratedBreedMain { get { return _combinationListAddress + 0x14c; } }
+    private nuint _combinationAddressGeneratedBreedSub { get { return _combinationAddressGeneratedBreedMain + 0x4; } }
     private uint _combinationColorVariant;
 
     private nuint _address_combination_secretseasoning { get { return Mod.address_game + 0x376430; } }
@@ -84,6 +91,7 @@ public class CombinationHandler {
 
         _iHooks.AddHook<H_CombinationListGenerationStarted>( SetupCombinationListGenerationStarted ).ContinueWith( result => _hook_combinationListGenerationStarted = result.Result );
         _iHooks.AddHook<H_CombinationListGenerationFinished>( SetupCombinationListGenerationFinished ).ContinueWith( result => _hook_combinationListGenerationFinished = result.Result );
+        _iHooks.AddHook<H_CombinationSelectResult>( HF_CombinationSelectResult ).ContinueWith( result => _hook_combinationSelectResult = result.Result );
         _iHooks.AddHook<H_CombinationRenameFirstChoice>( SetupCombinationRenameFirstChoice ).ContinueWith( result => _hook_combinationRenameFirstChoice = result.Result );
         _iHooks.AddHook<H_CombinationFinalStatsUpdate>( SetupCombinationFinalStatsUpdate ).ContinueWith( result => _hook_combinationFinalStatsUpdate = result.Result );
     }
@@ -121,6 +129,29 @@ public class CombinationHandler {
         if ( _mod._configuration.MonsterSizesEnabled ) {
             ApplyMonsterScaling();
         }
+    }
+
+    /// <summary>
+    /// Overwrites the location of the final generated breed, using correct logic for determining which monster is chosen.
+    /// </summary>
+    /// <param name="self"></param>
+    private void HF_CombinationSelectResult ( nuint self ) {
+        _hook_combinationSelectResult!.OriginalFunction( self );
+
+        var resultAddress = self + 0x14c;
+
+        var combinationRNG = Random.Shared.Next( 1, 101 ); //1-100
+        for ( var i = 0; i < Math.Min( 14, _combinationPotentialResults.Count ); i++ ) {
+            combinationRNG -= _combinationPotentialResults[ i ].Value;
+
+            if ( combinationRNG <= 0 ) {
+                Memory.Instance.Write( resultAddress, (byte) _combinationPotentialResults[ i ].Key.GenusMain );
+                Memory.Instance.Write( nuint.Add(resultAddress, 0x4), (byte) _combinationPotentialResults[ i ].Key.GenusSub );
+                break;
+            }
+
+        }
+        return;
     }
 
     /// <summary>
@@ -203,15 +234,19 @@ public class CombinationHandler {
         Dictionary<MonsterBreed, int> comboResults = new Dictionary<MonsterBreed, int>();
         var dcb = _discChipGenusMapping.TryGetValue( _secretSeasoning, out MonsterGenus discChipsBoost );
 
-        
+
         var totalStrength = 0;
         for ( var i = 0; i < 4; i++ ) {
             for ( var j = 0; j < 4; j++ ) {
                 MonsterBreed? breed = MonsterBreed.GetBreed( order[ i ], order[ j ] );
                 if ( breed != null ) {
                     var strength = GetCombinationOutputStrength( ( i * 4 ) + j + 1, order[ i ] );
-                    if ( dcb && order[i] == discChipsBoost && order[j] != discChipsBoost ) { strength += 5; }
                     if ( strength != 0 ) {
+                        if ( dcb ) {
+                            if ( i == 1 && j == 2 ) { } // Disc Chips are for some reason, not used in the calc for Sub1/Main2
+                            else if ( order[ i ] == discChipsBoost && order[ j ] != discChipsBoost ) { strength += 5; }
+                        }
+
                         if ( comboResults.ContainsKey( breed ) ) {
                             comboResults[ breed ] = comboResults[ breed ] + strength;
                         }
@@ -224,6 +259,7 @@ public class CombinationHandler {
             }
         }
 
+        // Get the total percentage for later use.
         int totalPercent = 0;
         foreach ( var breed in comboResults.Keys ) {
             comboResults[ breed ] = (comboResults[ breed ] * 1000 ) / totalStrength;
@@ -234,6 +270,25 @@ public class CombinationHandler {
         // Sort List
         var comboSorted = comboResults.ToList();
         comboSorted.Sort( ( pair1, pair2 ) => pair2.Value.CompareTo( pair1.Value ) );
+
+        // Implement Rule/Step N of the Combination Guide.
+        // If Total is < 100, add 1 from each slot starting at 0 until we've reached 100.
+        if ( totalPercent > 100 ) {
+            for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {
+                comboSorted[ i ] = new KeyValuePair<MonsterBreed, int>(comboSorted[i].Key, comboSorted[ i ].Value - 1);
+                totalPercent--;
+                if ( totalPercent <= 100 ) { break; }
+            }
+        }
+
+        // If Total is > 100, subtract 1 from each slot starting at 0 until we've reached 100.
+        if ( totalPercent < 100 ) {
+            for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {
+                comboSorted[ i ] = new KeyValuePair<MonsterBreed, int>( comboSorted[ i ].Key, comboSorted[ i ].Value + 1 );
+                totalPercent++;
+                if ( totalPercent >= 100 ) { break; }
+            }
+        }
 
         // Write Combo List to Memory
         for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {
