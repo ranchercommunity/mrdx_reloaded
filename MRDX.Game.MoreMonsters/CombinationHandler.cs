@@ -272,16 +272,18 @@ public class CombinationHandler {
         comboSorted.Sort( ( pair1, pair2 ) => pair2.Value.CompareTo( pair1.Value ) );
 
         // Implement Rule/Step N of the Combination Guide.
-        // If Total is < 100, add 1 from each slot starting at 0 until we've reached 100.
-        if ( totalPercent > 100 ) {
+        //If Total is > 100, subtract 1 from the first slots as they equal each other.
+        while ( totalPercent > 100 ) {
+            var curReduction = comboSorted[ 0 ].Value - 1;
             for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {
+                if ( comboSorted[i].Value < curReduction ) { break; }
                 comboSorted[ i ] = new KeyValuePair<MonsterBreed, int>(comboSorted[i].Key, comboSorted[ i ].Value - 1);
                 totalPercent--;
                 if ( totalPercent <= 100 ) { break; }
             }
         }
 
-        // If Total is > 100, subtract 1 from each slot starting at 0 until we've reached 100.
+        // If Total is < 100, add 1 from each slot starting at 0 until we've reached 100. 
         if ( totalPercent < 100 ) {
             for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {
                 comboSorted[ i ] = new KeyValuePair<MonsterBreed, int>( comboSorted[ i ].Key, comboSorted[ i ].Value + 1 );
@@ -289,6 +291,9 @@ public class CombinationHandler {
                 if ( totalPercent >= 100 ) { break; }
             }
         }
+
+        // Sort again as the %'s may become unsorted due to weirdness with how the formula works.
+        comboSorted.Sort( ( pair1, pair2 ) => pair2.Value.CompareTo( pair1.Value ) );
 
         // Write Combo List to Memory
         for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {

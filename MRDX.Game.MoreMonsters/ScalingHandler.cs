@@ -136,17 +136,26 @@ public class ScalingHandler {
 
         Memory.Instance.Read( Mod.address_monster_vertex_scaling, out ushort vertexScalingA );
         if ( vertexScalingA != _lastVertexCurrent ) {
-            UpdateVertexScaling( Mod.address_monster_vertex_scaling );
+            UpdateVertexScaling( Mod.address_monster_vertex_scaling, vertexScalingA );
         }
 
         Memory.Instance.Read( _address_monster_mm_scaling_opponent, out ushort vertexScalingO );
         if ( vertexScalingO != _lastVertexOpponent ) {
-            UpdateVertexScaling( _address_monster_mm_scaling_opponent, false );
+            UpdateVertexScaling( _address_monster_mm_scaling_opponent, vertexScalingO, false );
         }
     }
 
-    public void UpdateVertexScaling(nuint vertexAddress, bool currentMonster = true) {
+    /// <summary>
+    /// Called from sources that don't have direct access to vertex locations.
+    /// </summary>
+    /// <param name="vertexAddress"></param>
+    public void UpdateVertexScaling ( nuint vertexAddress ) {
         Memory.Instance.Read( vertexAddress, out ushort vertexScalingA );
+        UpdateVertexScaling( vertexAddress, vertexScalingA, true );
+    }
+
+    public void UpdateVertexScaling(nuint vertexAddress, ushort vertexScalingA, bool currentMonster = true) {
+       
         if ( vertexScalingA != 0x00 ) {
             Memory.Instance.Read( vertexAddress + 0x2, out ushort vertexScalingB );
             Memory.Instance.Read( vertexAddress + 0x4, out ushort vertexScalingC );
@@ -168,23 +177,10 @@ public class ScalingHandler {
         _address_monster_mm_scaling_opponent = Mod.address_game + 0x6015D8;
 
         Logger.Debug( $"Update Vertex Reset Location updated to: {location + 16}" );
-        _hook_vertexScalingCheck!.OriginalFunction( location );
+        _hook_vertexScalingReset!.OriginalFunction( location );
 
         if ( ( location + 16 ) != Mod.address_monster_vertex_scaling ) {
             _address_monster_mm_scaling_opponent = ( location + 16 );
         }
-
-        /*
-        if ( !_mod._configuration.MonsterSizesEnabled ) { return; }
-
-        Memory.Instance.Read( Mod.address_monster_vertex_scaling, out ushort vertexScalingA );
-        if ( vertexScalingA != _lastVertexCurrent ) {
-            UpdateVertexScaling( Mod.address_monster_vertex_scaling );
-        }
-
-        Memory.Instance.Read( _address_monster_mm_scaling_opponent, out ushort vertexScalingO );
-        if ( vertexScalingO != _lastVertexOpponent ) {
-            UpdateVertexScaling( _address_monster_mm_scaling_opponent, false );
-        }*/
     }
 }
