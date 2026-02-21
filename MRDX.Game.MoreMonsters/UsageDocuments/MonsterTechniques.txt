@@ -1,0 +1,48 @@
+Arrowhead
+Sting Slash: Centaur, Wracky
+Death Scythe: Monol, Wracky
+Cyclone: Beaclon, Gaboo, Mocchi, Mew
+Fist Missile: Ducken, Metalner
+Javelin RESTRICTED : Centaur, Wracky, Monol
+
+
+Beaclon
+Fist Missile: Metalner, Gaboo
+Triple Stabs: Wracky, Hopper, ColorP, Centaur, DURAHAN
+Earthquake: Zilla, Baku
+
+
+Durahan
+Twister Slash RESTRICTED: Centaur, Wracky, Hare, Bajarl, Ducken, Undine, Ape, Henger, Zuum
+Kick Combo: Wracky, Hare, Bajarl, Ape, Zuum
+V Slash: Centaur, Ducken, Undine, Henger, Mew
+Charge RESTRICTED: Gali, Ghost, Worm, Undine
+Gust Slash: Gali, Ghost, Worm, Undine, Jill
+
+
+Hopper
+Lightning: Gali, Niton, Durahan, Tiger
+Flame: Henger, Gali, Phoenix, Dragon
+Phantom Claw: Mew
+
+
+Kato
+Bolt: Pixie, Niton, Durahan
+Lick: ColorP
+Licking: Baku
+
+
+Mocchi
+Flame: Henger, Phoenix, Zuum
+
+
+Pixie
+Death Final: None
+Phantom Claw: Hopper, Mew
+Fire Breath: Phoenix
+1-2 Punch - Can be learned at all regular Errantry locations - Requires 200-300 Skill, 3% Auto Learn Chance
+	Bajarl, Hopper
+
+
+Wracky
+Fire Juggler: Phoenix, Zuum

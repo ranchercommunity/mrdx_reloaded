@@ -75,7 +75,7 @@ public class CombinationHandler {
     private byte _combinationParent2Scaling;
 
     private MonsterGenus _combinationParent1Main;
-    private byte[] _combinationParent1Techniques = new byte[48];
+    private byte[] _combinationParent1Techniques = new byte[ 48 ];
 
     private MonsterGenus _combinationParent2Main;
 
@@ -116,8 +116,8 @@ public class CombinationHandler {
         var comboMonster = CombinationListGetSecretSeasoning();
         _overwriteCombinationLogic = !comboMonster.Item1;
 
-        if ( _overwriteCombinationLogic ) { 
-            ClearCombinationList(); 
+        if ( _overwriteCombinationLogic ) {
+            ClearCombinationList();
 
             /*if ( _mod._configuration.CombinationChanceAdjustment == Configuration.Config.CombinaitonSettings.Modified ) {
                 GenerateCombinationListBaseGame();
@@ -146,7 +146,7 @@ public class CombinationHandler {
 
             if ( combinationRNG <= 0 ) {
                 Memory.Instance.Write( resultAddress, (byte) _combinationPotentialResults[ i ].Key.GenusMain );
-                Memory.Instance.Write( nuint.Add(resultAddress, 0x4), (byte) _combinationPotentialResults[ i ].Key.GenusSub );
+                Memory.Instance.Write( nuint.Add( resultAddress, 0x4 ), (byte) _combinationPotentialResults[ i ].Key.GenusSub );
                 break;
             }
 
@@ -159,11 +159,11 @@ public class CombinationHandler {
     /// the monster combination list needs to be overwritten, and with what monster.
     /// </summary>
     /// <returns></returns>
-    private (bool, MonsterGenus, MonsterGenus) CombinationListGetSecretSeasoning() {
+    private (bool, MonsterGenus, MonsterGenus) CombinationListGetSecretSeasoning () {
         Memory.Instance.Read( _address_combination_secretseasoning, out byte item );
 
         _secretSeasoning = (Item) item;
- 
+
         if ( _secretSeasoning == Item.DnaCapsuleRed ) { return (true, MonsterGenus.Pixie, MonsterGenus.XY); } // DNA Red - Mia
         else if ( _secretSeasoning == Item.DnaCapsuleYellow ) { return (true, MonsterGenus.Pixie, MonsterGenus.XZ); } // DNA Yellow - Poison
         else if ( _secretSeasoning == Item.DnaCapsulePink ) { return (true, MonsterGenus.Mocchi, MonsterGenus.XY); } // DNA Pink - GentleMoch
@@ -193,7 +193,7 @@ public class CombinationHandler {
     /// <summary>
     /// This function both clears the combination list and stores the parent data so the proper list can be built.
     /// </summary>
-    private void ClearCombinationList() {
+    private void ClearCombinationList () {
         // Clear All Possibilities - 2E = Value 46 is the 'No combination byte'
         for ( var i = 0; i < 14; i++ ) {
             var cAddr = _combinationListAddress + ( (nuint) i * 12 );
@@ -262,22 +262,24 @@ public class CombinationHandler {
         // Get the total percentage for later use.
         int totalPercent = 0;
         foreach ( var breed in comboResults.Keys ) {
-            comboResults[ breed ] = (comboResults[ breed ] * 1000 ) / totalStrength;
-            comboResults[ breed ] = Math.Max(1, ( comboResults[ breed ] + 5 ) / 10);
+            comboResults[ breed ] = ( comboResults[ breed ] * 1000 ) / totalStrength;
+            comboResults[ breed ] = Math.Max( 1, ( comboResults[ breed ] + 5 ) / 10 );
             totalPercent += comboResults[ breed ];
         }
 
         // Sort List
         var comboSorted = comboResults.ToList();
-        comboSorted.Sort( ( pair1, pair2 ) => pair2.Value.CompareTo( pair1.Value ) );
+
+        //comboSorted.Sort( ( pair1, pair2 ) => pair2.Value.CompareTo( pair1.Value ) );
+        CombinationSort( comboSorted );
 
         // Implement Rule/Step N of the Combination Guide.
-        //If Total is > 100, subtract 1 from the first slots as they equal each other.
+        //If Total is > 100, subtract 1 from the last highest slots as they equal each other.
         while ( totalPercent > 100 ) {
-            var curReduction = comboSorted[ 0 ].Value - 1;
-            for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {
-                if ( comboSorted[i].Value < curReduction ) { break; }
-                comboSorted[ i ] = new KeyValuePair<MonsterBreed, int>(comboSorted[i].Key, comboSorted[ i ].Value - 1);
+            var maxValue = comboSorted[ 0 ].Value;
+            for ( int i = comboSorted.Count - 1; i >= 0; i-- ) {
+                if ( comboSorted[ i ].Value != maxValue ) { continue; }
+                comboSorted[ i ] = new KeyValuePair<MonsterBreed, int>( comboSorted[ i ].Key, comboSorted[ i ].Value - 1 );
                 totalPercent--;
                 if ( totalPercent <= 100 ) { break; }
             }
@@ -285,7 +287,10 @@ public class CombinationHandler {
 
         // If Total is < 100, add 1 from each slot starting at 0 until we've reached 100. 
         if ( totalPercent < 100 ) {
+            var maxValue = comboSorted[ 0 ].Value;
             for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {
+                if ( comboSorted[i].Value == maxValue ) { continue; }
+
                 comboSorted[ i ] = new KeyValuePair<MonsterBreed, int>( comboSorted[ i ].Key, comboSorted[ i ].Value + 1 );
                 totalPercent++;
                 if ( totalPercent >= 100 ) { break; }
@@ -293,7 +298,8 @@ public class CombinationHandler {
         }
 
         // Sort again as the %'s may become unsorted due to weirdness with how the formula works.
-        comboSorted.Sort( ( pair1, pair2 ) => pair2.Value.CompareTo( pair1.Value ) );
+        //comboSorted.Sort( ( pair1, pair2 ) => pair2.Value.CompareTo( pair1.Value ) );
+        CombinationSort( comboSorted );
 
         // Write Combo List to Memory
         for ( var i = 0; i < Math.Min( 14, comboSorted.Count ); i++ ) {
@@ -339,7 +345,7 @@ public class CombinationHandler {
         return 0;
     }
 
-    private void GenerateCombinationListModified() {
+    private void GenerateCombinationListModified () {
         Memory.Instance.Read( _combinationParent1Address + 0x8, out MonsterGenus p1Main );
         Memory.Instance.Read( _combinationParent1Address + 0xc, out MonsterGenus p1Sub );
 
@@ -404,7 +410,7 @@ public class CombinationHandler {
         _hook_combinationFinalStatsUpdate!.OriginalFunction( unk1 );
 
         (byte, double)[] childGrowths = new (byte, double)[ 6 ];
-        
+
         MonsterBreed childBreed = MonsterBreed.GetBreed( _monsterCurrent.GenusMain, _monsterCurrent.GenusSub );
         /* TODO - Perhaps introduce variants into this process? Not sure how that'll work to be honest.
         //var mmBreed = MMBreed.GetBreed( _monsterCurrent.GenusMain, _monsterCurrent.GenusSub );
@@ -417,20 +423,20 @@ public class CombinationHandler {
                 (4, variant.GrowthRateSpeed + 0.04), (5, variant.GrowthRateDefense + 0.05) ];
         }*/
 
-   
+
         // This is a bit strange, but we're accounting for the fact that it orders by Starting Stat (/2000 to get a small amount)
         // plus infinitely small values in the stat order to break ties.
-            childGrowths = [ 
-                (0, childBreed.GrowthRateLife + (childBreed.Life / 2000.0) ), 
+        childGrowths = [
+            (0, childBreed.GrowthRateLife + (childBreed.Life / 2000.0) ),
                 (1, childBreed.GrowthRatePower + 0.0001 + (childBreed.Power / 2000.0) ),
-                (2, childBreed.GrowthRateIntelligence + 0.0002 + (childBreed.Intelligence / 2000.0) ), 
+                (2, childBreed.GrowthRateIntelligence + 0.0002 + (childBreed.Intelligence / 2000.0) ),
                 (3, childBreed.GrowthRateSkill + 0.0003 + (childBreed.Skill / 2000.0) ),
-                (4, childBreed.GrowthRateSpeed + 0.0004 + (childBreed.Speed / 2000.0) ), 
+                (4, childBreed.GrowthRateSpeed + 0.0004 + (childBreed.Speed / 2000.0) ),
                 (5, childBreed.GrowthRateDefense + 0.0005 + (childBreed.Defense / 2000.0) ) ];
 
         if ( _overwriteCombinationLogic ) {
             _mod.WriteMonsterData( childBreed );
-            ApplyParentStatBonuses(childBreed, childGrowths );
+            ApplyParentStatBonuses( childBreed, childGrowths );
             ApplyBattleSpecials( childBreed );
             ApplySecretSeasoning();
 
@@ -439,7 +445,7 @@ public class CombinationHandler {
         }
     }
 
-    private void ApplyParentStatBonuses( MonsterBreed breed, (byte, double)[] childGrowths ) {
+    private void ApplyParentStatBonuses ( MonsterBreed breed, (byte, double)[] childGrowths ) {
 
         var statOrderP1 = _combinationParent1Offsets;
         var statOrderP2 = _combinationParent2Offsets;
@@ -448,8 +454,8 @@ public class CombinationHandler {
 
         var correctOrderCount = 0;
 
-        for ( var i = 0; i < 6; i++ ) { 
-            if ( childGrowths[i].Item1 == statOrderP1[i].Item1 && childGrowths[ i ].Item1 == statOrderP2[i].Item1 ) {
+        for ( var i = 0; i < 6; i++ ) {
+            if ( childGrowths[ i ].Item1 == statOrderP1[ i ].Item1 && childGrowths[ i ].Item1 == statOrderP2[ i ].Item1 ) {
                 correctOrderCount++;
             }
         }
@@ -471,7 +477,7 @@ public class CombinationHandler {
         }
 
         double chancePercentage = 0.85;
-        if ( _mod._configuration.CombinationChanceAdjustment == Configuration.Config.CombinaitonSettings.NoChanges ) { 
+        if ( _mod._configuration.CombinationChanceAdjustment == Configuration.Config.CombinaitonSettings.NoChanges ) {
             foreach ( var kvp in _combinationPotentialResults ) {
                 if ( kvp.Key == breed ) {
                     if ( kvp.Value < 2.0 ) { chancePercentage = 1.0; }
@@ -493,12 +499,12 @@ public class CombinationHandler {
         for ( var i = 0; i < 6; i++ ) { statOffsets[ i ] = ( ( ( 2 * statOrderP1[ i ].Item2 ) + statOrderP2[ i ].Item2 ) / 3 ); }
 
         var ski = (ushort) ( statOffsets[ 3 ] * statPercentages[ 3 ] * chancePercentage ); ;
-        _monsterCurrent.Life +=         (ushort) ( statOffsets[ 0 ] * statPercentages[ 0 ] * chancePercentage );
-        _monsterCurrent.Power +=        (ushort) ( statOffsets[ 1 ] * statPercentages[ 1 ] * chancePercentage );
+        _monsterCurrent.Life += (ushort) ( statOffsets[ 0 ] * statPercentages[ 0 ] * chancePercentage );
+        _monsterCurrent.Power += (ushort) ( statOffsets[ 1 ] * statPercentages[ 1 ] * chancePercentage );
         _monsterCurrent.Intelligence += (ushort) ( statOffsets[ 2 ] * statPercentages[ 2 ] * chancePercentage );
-        _monsterCurrent.Skill +=        (ushort) ( statOffsets[ 3 ] * statPercentages[ 3 ] * chancePercentage );
-        _monsterCurrent.Speed +=        (ushort) ( statOffsets[ 4 ] * statPercentages[ 4 ] * chancePercentage );
-        _monsterCurrent.Defense +=      (ushort) ( statOffsets[ 5 ] * statPercentages[ 5 ] * chancePercentage );
+        _monsterCurrent.Skill += (ushort) ( statOffsets[ 3 ] * statPercentages[ 3 ] * chancePercentage );
+        _monsterCurrent.Speed += (ushort) ( statOffsets[ 4 ] * statPercentages[ 4 ] * chancePercentage );
+        _monsterCurrent.Defense += (ushort) ( statOffsets[ 5 ] * statPercentages[ 5 ] * chancePercentage );
 
     }
 
@@ -540,11 +546,11 @@ public class CombinationHandler {
         { Item.DiscChipsZilla, MonsterGenus.Zilla },
         { Item.DiscChipsZuum, MonsterGenus.Zuum },
     };
- 
+
     /// <summary>
     /// Applies the secret seasoning stats if they are stat affecting items (i.e., non monster species ones).
     /// </summary>
-    private void ApplySecretSeasoning() {
+    private void ApplySecretSeasoning () {
         bool original = _mod._configuration.CombinationItemAdjustment == Configuration.Config.CombinaitonSettings.NoChanges;
         if ( _secretSeasoning == Item.BigFootstep ) {
             if ( original ) { _monsterCurrent.Life += 10; _monsterCurrent.Defense += 10; }
@@ -659,7 +665,7 @@ public class CombinationHandler {
             _monsterCurrent.BattleSpecial |= (ushort) BattleSpecials.Hurry;
         }
 
-        else if ( _secretSeasoning == Item.DiscChipsMocchi ) { 
+        else if ( _secretSeasoning == Item.DiscChipsMocchi ) {
             _monsterCurrent.Fame += 50;
             if ( !original ) { _monsterCurrent.Lifespan += 5; _monsterCurrent.InitalLifespan += 5; }
         }
@@ -743,7 +749,7 @@ public class CombinationHandler {
         Memory.Instance.ReadRaw( nuint.Add( Mod.address_monster, 0x1C8 ), out slotChosen, 4 );
 
         // Assign Non-Special, Non-Learned techs to the monster based on the inheritedCount.
-        var inheritedCount = (int) Math.Floor ( ( learnedTechTypes[ 6 ] - ( learnedTechTypes[ 5 ] + 2 ) ) * 2.0 / 3.0 );
+        var inheritedCount = (int) Math.Floor( ( learnedTechTypes[ 6 ] - ( learnedTechTypes[ 5 ] + 2 ) ) * 2.0 / 3.0 );
         var learnedTechs = 0;
         for ( var i = 0; i < shuffle.Count(); i++ ) {
             if ( learnedTechs < inheritedCount ) {
@@ -783,9 +789,10 @@ public class CombinationHandler {
                         oneBonus++;
                     }
                     // TODO - Handle the modded case where a tech chain is required for one errantry location but not others.
-                    pendingTech = pendingTech.ErrantryInformation.Count == 0 ? null : pendingTech.ErrantryInformation[ 0 ].ChainTechRequired; 
-                } while ( pendingTech != null && oneBonus <= 1  );
-            } else { break; }
+                    pendingTech = pendingTech.ErrantryInformation.Count == 0 ? null : pendingTech.ErrantryInformation[ 0 ].ChainTechRequired;
+                } while ( pendingTech != null && oneBonus <= 1 );
+            }
+            else { break; }
         }
 
         // Now transfer over the use count of each move learned.
@@ -804,8 +811,8 @@ public class CombinationHandler {
     /// Chooses 1 tech each, if learned, from Power, Wither, Sharp, and Hit, and gives it to the baby.
     /// </summary>
     /// <param name="childBreed"></param>
-    private void ApplyTechniquesParentDifferent( MonsterBreed childBreed ) {
-        
+    private void ApplyTechniquesParentDifferent ( MonsterBreed childBreed ) {
+
         MonsterBreed parentBreed = MonsterBreed.GetBreed( _combinationParent1Main, _combinationParent1Main );
         var parentTechList = parentBreed.TechList;
         var childTechList = childBreed.TechList;
@@ -815,7 +822,7 @@ public class CombinationHandler {
         int[] learnedTechTypes = [ 0, 0, 0, 0, 0, 0 ];
         for ( var i = 0; i < 24; i++ ) {
             if ( _combinationParent1Techniques[ i * 2 ] == 1 ) {
-                var t = parentTechList.FindLast( v => BitOperations.TrailingZeroCount((uint) v.Slot) == i ); //BO.TZC allows us to get the 'id' of the slot.
+                var t = parentTechList.FindLast( v => BitOperations.TrailingZeroCount( (uint) v.Slot ) == i ); //BO.TZC allows us to get the 'id' of the slot.
                 if ( t != null ) {
                     learnedTechTypes[ (int) t.Type ]++;
                 }
@@ -837,14 +844,14 @@ public class CombinationHandler {
                         tt == 3 ? 3 :
                         tt == 4 ? 1 : 4 );
 
-                    if ( pendingTech.ErrantryInformation.Count > 0 && 
-                         pendingTech.ErrantryInformation[0].ErrantrySlot == 0 &&
-                         pendingTech.ErrantryInformation[0].Location == loc ) {
+                    if ( pendingTech.ErrantryInformation.Count > 0 &&
+                         pendingTech.ErrantryInformation[ 0 ].ErrantrySlot == 0 &&
+                         pendingTech.ErrantryInformation[ 0 ].Location == loc ) {
 
-                            childTechs[ pendingTech.SlotPosition * 2 ] = 1;
-                            slotChosen[ (int) pendingTech.Range ] = pendingTech.SlotPosition < slotChosen[ (int) pendingTech.Range ] ? pendingTech.SlotPosition : slotChosen[ (int) pendingTech.Range ];
+                        childTechs[ pendingTech.SlotPosition * 2 ] = 1;
+                        slotChosen[ (int) pendingTech.Range ] = pendingTech.SlotPosition < slotChosen[ (int) pendingTech.Range ] ? pendingTech.SlotPosition : slotChosen[ (int) pendingTech.Range ];
 
-                            break;
+                        break;
                     }
                 }
             }
@@ -863,25 +870,25 @@ public class CombinationHandler {
         var p2 = _combinationParent2BattleSpecials;
 
         // ( SpecialPos, P1Only, P2Only, Both% ) - Reference BattleSpecials.X for positions
-        (byte, byte, byte, byte) [] inheritedSpecials = [ 
-            (2, 40, 20, 80), 
-            (3, 50, 30, 100), 
-            (4, 40, 20, 80), 
+        (byte, byte, byte, byte)[] inheritedSpecials = [
+            (2, 40, 20, 80),
+            (3, 50, 30, 100),
+            (4, 40, 20, 80),
             (5, 25, 10, 50),
             (6, 50, 30, 100),
             (7, 40, 20, 80),
             (8, 50, 30, 100),
             (9, 50, 30, 100) ];
-        
+
         foreach ( var special in inheritedSpecials ) {
-            short slot = (short) (1 << special.Item1);
+            short slot = (short) ( 1 << special.Item1 );
             var chance = ( ( p1 & slot ) != 0 && ( p2 & slot ) == 0 ) ? special.Item2 :
                          ( ( p1 & slot ) == 0 && ( p2 & slot ) != 0 ) ? special.Item3 :
                          ( ( p1 & slot ) != 0 && ( p2 & slot ) != 0 ) ? special.Item4 :
                          0;
 
 
-            if ( Random.Shared.Next(1, 100) <= chance ) {
+            if ( Random.Shared.Next( 1, 100 ) <= chance ) {
                 childSpecials |= (ushort) slot;
             }
 
@@ -896,7 +903,7 @@ public class CombinationHandler {
     /// <summary>
     /// Applies monster scaling based upon a semi-random weighting between the parents and a random mutation value.
     /// </summary>
-    private void ApplyMonsterScaling() {
+    private void ApplyMonsterScaling () {
         _mod.HandlerScaling.temporaryScaling = 0;
         if ( !_mod._configuration.MonsterSizesEnabled ) { return; }
 
@@ -920,16 +927,16 @@ public class CombinationHandler {
             int oValue = _mod.HandlerScaling.MonsterScalingFactors[ _combinationParent2Main ] -
                 _mod.HandlerScaling.MonsterScalingFactors[ _combinationParent1Main ];
 
-            oValue = oValue < 0 ? Math.Max(1, 100 - Random.Shared.Next( 1, Math.Abs( oValue ) ) ) :
-                Math.Min(200, Random.Shared.Next(100, 100 + oValue) );
+            oValue = oValue < 0 ? Math.Max( 1, 100 - Random.Shared.Next( 1, Math.Abs( oValue ) ) ) :
+                Math.Min( 200, Random.Shared.Next( 100, 100 + oValue ) );
 
-            double [] strengths = [ Random.Shared.NextDouble() + 1, Random.Shared.NextDouble() + 1,
+            double[] strengths = [ Random.Shared.NextDouble() + 1, Random.Shared.NextDouble() + 1,
                 Random.Shared.NextDouble() + 1, Random.Shared.NextDouble(), 0 ];
             strengths[ 4 ] = strengths[ 0 ] + strengths[ 1 ] + strengths[ 2 ] + strengths[ 3 ];
 
             scaling = (byte) (
-                ((p1value * strengths[ 0 ]) + ( p2value * strengths[ 1 ]) +
-                ( rValue * strengths[ 2 ] ) +  ( oValue * strengths[ 3 ])) /
+                ( ( p1value * strengths[ 0 ] ) + ( p2value * strengths[ 1 ] ) +
+                ( rValue * strengths[ 2 ] ) + ( oValue * strengths[ 3 ] ) ) /
                 strengths[ 4 ] );
 
         }
@@ -944,7 +951,7 @@ public class CombinationHandler {
     /// </summary>
     /// <param name="parentAddress"></param>
     /// <returns></returns>
-    private (byte, int)[] GetParentOffsetsInCombinationOrder(nuint parentAddress) {
+    private (byte, int)[] GetParentOffsetsInCombinationOrder ( nuint parentAddress ) {
         (byte, int)[] ret = new (byte, int)[ 6 ];
 
         Memory.Instance.Read( parentAddress + 0x8, out byte breedMain );
@@ -987,18 +994,33 @@ public class CombinationHandler {
             var maxVal = -1.0;
             for ( var j = 5; j >= 0; j-- ) {
                 var weightTotal = Math.Max( 1, ( curStats[ j ] * ( 0.5 * growths[ j ] ) ) );
-                if ( curStats[j] == 0 ) { weightTotal = -1; }
+                if ( curStats[ j ] == 0 ) { weightTotal = -1; }
                 if ( maxVal < weightTotal ) {
                     maxVal = weightTotal;
                     maxStat = (byte) j;
                 }
             }
 
-            ret[ 5 - i ] = (maxStat, Math.Max(0, curStats[ maxStat ] - baseStats[ maxStat ]) );
+            ret[ 5 - i ] = (maxStat, Math.Max( 0, curStats[ maxStat ] - baseStats[ maxStat ] ));
 
             curStats[ maxStat ] = 0;
         }
 
         return ret;
     }
-}
+
+    private void CombinationSort ( List<KeyValuePair<MonsterBreed, int>> comboList ) {
+        for ( var i = 0; i < comboList.Count - 1; i++ ) {
+            for ( var j = i + 1; j < comboList.Count; j++ ) {
+                // Compare Entry 1 to Entry 2, then 1 vs 3, 1 vs 4...
+                if ( comboList[ i ].Value < comboList[ j ].Value ) {
+                    // If Entry 1 < compared entry, swap the 2 entries
+                    var temp = comboList[ i ];
+                    comboList[ i ] = comboList[ j ];
+                    comboList[ j ] = temp;
+                }
+                // Compare 2 vs 3, 2 vs 4...
+            }
+        }
+    }
+};

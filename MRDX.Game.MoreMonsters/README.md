@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.3.0
+﻿# More Monsters - Version 0.4.0
 
 ## Features
 
@@ -41,11 +41,19 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 
+##### v0.4.0 - 2/21/26
+
+* 5 additional monster combinations have been added!
+* Fixes rare occurrences where combination chances were not calculated correctly.
+* Additional Monsters can now learn breed specific techniques! Please see the 'UsageDocuments' folder contained within the mod to see which new monsters will have access to those techniques.
+
+
+
 ##### v0.3.0 - 2/16/26
 
 * 5 additional monster combinations have been added!
 * Fixes a VS Mode issue where monster scaling and monster alternates were not applied properly to the P2 Monster slot.
-* VS Mode has been tested and completely works now! 
+* VS Mode has been tested and completely works now!
 
 ##### 
 

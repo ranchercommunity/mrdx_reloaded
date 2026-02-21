@@ -58,6 +58,10 @@ Version 0.2.6
 =====================================
 Gaboo / Centaur (Alternate #1)
 
+=====================================
+Version 0.4.0
+=====================================
+Arrowhead / ColorPandora
 ...
 
 and countless others for processing, stat updates and naming, and battle sprite textures!
