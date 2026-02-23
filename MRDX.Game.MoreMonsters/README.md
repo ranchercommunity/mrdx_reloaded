@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.4.0
+﻿# More Monsters - Version 0.4.1
 
 ## Features
 
@@ -38,6 +38,10 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.4.1 - 2/23/26
+
+* Fixes an issue where some monsters had sound information swapped (resulting in Pixie's making dragon noises, etc.).
 
 
 

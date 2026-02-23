@@ -2,11 +2,6 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.X86;
-using System.Text.RegularExpressions;
-using System.Xml.Schema;
-using Microsoft.VisualBasic;
 using MRDX.Base.ExtractDataBin.Interface;
 using MRDX.Base.Mod.Interfaces;
 using MRDX.Game.MoreMonsters.Configuration;
@@ -16,6 +11,7 @@ using Reloaded.Hooks.Definitions.X86;
 using Reloaded.Memory.Sources;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Universal.Redirector.Interfaces;
+using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using CallingConventions = Reloaded.Hooks.Definitions.X86.CallingConventions;
 
 namespace MRDX.Game.MoreMonsters;
@@ -75,6 +71,13 @@ public delegate void H_FileSave ( nuint self, nuint unk1);
 public delegate nuint H_ShrineMonsterUnlockedChecker ( nuint self, int unk1, int unk2 );
 
 
+// This function appears to be called only when the ranch is being loaded. We care because this is when we're going to read
+// the errantry file to get the correct step data.
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 EC 10 53 8B DA" )]
+[Function( CallingConventions.Fastcall )]
+public delegate void H_LoadingRanch ( int unk1, int unk2, nuint unk3, nuint unk4 );
+
+
 
 public class Mod : ModBase // <= Do not Remove.
 {
@@ -129,6 +132,7 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<UpdateGenericState> _hook_updateGenericState;
     private IHook<H_FileSaveLoad> _hook_fileSaveLoad;
     private IHook<H_FileSave> _hook_fileSave;
+    private IHook<H_LoadingRanch> _hook_loadingRanch;
 
     private IHook<H_ShrineMonsterUnlockedChecker> _hook_shrineMonsterUnlockedChecker;
 
@@ -201,7 +205,12 @@ public class Mod : ModBase // <= Do not Remove.
             saveFile.OnLoad += LoadUpdateFreezerDataCorrections;
         }
 
-        _iGame.OnMonsterBreedsLoaded.Subscribe( InitializeNewMonsters );
+        var startupScanner = _modLoader.GetController<IStartupScanner>();
+        if ( startupScanner != null && startupScanner.TryGetTarget( out var scanner ) ) {
+            AlterCode_RanchWanderingSoundPointer( scanner );
+        } else { Logger.Error("Startup Scanner failed to initialize. Monster souns may be impacted.", Color.Red ); }
+
+            _iGame.OnMonsterBreedsLoaded.Subscribe( InitializeNewMonsters );
 
         _monsterCurrent = _iGame.Monster;
 
@@ -219,6 +228,8 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_FileSaveLoad>( FileSaveLoad ).ContinueWith( result => _hook_fileSaveLoad = result.Result );
         _iHooks.AddHook<H_FileSave>( FileSave ).ContinueWith( result => _hook_fileSave = result.Result );
 
+        _iHooks.AddHook<H_LoadingRanch>( HFLoadingRanch ).ContinueWith( result => _hook_loadingRanch = result.Result );
+
         _iHooks.AddHook<H_ShrineMonsterUnlockedChecker>( CheckShrineMonsterUnlocked ).ContinueWith( result => _hook_shrineMonsterUnlockedChecker = result.Result );
 
         handlerFreezer = new FreezerHandler( this, _iHooks, _monsterCurrent );
@@ -235,6 +246,8 @@ public class Mod : ModBase // <= Do not Remove.
 
         var exeBaseAddress = module.BaseAddress.ToInt64();
         address_game = (nuint) exeBaseAddress;
+
+
 
         Logger.SetLogLevel( _configuration.LogLevel );
     }
@@ -782,6 +795,50 @@ public class Mod : ModBase // <= Do not Remove.
     /// <param name="savefile"></param>
     private void LoadUpdateFreezerDataCorrections ( ISaveFileEntry savefile ) {
         _loadedFileCorrectFreezer = 1;
+    }
+
+
+
+    private void HFLoadingRanch ( int unk1, int unk2, nuint unk3, nuint unk4 ) {
+        _hook_loadingRanch!.OriginalFunction( unk1, unk2, unk3, unk4 );
+
+        Memory.Instance.SafeRead( address_monster, out byte monsterMain );
+        var breedShort = IMonster.AllMonsters[ monsterMain ].ShortName;
+        var errantryFile = _dataPath + @$"\mf2\data\mon\{breedShort}\{breedShort[ ..2 ]}_{breedShort[ ..2 ]}_i.isd";
+
+        var data = File.ReadAllBytes( errantryFile );
+        long soundPos = data[ 0x18 ] + ( data[0x19] << 8 ) + ( data[0x1A] << 16) + (data[0x1B] << 24);
+
+        var soundLen = data.Length - soundPos;
+
+        byte[] rawSoundData = new byte[ soundLen ];
+        for ( var i = soundPos; i < data.Length; i++ ) {
+            rawSoundData[ i - soundPos ] = data[ i ];
+        }
+        Memory.Instance.WriteRaw( address_game + 0x571470, rawSoundData );
+    }
+
+    /// <summary>
+    ///     This function replaces the location where the game is looking for sound data when wandering around on the ranch.
+    ///     Errantry files can only be of length 0x7EF.
+    ///     Here, we overwrite the location of where this data should be located to a manual location in memory
+    ///     the mod writes the sound data to.
+    ///     MOV EDI [EBX + 0x100] becomes NOOP, MOV EDI [MF2.EXE + 0x571470]
+    ///     The choice of MF2.exe + 0x571470 is arbitrary. It appears to be an unused and unallocated block of null values.
+    /// </summary>
+    /// <param name="scanner"></param>
+    private void AlterCode_RanchWanderingSoundPointer ( IStartupScanner scanner ) {
+        _logger.WriteLine( "Ranch Wandering Pointer Scanning" );
+        var thisProcess = Process.GetCurrentProcess();
+        var module = thisProcess.MainModule!;
+        var exeBaseAddress = module.BaseAddress.ToInt64();
+        scanner.AddMainModuleScan( "55 8B EC 83 EC 0C 83 3D ?? ?? ?? ?? 00", result => {
+            var addr = (nuint) ( exeBaseAddress + result.Offset );
+            Memory.Instance.SafeWrite( addr + 0x59, (byte) 0x90 );
+            Memory.Instance.SafeWrite( addr + 0x59 + 0x1, 0xBF );
+            Memory.Instance.SafeWrite( addr + 0x59 + 0x2, (int) ( exeBaseAddress + 0x571470 ) );
+            _logger.WriteLine( $"{addr + 0x59} found, updating to {exeBaseAddress}/{exeBaseAddress + 0x571470}" );
+        } );
     }
 
     // Card Information For Later

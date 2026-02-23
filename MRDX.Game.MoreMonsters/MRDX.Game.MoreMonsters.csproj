@@ -46,6 +46,7 @@
 	  <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.16.3" />
 	  <PackageReference Include="Reloaded.Universal.Redirector.Interfaces" Version="1.1.0" />
 	  <PackageReference Include="Reloaded.Memory" Version="8.1.0" />
+	  <PackageReference Include="Reloaded.Memory.SigScan.ReloadedII.Interfaces" Version="1.2.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MRDX.Base.ExtractDataBin.Interface\MRDX.Base.ExtractDataBin.Interface.csproj" />
