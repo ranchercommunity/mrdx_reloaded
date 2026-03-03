@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.4.1
+﻿# More Monsters - Version 0.4.2
 
 ## Features
 
@@ -38,6 +38,15 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.4.2 - 2/21/26
+
+* 5 additional monster combinations have been added!
+* 1 additional monster alternate has been added!
+* 1 major monster update.
+* Fixed an issue where Durahan / Gali did not have the proper starting techniques.
+
+
 
 ##### v0.4.1 - 2/23/26
 
