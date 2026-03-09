@@ -17,3 +17,9 @@ Version 0.2.11
 Durahan / Wracky
 Durahan / Mocchi
 Durahan / Gali
+
+=====================================
+Version 0.4.3
+=====================================
+Centaur / Undine
+Centaur / Wracky

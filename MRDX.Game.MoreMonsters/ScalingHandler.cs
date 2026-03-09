@@ -104,7 +104,7 @@ public class ScalingHandler {
             Memory.Instance.Read( Mod.address_monster_mm_scaling, out monsterScaling );
         }
 
-        if ( monsterScaling == 0 ) { return 1; }
+        if ( monsterScaling == 0 || monsterScaling == 255 ) { return 1; }
 
         if ( monsterScaling <= 100 ) { return Single.Lerp( (float) (_mod._configuration.MonsterSizeMinimum / 100.0), (float) 1.0, ( ( (float) monsterScaling ) - 1 ) / 99 ); }
         else if ( monsterScaling == 101 ) { return 1.0; }

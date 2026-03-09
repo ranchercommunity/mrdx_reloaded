@@ -1,8 +1,8 @@
-﻿# More Monsters - Version 0.4.2
+﻿# More Monsters - Version 0.4.3
 
 ## Features
 
-* Adds additional species (200+!) combinations to the game and support for being able to acquire them.
+* Adds additional species (210+!) combinations to the game and support for being able to acquire them.
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
@@ -38,6 +38,14 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.4.3 - 3/9/26
+
+* 5 additional monster combinations have been added!
+* Fixed a VS Mode issue where monster alternates and base game (non-modded) monsters were causing crashes from the P1 Monster slot.
+* Hopper / Gali no longer starts with Bolt.
+
+
 
 ##### v0.4.2 - 2/21/26
 
@@ -212,4 +220,4 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 
 
 
-* ArchbishopDave, Teawch, MonsterFenrick, OriharaSaki, Kane, Chacolah, MachoCheeze, MooseBones, Plasbad, MapleKnight, JPMockMan, ClayClem, fishwolf2215, Gwndoliva, kindofblue28, Monoski1, pyronsranch, Vyraxhaalas, Woody, BigBadHyena ,ProjectL, Snaid1, DryGuy84, GoldenExperience, TheBigWaloo, DrZock, Bag, Yams, Kenichi Kuroki, TentaCole, TheGamingChuck, Zecster
+* ArchbishopDave, Teawch, MonsterFenrick, OriharaSaki, Kane, Chacolah, MachoCheeze, MooseBones, Plasbad, MapleKnight, JPMockMan, ClayClem, fishwolf2215, Gwndoliva, kindofblue28, Monoski1, pyronsranch, Vyraxhaalas, Woody, BigBadHyena ,ProjectL, Snaid1, DryGuy84, GoldenExperience, TheBigWaloo, DrZock, Bag, Yams, Kenichi Kuroki, TentaCole, TheGamingChuck, Zecster, Pyrokosus, Sphaera, Friend1yMonster

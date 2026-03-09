@@ -267,9 +267,15 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
 
+    /// <summary>
+    /// Reads the variant location data for regular players. If 255 is read, convert it to 0. 
+    /// Note: I am honestly not sure why some monsters have 255 in this data slot. I'm suspicious there's some edge case
+    /// where I'll have to redo a lot of work. Hopefully I'm just being paranoid.
+    /// </summary>
+    /// <returns></returns>
     private byte GetPlayerMonsterVariantData() {
         Memory.Instance.Read( address_monster_mm_variant, out byte variantID );
-        return variantID;
+        return (variantID != (byte) 255) ? variantID : (byte) 0;
     }
 
 
@@ -402,6 +408,10 @@ public class Mod : ModBase // <= Do not Remove.
             variantID = _shrineMonsterAlternate;
         }
 
+        else if ( handlerVS.GetVsModeOverrideAlternate() ) {
+            variantID = (int) _monsterInsideAlternate;
+        }
+
         else {
             variantID = GetPlayerMonsterVariantData();
         }
@@ -445,7 +455,7 @@ public class Mod : ModBase // <= Do not Remove.
         MonsterGenus breedMain = (MonsterGenus) breedIdMain;
         MonsterGenus breedSub = (MonsterGenus) breedIdSub;
 
-        Logger.Info( $"Running Redirect Script: {breedIdMain}/{breedIdSub}", Color.Lime );
+        Logger.Info( $"Running Redirect Script: {breedIdMain}/{breedIdSub}/A{variant}", Color.Lime );
 
         foreach ( MMBreed breed in MMBreed.NewBreeds ) {
             if ( breed.MatchNewBreed(breedMain, breedSub ) ) {
@@ -454,6 +464,11 @@ public class Mod : ModBase // <= Do not Remove.
                     _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\" + breed.FilepathNew( variant ) + ".tex" );
                 _redirector.AddRedirect( _dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + "_bt.tex",
                     _modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\" + breed.FilepathNew( variant ) + "_bt.tex" );
+
+                Logger.Trace( $"Redirect Script MM for {_dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + ".tex"} " +
+                    $"to {_modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\" + breed.FilepathNew( variant ) + ".tex"}" );
+                Logger.Trace( $"Redirect Script MM for {_dataPath + @"\mf2\data\mon\" + breed.FilepathBase() + "_bt.tex"} " +
+                    $"to {_modPath + @"\ManualRedirector\Resources\data\mf2\data\mon\" + breed.FilepathNew( variant ) + "_bt.tex"}" );
                 return;
             }
 
@@ -651,18 +666,16 @@ public class Mod : ModBase // <= Do not Remove.
     }
 
     private void FileLoadCheckBattleRedirects(string filename) {
-        //_logger.WriteLineAsync( $"Any file check {_monsterInsideBattleStartup}, {_monsterInsideBattleRedirects}, {_monsterInsideBattleMain}, {_monsterInsideBattleSub}", Color.Orange );
         if ( _monsterInsideBattleStartup ) {
-            //_logger.WriteLineAsync( $"Inside File Checking for Monsters", Color.Orange );
+            Logger.Trace( $"Inside File Checking for Monsters:  {_monsterInsideBattleStartup}, {_monsterInsideBattleRedirects}, {_monsterInsideBattleMain}, {_monsterInsideBattleSub}", Color.Orange );
             if ( _monsterInsideBattleRedirects == 1 ) {
                 RedirectFromID( _monsterInsideBattleMain, _monsterInsideBattleSub, (int) _monsterInsideAlternate );
                 // Load the tournament monsters? I think?
             }
 
             if ( filename.Contains( "_bt.tex" ) && filename.Contains( "mf2\\data\\mon" ) ) {
-
                 _monsterInsideBattleRedirects--;
-                //_logger.WriteLineAsync( $"Inside File Checking Decrementing redirects {_monsterInsideBattleRedirects}", Color.Orange );
+                Logger.Trace( $"Inside File Checking Decrementing redirects {_monsterInsideBattleRedirects}", Color.Orange );
             }
         }
     }

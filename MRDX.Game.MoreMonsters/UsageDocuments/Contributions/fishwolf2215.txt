@@ -60,3 +60,9 @@ Version 0.4.2
 =====================================
 ColorPandora / Hare / Alternate #1
 ColorPandora / Baku
+
+
+=====================================
+Version 0.4.3
+=====================================
+Mocchi / Zilla
