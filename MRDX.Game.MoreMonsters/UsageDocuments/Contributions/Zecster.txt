@@ -5,3 +5,8 @@ Monsters Developed or Contributed To
 Version 0.2.9
 =====================================
 Pixie / Ape
+
+=====================================
+Version 0.4.4
+=====================================
+Zilla / Joker
