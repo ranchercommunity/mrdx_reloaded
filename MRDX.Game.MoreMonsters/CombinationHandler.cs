@@ -126,6 +126,11 @@ public class CombinationHandler {
             //}
         }
 
+        else {
+            _combinationPotentialResults = new List<KeyValuePair<MonsterBreed, int>>();
+            _combinationPotentialResults.Add( new KeyValuePair<MonsterBreed, int>( MonsterBreed.GetBreed( comboMonster.Item2, comboMonster.Item3 ), 100 ) );
+        }
+
         if ( _mod._configuration.MonsterSizesEnabled ) {
             ApplyMonsterScaling();
         }
@@ -234,7 +239,6 @@ public class CombinationHandler {
         Dictionary<MonsterBreed, int> comboResults = new Dictionary<MonsterBreed, int>();
         var dcb = _discChipGenusMapping.TryGetValue( _secretSeasoning, out MonsterGenus discChipsBoost );
 
-
         var totalStrength = 0;
         for ( var i = 0; i < 4; i++ ) {
             for ( var j = 0; j < 4; j++ ) {
@@ -269,10 +273,8 @@ public class CombinationHandler {
 
         // Sort List
         var comboSorted = comboResults.ToList();
-
         //comboSorted.Sort( ( pair1, pair2 ) => pair2.Value.CompareTo( pair1.Value ) );
         CombinationSort( comboSorted );
-
         // Implement Rule/Step N of the Combination Guide.
         //If Total is > 100, subtract 1 from the last highest slots as they equal each other.
         while ( totalPercent > 100 ) {
@@ -442,11 +444,11 @@ public class CombinationHandler {
 
             if ( childBreed.GenusMain == _combinationParent1Main ) { ApplyTechniquesParentSame( childBreed ); }
             else { ApplyTechniquesParentDifferent( childBreed ); }
+
         }
     }
 
     private void ApplyParentStatBonuses ( MonsterBreed breed, (byte, double)[] childGrowths ) {
-
         var statOrderP1 = _combinationParent1Offsets;
         var statOrderP2 = _combinationParent2Offsets;
 

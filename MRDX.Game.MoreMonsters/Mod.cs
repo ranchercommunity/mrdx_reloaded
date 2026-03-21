@@ -95,12 +95,17 @@ public class Mod : ModBase // <= Do not Remove.
     public static nuint address_monster_vertex_scaling { get { return address_game + 0x581520; } }
 
     // Offsets are exact for monster values. For Freezer Data, add +2.
-    public static nuint offset_mm_variant { get { return 0x164; } }
+    public static short memory_mm_version = 1; // Versioning starts at 1, with 0.5.0
+    public static nuint offset_mm_version { get { return 0x15C; } }
+    public static nuint offset_mm_truemain { get { return 0x163; } }
+    public static nuint offset_mm_alternate { get { return 0x164; } }
     public static nuint offset_mm_scaling { get { return 0x165; } }
     public static nuint offset_mm_truesub { get { return 0x166; } }
     public static nuint offset_mm_trueguts { get { return 0x167; } }
 
-    public static nuint address_monster_mm_variant { get { return address_monster + offset_mm_variant; } }
+    public static nuint address_monster_mm_version { get { return address_monster + offset_mm_version; } }
+    public static nuint address_monster_mm_truemain {  get { return address_monster + offset_mm_truemain; } }
+    public static nuint address_monster_mm_alternate { get { return address_monster + offset_mm_alternate; } }
     public static nuint address_monster_mm_scaling { get { return address_monster + offset_mm_scaling; } }
     public static nuint address_monster_mm_truesub { get { return address_monster + offset_mm_truesub; } }
     public static nuint address_monster_mm_trueguts { get { return address_monster + offset_mm_trueguts; } }
@@ -274,7 +279,7 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     /// <returns></returns>
     private byte GetPlayerMonsterVariantData() {
-        Memory.Instance.Read( address_monster_mm_variant, out byte variantID );
+        Memory.Instance.Read( address_monster_mm_alternate, out byte variantID );
         return (variantID != (byte) 255) ? variantID : (byte) 0;
     }
 
@@ -597,7 +602,7 @@ public class Mod : ModBase // <= Do not Remove.
             var variant = MonsterBreed.GetBreed( _shrineReplacementMonster._genusNewMain, _shrineReplacementMonster._genusNewSub );
             WriteMonsterData( variant );
 
-            Memory.Instance.Write( address_monster_mm_variant, _shrineMonsterAlternate );
+            Memory.Instance.Write( address_monster_mm_alternate, _shrineMonsterAlternate );
 
             shrineReplacementActive = false;
         }
@@ -720,31 +725,64 @@ public class Mod : ModBase // <= Do not Remove.
         // TODO : I need to fix the 0x8 and 0x4 additions at the end of the addresses.
 
         for ( var i = 0; i < 20; i++ ) {
-            var subPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_truesub + 0x8;
-            var gutsPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_trueguts + 0x8;
+            var startPos = address_freezer + (nuint) ( 524 * i );
+            var mainPosActual = startPos + 0x4 + 0x4;
+            var subPosActual = startPos + 0x8 + 0x4;
 
-            var mainPosActual = address_freezer + (nuint) ( 524 * i ) + 0x4 + 0x4;
-            var subPosActual = address_freezer + (nuint) ( 524 * i ) + 0x8 + 0x4;
-            var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D3 + 0x4;
-
-            Memory.Instance.Read( mainPosActual, out byte main);
+            Memory.Instance.Read( mainPosActual, out byte main );
             Memory.Instance.Read( subPosActual, out byte sub );
 
-            // Only do data updates if we are writing a non-standard breed. Helps preserve existing saves without issue (legal monsters).
-            // Also skip 0x2e mains as that represents and empty slot.
-            // TODO: Add a 'source' tag to MonsterBreed so we know where it came from so we can perform different logic.
-            if ( main != 0x2e && MMBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ) != null ) { 
-                byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;
-                Memory.Instance.Write<Byte>( subPosActual, ref main );
-                Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
-            }
+            if ( main == 0x2e ) { continue; } // Skip Empty Slots
 
-            //if ( sub[0] != 0 ) { sub[ 0 ] -= 1; Memory.Instance.WriteRaw( subPosActual, sub ); }
-            //if ( guts[0] != 0 ) { Memory.Instance.WriteRaw( gutsPosActual, guts ); }
+            var verPosMM = startPos + offset_mm_version + 0x8;
+
+            Memory.Instance.Read( verPosMM, out ushort versionMM );
+            
+            // VERSION 0.5.0 SAVE FILE UPDATE
+            // Updates all monsters in the freezer to Version 0.5.0 standards that are not already following it.
+            if ( versionMM < 1 ) {
+                VersionUpdateFreezerMonster_V0x5x0_MM1( (byte) i );
+            }
         }
 
-        Logger.Info( "File Saved with VS Mode Fixed Monster Data", Color.Aqua );
+        Logger.Info( "File Saved with More Monster Data", Color.Aqua );
         _hook_fileSave!.OriginalFunction( self, unk1 );
+    }
+
+    private void VersionUpdateFreezerMonster_V0x5x0_MM1 ( byte freezerSlot ) {
+        
+        var startPos = address_freezer + (nuint) ( 524 * freezerSlot );
+        var mainPosActual = startPos + 0x4 + 0x4;
+        var subPosActual = startPos + 0x8 + 0x4;
+        var gutsPosActual = startPos + 0x1D3 + 0x4;
+
+        Memory.Instance.Read( mainPosActual, out byte mainA );
+        Memory.Instance.Read( subPosActual, out byte subA );
+        Memory.Instance.Read( gutsPosActual, out byte gutsA );
+
+        var verPosMM = startPos + offset_mm_version + 0x8;
+        var mainPosMM = startPos + offset_mm_truemain + 0x8;
+        var subPosMM = startPos + offset_mm_truesub + 0x8;
+        var gutsPosMM = startPos + offset_mm_trueguts + 0x8;
+
+        byte mmMain = (byte) ( mainA + 1 );
+        byte mmSub = (byte) ( subA + 1 );
+
+        // Update an MM Monster to the proper Version, Main, Sub, and GR
+        if ( MMBreed.GetBreed( (MonsterGenus) mainA, (MonsterGenus) subA ) != null ) {
+            Memory.Instance.Write<short>( verPosMM, ref memory_mm_version );
+            Memory.Instance.Write<Byte>( mainPosMM, ref mmMain );
+        }
+
+        // Update standard breed monstesr to the proper version, Main, Sub, and GR
+        else {
+            Memory.Instance.Write<short>( verPosMM, ref memory_mm_version );
+            Memory.Instance.Write<Byte>( mainPosMM, ref mmMain );
+            Memory.Instance.Write<Byte>( subPosMM, ref mmSub );
+            Memory.Instance.Write<Byte>( gutsPosMM, ref gutsA );
+        }
+
+        Logger.Info( $"Monster in Freezer Slot {freezerSlot} updated to Version 0.5.0 Standards (v1)." );
     }
 
     /// <summary>
@@ -771,43 +809,54 @@ public class Mod : ModBase // <= Do not Remove.
 
     /// <summary>
     /// This function is called after a save is performed. 
-    /// The call then immediately performs the inverse of the previous FileSave function that was called.
-    /// This fixes the freezer monsters so gameplay can continue.
+    /// This call used to undo the MM value swaps to resume normal gameplay, but as its handled prior to sending data off to VS mode
+    /// this is not necessary any longer unless the monster is on an old version of MM.
     /// </summary>
     private void PostSaveLoadFreezerDataCorrections() {
         // TODO : I need to fix the 0x8 and 0x4 additions at the end of the addresses.
-
+        
         for ( var i = 0; i < 20; i++ ) {
-            var subPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_truesub + 0x8;
-            var gutsPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_trueguts + 0x8;
+            var startPos = address_freezer + (nuint) ( 524 * i );
+            var verPosMM = startPos + offset_mm_version + 0x8;
 
-            var subPosActual = address_freezer + (nuint) ( 524 * i ) + 0x8 + 0x4;
-            var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D3 + 0x4;
+            Memory.Instance.Read( verPosMM, out short mmVersion );
 
-            Memory.Instance.Read( subPosMM, out byte sub );
-            Memory.Instance.Read( gutsPosMM, out byte guts );
+            // Monster MM Data before Version 0.5.0, fix Sub and Guts
+            if ( mmVersion < 1 ) {
+                var subPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_truesub + 0x8;
+                var gutsPosMM = address_freezer + (nuint) ( 524 * i ) + offset_mm_trueguts + 0x8;
 
-            // Subs are saved as Sub+1 so we can tell empty (0) from Pixie.
-            if ( sub > 0 ) {
-                sub -= 1;
-                Memory.Instance.Write<Byte>( subPosActual, ref sub );
-            }
+                var subPosActual = address_freezer + (nuint) ( 524 * i ) + 0x8 + 0x4;
+                var gutsPosActual = address_freezer + (nuint) ( 524 * i ) + 0x1D3 + 0x4;
 
-            if ( guts > 0 ) {
-                Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                Memory.Instance.Read( subPosMM, out byte sub );
+                Memory.Instance.Read( gutsPosMM, out byte guts );
+
+                // Subs are saved as Sub+1 so we can tell empty (0) from Pixie.
+                if ( sub > 0 ) {
+                    sub -= 1;
+                    Memory.Instance.Write<Byte>( subPosActual, ref sub );
+                }
+
+                if ( guts > 0 ) {
+                    Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                }
             }
         }
-
-        Logger.Info( "Freezer Data Corrected Post Save/Load", Color.Aqua );
+        
+        Logger.Debug( "Freezer Data Corrected Post Save/Load - No Action Taken", Color.Aqua );
     }
 
     /// <summary>
     /// This function is called after a load is performed.
-    /// Logic is not actually performed here, but instead 
+    /// If we are currently are in VS Mode, then update the freezer data in memory.
     /// </summary>
     /// <param name="savefile"></param>
     private void LoadUpdateFreezerDataCorrections ( ISaveFileEntry savefile ) {
         _loadedFileCorrectFreezer = 1;
+        if ( handlerVS._vsModeEntered ) {
+            handlerVS.UpdateLoadedFileFreezerInformation();
+        }
     }
 
 

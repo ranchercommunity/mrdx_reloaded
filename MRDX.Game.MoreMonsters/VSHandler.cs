@@ -21,13 +21,19 @@ namespace MRDX.Game.MoreMonsters;
 
 public class VSHandler {
 
+    public bool _vsModeEntered = false;
     private bool _vsModeActive = false;
     private int _vsMonsterSlot = 0;
+    private nuint _address_loaded_file_monster_start { get { return Mod.address_game + 0x31EFBC; } }
     private nuint _address_vsmode_monster_info_one {  get { return Mod.address_game + 0x376678; } }
     private nuint _address_vsmode_monster_info_two { get { return Mod.address_game + 0x376448; } }
 
+
     private int _vsAlternateFixCounter = 0;
-    
+
+    [HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 83 EC 60" )]
+    [Function( CallingConventions.Fastcall )]
+    public delegate byte H_TitleScreenLoop ( nuint self, char unk1 );
 
     [ HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 18 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D 45 ?? 64 A3 ?? ?? ?? ?? 89 55 ??" )]
     [ Function( CallingConventions.Fastcall )]
@@ -44,6 +50,7 @@ public class VSHandler {
     private Mod _mod;
     private readonly IHooks _iHooks;
 
+    private IHook<H_TitleScreenLoop> _hook_titleScreenLoop;
     private IHook<H_VSModeMonsterTemporaryStorage> _hook_VSModeMonsterTemporaryStorage;
     private IHook<H_VSModeLoop> _hook_VSModeLoop;
     private IHook<H_VSModeOptionFinalized> _hook_VSModeOptionFinalized;
@@ -54,9 +61,19 @@ public class VSHandler {
         _mod = mod;
         _iHooks = iHooks;
 
+        _iHooks.AddHook<H_TitleScreenLoop>( HF_TitleScreenLoop ).ContinueWith( result => _hook_titleScreenLoop = result.Result );
         _iHooks.AddHook<H_VSModeMonsterTemporaryStorage>( OverwriteMonsterValuesWithMMData ).ContinueWith( result => _hook_VSModeMonsterTemporaryStorage = result.Result );
         _iHooks.AddHook<H_VSModeLoop>( VSModeLoopFunction ).ContinueWith( result => _hook_VSModeLoop = result.Result );
         _iHooks.AddHook<H_VSModeOptionFinalized>( HF_VSModeOptionFinalized ).ContinueWith( result => _hook_VSModeOptionFinalized = result.Result );
+    }
+
+    private byte HF_TitleScreenLoop ( nuint self, char unk1 ) {
+        Logger.Trace( $"Title Screen Loop Entered with {self} | {unk1} " );
+        byte ret = _hook_titleScreenLoop!.OriginalFunction( self, unk1 );
+        Logger.Trace( $"Title Screen Loop Exiting with {self} | {unk1} | returning {ret}" );
+
+        _vsModeEntered = (ret == 2); // VS Mode Selected
+        return ret;
     }
 
     private uint OverwriteMonsterValuesWithMMData( nuint self, int monsterSlot, int unk2 ) {
@@ -74,27 +91,44 @@ public class VSHandler {
     private void VSModeLoopFunction(nuint self) {
         byte guts = 0;
         if ( _vsModeActive ) {
-            nuint subActual = 0x8;
-            nuint gutsActual = 0x1D3;
-
-            nuint alternateMM = 0x168;
-            nuint scaleMM = 0x169;
-            nuint subMM = 0x16A;
-            nuint gutsMM = 0x16B;
+            nuint subActual = 0x4;
+            nuint gutsActual = 0x1CF;
 
             nuint addr = _vsMonsterSlot == 0 ? _address_vsmode_monster_info_one : _address_vsmode_monster_info_two;
+            addr += 0x4; // Offsets are wrong.
 
-            Memory.Instance.Read( addr + subMM, out byte sub );
-            Memory.Instance.Read( addr + gutsMM, out guts );
+            Memory.Instance.Read( addr + Mod.offset_mm_version, out ushort versionMM );
+            Memory.Instance.Read( addr + Mod.offset_mm_truemain, out byte main );
+            Memory.Instance.Read( addr + Mod.offset_mm_truesub, out byte sub );
+            Memory.Instance.Read( addr + Mod.offset_mm_trueguts, out guts );
 
-            if ( sub != 0 ) {
+            // Illegal Version (Japanese Version of the game writes FFFF to the version area) - Do Nothing
+
+            if ( versionMM >= 65534 ) { }
+
+            // Version 0.5.0+ (1)
+            else if ( versionMM >= 1 ) {
+                Memory.Instance.Write( addr, main - 1 );
                 Memory.Instance.Write( addr + subActual, sub - 1 );
                 Memory.Instance.Write( addr + gutsActual, guts );
 
                 // Set the scaling and alternate values for the opponent only.
                 if ( _vsMonsterSlot == 1 ) {
-                    Memory.Instance.Read( addr + alternateMM, out byte alt );
-                    Memory.Instance.Read( addr + scaleMM, out byte scaling );
+                    Memory.Instance.Read( addr + Mod.offset_mm_alternate, out byte alt );
+                    Memory.Instance.Read( addr + Mod.offset_mm_scaling, out byte scaling );
+                    _mod._monsterInsideAlternate = alt;
+                    _mod.handlerScaling.opponentScalingFactor = scaling;
+                }
+            }
+
+            else if ( sub != 0 ) { // Do limited actions for Version 0 (0.4.4 or earlier)
+                Memory.Instance.Write( addr + subActual, sub - 1 );
+                Memory.Instance.Write( addr + gutsActual, guts );
+
+                // Set the scaling and alternate values for the opponent only.
+                if ( _vsMonsterSlot == 1 ) {
+                    Memory.Instance.Read( addr + Mod.offset_mm_alternate, out byte alt );
+                    Memory.Instance.Read( addr + Mod.offset_mm_scaling, out byte scaling );
                     _mod._monsterInsideAlternate = alt;
                     _mod.handlerScaling.opponentScalingFactor = scaling;
                 }
@@ -143,6 +177,42 @@ public class VSHandler {
         if ( _vsAlternateFixCounter <= 0 ) { return false; }
         else { _vsAlternateFixCounter--;
             return _vsAlternateFixCounter == 0; // Returns True when this value is now 0.
+        }
+    }
+
+
+    /// <summary>
+    /// This function should be called when VS Mode is active and a save file was just loaded.
+    /// This replaces 'illegal' MM data when the Monster is Version 0.5.0 or greater (1) with proper
+    /// information.
+    /// </summary>
+    public void UpdateLoadedFileFreezerInformation () {
+
+        // TODO : I need to fix the 0x8 and 0x4 additions at the end of the addresses.
+        for ( var i = 0; i < 20; i++ ) {
+            var startPos = _address_loaded_file_monster_start + (nuint) ( 524 * i );
+            var verPosMM = startPos + Mod.offset_mm_version;
+            var mainPosMM = startPos + Mod.offset_mm_truemain;
+            var subPosMM = startPos + Mod.offset_mm_truesub;
+            var gutsPosMM = startPos + Mod.offset_mm_trueguts;
+
+            var mainPosActual = startPos;
+            var subPosActual = startPos + 0x4;
+            var gutsPosActual = startPos + 0x1CF;
+
+            Memory.Instance.Read( verPosMM, out ushort versionMM );
+
+            if ( versionMM >= 1 ) {
+                Memory.Instance.Read( mainPosActual, out byte main );
+                Memory.Instance.Read( subPosActual, out byte sub );
+
+                // Only do data updates if we are writing a non-empty slot (0x2e) and an actual MM Breed.
+                if ( main != 0x2e && MMBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ) != null ) {
+                    byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;
+                    Memory.Instance.Write<Byte>( subPosActual, ref main );
+                    Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                }
+            }
         }
     }
 

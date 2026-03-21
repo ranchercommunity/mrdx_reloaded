@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.4.4
+﻿# More Monsters - Version 0.5.0
 
 ## Features
 
@@ -39,12 +39,19 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
+##### v0.5.0 - 3/22/26
+
+* 2 additional monsters combinations have been added!
+* Fixed an issue where using guaranteed monster combination items (Phoenix Feather, Ducken Doll, etc.) would crash the game.
+* Fixed an issue where Japanese Version generated monsters in VS Mode could load incorrectly.
+* Fixed a rare issue where all More Monster related data would be removed from monsters in the freezer, reverting them to Base/Base monsters.
+
+
+
 ##### v0.4.4 - 3/13/26
 
 * 1 additional monster combination has been added!
 * Fixed an issue with Hare / Centaur's technique icons.
-
-
 
 
 
@@ -93,91 +100,6 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 
-##### v0.2.11
-
-* 11 additional monster combinations have been added!
-* Fixes an issue where 'Pixie' was displayed instead of the proper monster species with MM monsters were in the Hall of Fame.
-* Fixes an issue where attempting to shrine a More Monsters Monster that was not unlocked broke various things until restarting MR2.
-
-
-
-##### v0.2.9 - v0.2.10
-
-* 22 additional monster combinations have been added!
-* 1 additional bonus monster combination has been added!
-* 0.2.10 - Hotfixes for various monster battle textures.
-
-
-
-##### v0.2.7 - 0.2.8
-
-* 19 additional monster combinations have been added!
-* Battle texture fixes for numerous monsters.
-* Ducken/Mock has been replaced with an entirely new monster texture/name to better reflect Mock.
-* The 0.2.2 version of Ducken/Mock (Ducken Doll) is now Ducken/Special #3.
-* 0.2.8 - Hotfix for various battle textures.
-
-
-
-##### v0.2.6
-
-* 9 additional monster combinations have been added!
-* Minor adjustments to battle textures for some monsters.
-* Fixed an issue where techs were not properly assigned for combined monsters.
-
-
-
-##### v0.2.5
-
-* 14 additional monster combinations have been added!
-* 1 additional bonus monster combination has been added!
-
-
-
-##### v0.2.4
-
-* 13 additional monster combinations have been added!
-* Fixed a bug where new monsters could occasionally like 'invalid' items (Shiny Stones, Statues, etc.)
-
-
-
-##### v0.2.3
-
-* 32 additional monster combinations have been added!
-* Combination logic for inheriting Battle Specials has been fixed.
-* Monsters with Joker subs now appropriately get the Real Battle Special from the Shrine
-
-
-
-##### v0.2.2
-
-* 16 additional monster combinations have been added!
-* Monsters with alternate appearances can now be discretely generated from the shrine as opposed to randomly.
-* Fixed a bug where baby monsters who did not match the main parent were learning incorrect tech types.
-
-
-
-##### v0.2.1
-
-* Fixed a bug where monsters rarely were not assigned a Liked item, leading to potential crashes.
-* Fixed a major bug where monster's active technique slots were not reset properly, leading to bricked technique ranges.
-*     - If you were affected by this bug, you will need to use Cheat Engine or another tool to manually update
-*       the chosen technique of your monster to something known and valid.
-
-##### 
-
-##### v0.2.0
-
-* 6 additional monster combinations have been added!
-* VS Play is now supported! No restrictions are on monsters uploaded. Non More-Monsters users will not be impacted.
-* Monster Growths have been normalized to base game values.
-* Combinations now respect Tech Chains for both Matched and Mismatched Parents.
-* 'Bonus Monsters' are now available as a toggleable option in the configuration for MM.
-
-
-
-
-
 ### Planned Updates
 
 * More Species
@@ -186,16 +108,10 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 
-
-
 ### Known Issues
 
 * Intermittent crashes can occur when accessing the combination list, or just prior to monster generation.
 * The combination menu always allows for accessing the 2nd page of monsters, even if there are less than 8 options.
-
-
-
-
 
 
 
