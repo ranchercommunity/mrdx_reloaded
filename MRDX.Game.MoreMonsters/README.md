@@ -41,7 +41,7 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ##### v0.5.0 - 3/22/26
 
-* 2 additional monsters combinations have been added!
+* 4 additional monsters combinations have been added!
 * Fixed an issue where using guaranteed monster combination items (Phoenix Feather, Ducken Doll, etc.) would crash the game.
 * Fixed an issue where Japanese Version generated monsters in VS Mode could load incorrectly.
 * Fixed a rare issue where all More Monster related data would be removed from monsters in the freezer, reverting them to Base/Base monsters.

@@ -77,6 +77,9 @@ public delegate nuint H_ShrineMonsterUnlockedChecker ( nuint self, int unk1, int
 [Function( CallingConventions.Fastcall )]
 public delegate void H_LoadingRanch ( int unk1, int unk2, nuint unk3, nuint unk4 );
 
+[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 83 EC 24 A1 ?? ?? ?? ?? 33 C4 89 44 24 ?? 53" ) ]
+[Function( CallingConventions.MicrosoftThiscall )]
+public delegate void H_WormCocoonStart ( nuint unk1, nuint unk2, nuint unk3ptr );
 
 
 public class Mod : ModBase // <= Do not Remove.
@@ -96,7 +99,8 @@ public class Mod : ModBase // <= Do not Remove.
 
     // Offsets are exact for monster values. For Freezer Data, add +2.
     public static short memory_mm_version = 1; // Versioning starts at 1, with 0.5.0
-    public static nuint offset_mm_version { get { return 0x15C; } }
+    public static nuint offset_mm_version { get { return 0x159; } }
+    public static nuint offset_mm_wormsub { get { return 0x162; } }
     public static nuint offset_mm_truemain { get { return 0x163; } }
     public static nuint offset_mm_alternate { get { return 0x164; } }
     public static nuint offset_mm_scaling { get { return 0x165; } }
@@ -104,6 +108,7 @@ public class Mod : ModBase // <= Do not Remove.
     public static nuint offset_mm_trueguts { get { return 0x167; } }
 
     public static nuint address_monster_mm_version { get { return address_monster + offset_mm_version; } }
+    public static nuint address_monster_mm_wormsub { get { return address_monster + offset_mm_wormsub; } }
     public static nuint address_monster_mm_truemain {  get { return address_monster + offset_mm_truemain; } }
     public static nuint address_monster_mm_alternate { get { return address_monster + offset_mm_alternate; } }
     public static nuint address_monster_mm_scaling { get { return address_monster + offset_mm_scaling; } }
@@ -139,6 +144,8 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<H_FileSave> _hook_fileSave;
     private IHook<H_LoadingRanch> _hook_loadingRanch;
 
+    private IHook<H_WormCocoonStart> _hook_wormCocoonStart;
+
     private IHook<H_ShrineMonsterUnlockedChecker> _hook_shrineMonsterUnlockedChecker;
 
     private int _loadedFileCorrectFreezer = 0;
@@ -149,7 +156,6 @@ public class Mod : ModBase // <= Do not Remove.
     private readonly IMonster _monsterCurrent;
 
     private Dictionary<int, (MMBreed, byte)> _songIDMapping = new Dictionary<int, (MMBreed, byte)>();
-
 
     private IHook<H_GetMonsterBreedName> _hook_monsterBreedNames;
 
@@ -234,6 +240,8 @@ public class Mod : ModBase // <= Do not Remove.
         _iHooks.AddHook<H_FileSave>( FileSave ).ContinueWith( result => _hook_fileSave = result.Result );
 
         _iHooks.AddHook<H_LoadingRanch>( HFLoadingRanch ).ContinueWith( result => _hook_loadingRanch = result.Result );
+
+        //_iHooks.AddHook<H_WormCocoonStart>( HF_WormCocoonStart ).ContinueWith( result => _hook_wormCocoonStart = result.Result );
 
         _iHooks.AddHook<H_ShrineMonsterUnlockedChecker>( CheckShrineMonsterUnlocked ).ContinueWith( result => _hook_shrineMonsterUnlockedChecker = result.Result );
 
@@ -598,7 +606,6 @@ public class Mod : ModBase // <= Do not Remove.
         var ret = _hook_statUpdate!.OriginalFunction( self );
 
         if ( shrineReplacementActive ) {
-            // TODO - Choose Random Variant or something akin to that. _shrineReplacementMonster._monsterVariants[ 0 ];
             var variant = MonsterBreed.GetBreed( _shrineReplacementMonster._genusNewMain, _shrineReplacementMonster._genusNewSub );
             WriteMonsterData( variant );
 
@@ -606,6 +613,11 @@ public class Mod : ModBase // <= Do not Remove.
 
             shrineReplacementActive = false;
         }
+
+        if ( _monsterCurrent.GenusMain == MonsterGenus.Worm ) { // Handle Worm Info
+            Memory.Instance.WriteRaw( Mod.address_monster_mm_wormsub, [ (byte) ( _monsterCurrent.GenusSub + 1 ) ] );
+        }
+
         return ret;
     }
 
@@ -764,6 +776,7 @@ public class Mod : ModBase // <= Do not Remove.
         var mainPosMM = startPos + offset_mm_truemain + 0x8;
         var subPosMM = startPos + offset_mm_truesub + 0x8;
         var gutsPosMM = startPos + offset_mm_trueguts + 0x8;
+        var wormPosMM = startPos + offset_mm_wormsub + 0x8;
 
         byte mmMain = (byte) ( mainA + 1 );
         byte mmSub = (byte) ( subA + 1 );
@@ -780,6 +793,11 @@ public class Mod : ModBase // <= Do not Remove.
             Memory.Instance.Write<Byte>( mainPosMM, ref mmMain );
             Memory.Instance.Write<Byte>( subPosMM, ref mmSub );
             Memory.Instance.Write<Byte>( gutsPosMM, ref gutsA );
+        }
+
+        // Handle Worm
+        if ( (MonsterGenus) mainA == MonsterGenus.Worm ) {
+            Memory.Instance.Write<byte>( wormPosMM, ref mmSub );
         }
 
         Logger.Info( $"Monster in Freezer Slot {freezerSlot} updated to Version 0.5.0 Standards (v1)." );
@@ -880,6 +898,25 @@ public class Mod : ModBase // <= Do not Remove.
         Memory.Instance.WriteRaw( address_game + 0x571470, rawSoundData );
     }
 
+    /// <summary>
+    /// This function refuses to hook properly so we're doing it another way for now. Leaving it in as this is the PROPER way to do things.
+    /// THis should be writing the Worm's Sub ON Cocoon, instead it crashes the game. Cool!
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="unk1"></param>
+    /// <param name="unk2"></param>
+    /// <param name="unk3ptr"></param>
+    public void HF_WormCocoonStart ( nuint unk1, nuint unk2, nuint unk3ptr ) {
+        
+        Logger.Debug( $"Worm Cocoon Starting with {unk1}, {unk2}, {unk3ptr}.", Color.WhiteSmoke );
+        byte wormSub = (byte) ( (byte) _monsterCurrent.GenusSub + 1);
+        Memory.Instance.Write<byte>( address_monster_mm_wormsub, ref wormSub );
+
+        _hook_wormCocoonStart!.OriginalFunction( unk1, unk2, unk3ptr );
+        Logger.Debug( $"Worm Sub : {wormSub} written to MM Data.", Color.WhiteSmoke );
+
+
+    }
     /// <summary>
     ///     This function replaces the location where the game is looking for sound data when wandering around on the ranch.
     ///     Errantry files can only be of length 0x7EF.

@@ -78,6 +78,10 @@ public class FreezerHandler
         Memory.Instance.WriteRaw( Mod.address_monster_mm_truemain, [ (byte) ( _monsterCurrent.GenusMain + 1 ) ] );
         Memory.Instance.WriteRaw( Mod.address_monster_mm_truesub, [ (byte) (_monsterCurrent.GenusSub + 1) ] );
 
+        if ( _monsterCurrent.GenusMain == MonsterGenus.Worm ) { // Handle Worm Info
+            Memory.Instance.WriteRaw( Mod.address_monster_mm_wormsub, [ (byte) ( _monsterCurrent.GenusSub + 1 ) ] );
+        }
+
         _hook_freezerWriteFreezer!.OriginalFunction( self, freezerID, unk2 );
 
 

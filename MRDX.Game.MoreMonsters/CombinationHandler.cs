@@ -446,6 +446,10 @@ public class CombinationHandler {
             else { ApplyTechniquesParentDifferent( childBreed ); }
 
         }
+
+        if ( _monsterCurrent.GenusMain == MonsterGenus.Worm ) { // Handle Worm Info
+            Memory.Instance.WriteRaw( Mod.address_monster_mm_wormsub, [ (byte) ( _monsterCurrent.GenusSub + 1 ) ] );
+        }
     }
 
     private void ApplyParentStatBonuses ( MonsterBreed breed, (byte, double)[] childGrowths ) {
