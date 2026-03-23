@@ -218,7 +218,6 @@ public class VSHandler {
                 // Only do data updates if we are writing a non-empty slot (0x2e) and an actual MM Breed.
                 if ( main != 0x2e ) {
                     
-
                     // Overwrites a MM Monster to Main/Main
                     if ( MMBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ) != null ) {
                         byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;

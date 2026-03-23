@@ -98,7 +98,7 @@ public class Mod : ModBase // <= Do not Remove.
     public static nuint address_monster_vertex_scaling { get { return address_game + 0x581520; } }
 
     // Offsets are exact for monster values. For Freezer Data, add +2.
-    public static short memory_mm_version = 1; // Versioning starts at 1, with 0.5.0
+    public static short memory_mm_version = 2; // Versioning starts at 1, with 0.5.0
     public static nuint offset_mm_version { get { return 0x159; } }
     public static nuint offset_mm_wormsub { get { return 0x162; } }
     public static nuint offset_mm_truemain { get { return 0x163; } }
