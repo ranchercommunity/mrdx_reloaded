@@ -101,6 +101,7 @@ public class VSHandler {
             Memory.Instance.Read( addr + Mod.offset_mm_truemain, out byte main );
             Memory.Instance.Read( addr + Mod.offset_mm_truesub, out byte sub );
             Memory.Instance.Read( addr + Mod.offset_mm_trueguts, out guts );
+            Memory.Instance.Read( addr + Mod.offset_mm_wormsub, out byte wormsub );
 
             // Illegal Version (Japanese Version of the game writes FFFF to the version area) - Do Nothing
 
@@ -138,9 +139,16 @@ public class VSHandler {
             else if ( _vsMonsterSlot == 1 ) {
                 _mod.handlerScaling.opponentScalingFactor = 0;
             }
+
+            Logger.Info( $"VS Mode Monster Data Loaded : Battle Slot {_vsMonsterSlot}", Color.Magenta );
+            if ( versionMM <= 65534 ) { Logger.Info( $"More Monsters Version Detected: {versionMM}", Color.Magenta ); }
+            Logger.Info( $"Guts: {guts}", Color.Magenta );
+            if ( wormsub != 0 && wormsub != 255 && main != (byte) MonsterGenus.Worm ) { Logger.Info( $"Original Worm Sub Detected: " + ( wormsub - 1 ), Color.Magenta ); }
+
         }
 
-      
+
+
         _hook_VSModeLoop!.OriginalFunction( self );
 
         if ( _vsModeActive && guts != 0 ) {
@@ -152,7 +160,7 @@ public class VSHandler {
             Memory.Instance.SafeWrite( addressBPS3 + 0x34, ref guts );
 
 
-            Logger.Info( $"VS Mode Monster Data Updated {_vsMonsterSlot}, {self}", Color.Magenta );
+            Logger.Info( $"VS Mode Monster Data Complete For Slot {_vsMonsterSlot}, {self}", Color.Magenta );
         }
     }
 
@@ -195,6 +203,7 @@ public class VSHandler {
             var mainPosMM = startPos + Mod.offset_mm_truemain;
             var subPosMM = startPos + Mod.offset_mm_truesub;
             var gutsPosMM = startPos + Mod.offset_mm_trueguts;
+            var wormPosMM = startPos + Mod.offset_mm_wormsub;
 
             var mainPosActual = startPos;
             var subPosActual = startPos + 0x4;
@@ -207,10 +216,36 @@ public class VSHandler {
                 Memory.Instance.Read( subPosActual, out byte sub );
 
                 // Only do data updates if we are writing a non-empty slot (0x2e) and an actual MM Breed.
-                if ( main != 0x2e && MMBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ) != null ) {
-                    byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;
-                    Memory.Instance.Write<Byte>( subPosActual, ref main );
-                    Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                if ( main != 0x2e ) {
+                    
+
+                    // Overwrites a MM Monster to Main/Main
+                    if ( MMBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ) != null ) {
+                        byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;
+                        Memory.Instance.Write<Byte>( subPosActual, ref main );
+                        Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                    }
+
+                    // Handle Worm Cocoons
+                    else if ( (MonsterGenus) main != MonsterGenus.Worm ) {
+                        Memory.Instance.Read( wormPosMM, out byte wormSub );
+
+                        if ( wormPosMM != 0 && wormPosMM != 255 ) { // Just in case we change things later for FF to be the invalid number.
+
+                            // Lock Worm Subs to the closest valid cocooned guts rate (12-16)
+                            if ( (MonsterGenus) sub == MonsterGenus.Worm ) {
+                                Memory.Instance.Read( gutsPosActual, out byte guts );
+                                guts = (byte) Math.Clamp( (int) guts, 12, 16 );
+                                Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                            }
+
+                            // Set Worm Sub Inherited Monsters that were Cocooned to base Main/Sub
+                            else {
+                                byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ).GutsRate;
+                                Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                            }
+                        }
+                    }
                 }
             }
         }

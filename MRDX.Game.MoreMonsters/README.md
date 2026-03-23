@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.5.0
+﻿# More Monsters - Version 0.5.1
 
 ## Features
 
@@ -38,6 +38,13 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.5.1 - 3/23/26
+
+* Fixes an issue where monsters cocooned from new GR Worms could not be uploaded to VS Mode.
+* Additional prompt information about a selected monster is provided in VS Mode.
+
+
 
 ##### v0.5.0 - 3/22/26
 
