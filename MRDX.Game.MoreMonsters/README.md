@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.5.1
+﻿# More Monsters - Version 0.5.2
 
 ## Features
 
@@ -38,6 +38,14 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.5.2 - 3/27/26
+
+* 2 additional monster combinations and 1 alternate have been added!
+* Fixes an issue with the textures of Mocchi / Monol.
+* Fixes an issue where Pixie / Hopper and Pixie / Bajarl subs could not learn 1-2 Punch from Parepare or Mandy Desert.
+
+
 
 ##### v0.5.1 - 3/23/26
 
