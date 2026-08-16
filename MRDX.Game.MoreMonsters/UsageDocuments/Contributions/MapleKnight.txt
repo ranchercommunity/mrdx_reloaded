@@ -66,3 +66,10 @@ Plant / Metalner
 Version 0.4.2
 =====================================
 Kato / ColorPandora
+
+
+=====================================
+Version 0.6.0
+=====================================
+Color Pandora / Beaclon
+Naga / Arrowhead

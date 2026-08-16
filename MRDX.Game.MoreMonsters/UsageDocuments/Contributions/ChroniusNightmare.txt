@@ -1,13 +1,9 @@
-TentaCole
+ChroniusNightmare
 =====================================
 Monsters Developed or Contributed To
 =====================================
-Version 0.2.9
-=====================================
-ColorPandora / Metalner
-
-
-=====================================
 Version 0.6.0
 =====================================
-Ghost / Bajarl
+Gaboo / Ducken
+Metalner / Arrowhead
+Metalner / Jell

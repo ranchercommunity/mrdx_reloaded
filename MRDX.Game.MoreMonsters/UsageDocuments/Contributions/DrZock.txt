@@ -14,3 +14,9 @@ ColorPandora / Henger
 Ducken / Tiger
 Ducken / Henger
 Joker / Zilla
+
+
+=====================================
+Version 0.6.0
+=====================================
+Plant / Jill

@@ -119,5 +119,5 @@ Individual monsters contributions can be found in the 'UsageDocuments/Contributi
 
 
 
-* ArchbishopDave, Teawch, MonsterFenrick, OriharaSaki, Kane, Chacolah, MachoCheeze, MooseBones, Plasbad, MapleKnight, JPMockMan, ClayClem, fishwolf2215, Gwndoliva, kindofblue28, Monoski1, pyronsranch, Vyraxhaalas, Woody, BigBadHyena ,ProjectL, Snaid1, DryGuy84, GoldenExperience, TheBigWaloo, DrZock, Bag, Yams, Kenichi Kuroki, TentaCole, TheGamingChuck, Zecster, Pyrokosus, Sphaera, Friend1yMonster
+* ArchbishopDave, Teawch, MonsterFenrick, OriharaSaki, Kane, Chacolah, MachoCheeze, MooseBones, Plasbad, MapleKnight, JPMockMan, ClayClem, fishwolf2215, Gwndoliva, kindofblue28, Monoski1, pyronsranch, Vyraxhaalas, Woody, BigBadHyena ,ProjectL, Snaid1, DryGuy84, GoldenExperience, TheBigWaloo, DrZock, Bag, Yams, Kenichi Kuroki, TentaCole, TheGamingChuck, Zecster, Pyrokosus, Sphaera, Friend1yMonster, Spirox, ChroniusNightmare
 
