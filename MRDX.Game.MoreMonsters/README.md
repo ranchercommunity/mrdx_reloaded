@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.6.0
+﻿# More Monsters - Version 0.6.1
 
 ## Features
 
@@ -39,7 +39,17 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
-##### v0.6.0 - 7/12/26
+##### v0.6.1 - 8/16/26
+
+* NEW FEATURE: MM Search History is now written to its own file. Searches will not be preserved across when using/disabling the mod.
+* Fixes a long outstanding issue where some base game CDs could not be searched properly.
+* Fixes an issue where specific sub breeds could not be searched though the shrine.
+
+
+
+
+
+##### v0.6.0 - 8/15/26
 
 * NEW FEATURE: Worm Cocoon Override - Enabled by Default - Worm Cocoon Results now default to New Monster/Worm's Sub, rather than New Monster/Worm, where possible.
 * 16 additional monster combinations have been added!

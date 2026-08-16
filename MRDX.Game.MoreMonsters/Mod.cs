@@ -118,8 +118,8 @@ public class Mod : ModBase // <= Do not Remove.
     public static nuint address_freezer { get { return address_game + 0x3768BC; } }
     public static nuint address_monster_vertex_scaling { get { return address_game + 0x581520; } }
 
-    // Version 0.5.2 - 3
-    public static short memory_mm_version = 4; // Versioning starts at 1, with 0.5.0
+    // Version 0.6.1 - 5
+    public static short memory_mm_version = 5; // Versioning starts at 1, with 0.5.0
 
     // Offsets are exact for monster values. For Freezer Data, add +2.
     public static nuint offset_mm_version { get { return 0x159; } }
@@ -172,6 +172,7 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<H_ShrineMonsterUnlockedChecker> _hook_shrineMonsterUnlockedChecker;
 
     private int _loadedFileCorrectFreezer = 0;
+    private bool _shrineSearchRedirectSetup = false;
 
     public bool shrineReplacementActive = false;
     private MMBreed _shrineReplacementMonster;
@@ -743,6 +744,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         FileLoadCheckBattleRedirects(filename);
         FileLoadCorrectFreezerEntries( filename );
+        FileLoadSetupRedirectShrineSearchPath( filename );
 
     }
 
@@ -774,6 +776,14 @@ public class Mod : ModBase // <= Do not Remove.
 
         if ( filename.Contains("park.tex") && _loadedFileCorrectFreezer == 1 ) {
             _loadedFileCorrectFreezer = 2;
+        }
+    }
+
+    private void FileLoadSetupRedirectShrineSearchPath ( string filename ) {
+        if ( !_shrineSearchRedirectSetup && filename.Contains( "BISLPS" ) ) {
+            var shrinePath = Path.GetDirectoryName( Path.GetDirectoryName( filename ) );
+            _redirector.AddRedirect( shrinePath + @"\search_history2.txt", shrinePath + @"\mm_search_history.txt" );
+            _shrineSearchRedirectSetup = true;
         }
     }
 
@@ -1049,7 +1059,6 @@ public class Mod : ModBase // <= Do not Remove.
             _logger.WriteLine( $"{addr + 0x59} found, updating to {exeBaseAddress}/{exeBaseAddress + 0x571470}" );
         } );
     }
-
 
     /// <summary>
     ///     This function replaces all references to the standard location that monster models are loaded into.
