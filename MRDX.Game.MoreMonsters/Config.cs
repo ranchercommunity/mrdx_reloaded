@@ -80,6 +80,16 @@ public class Config : Configurable<Config>
     [DefaultValue( false )]
     public bool CombinationSpecialSubspecies { get; set; } = false;
 
+    [Category( "Combinations" )]
+    [DisplayName( "Worm Cocoon Replacement" )]
+    [Description( "When a worm cocoons with this option enabled, the resulting monster will instead\n" +
+     "have the sub of the worm instead of the typical worm sub after cocooning. For example, a Worm/Pixie could\n" +
+     "result in a Hare/Pixie or Pixie/Pixie, rather than Pixie/Worm or Hare/Worm.\n" +
+     "Note: If the resulting combination is illegal, a normal worm sub will result. Monster stats are not\n" +
+     "affected in any way.")]
+    [DefaultValue( true )]
+    public bool WormCocoonSubOverwrite { get; set; } = true;
+
     [Category( "Monster Species" )]
     [DisplayName( "Bonus Monsters" )]
     [Description( "Allows for the generation of bonus monsters.\n" +

@@ -780,7 +780,7 @@ public class CombinationHandler {
                         }
                     } */
 
-                    // Any Failure = Failure
+                    // Any Failure = Unable to learn the technique
                     var learnable = pendingTech.ErrantryInformation.Count != 0;
                     foreach ( ITechniqueErrantryInformation errantryInfo in pendingTech.ErrantryInformation ) {
                         bool subReq = errantryInfo.SubsRequired.Count > 0 ? errantryInfo.SubsRequired.Contains( (MonsterGenus) childBreed.GenusSub ) : true;
@@ -788,7 +788,10 @@ public class CombinationHandler {
                         if ( !subReq || !subLock ) { learnable = false; break; }
                     }
 
-                    if ( childTechs[ slot ] == 0 && _combinationParent1Techniques[ slot ] == 1 && pendingTech.Type != ErrantryType.Special && learnable ) {
+                    // Checks if the parent knows the technique, or if oneBonus (prerequisite tech) is set. Then checks if they already know it,
+                    // special techs, or if something else (learnable) prevents learning.
+                    var parentOrBonus = _combinationParent1Techniques[ slot ] == 1 || oneBonus == 1;
+                    if ( parentOrBonus && childTechs[ slot ] == 0 && pendingTech.Type != ErrantryType.Special && learnable ) {
                         childTechs[ slot ] = 1;
                         slotChosen[ (int) pendingTech.Range ] = pendingTech.SlotPosition < slotChosen[ (int) pendingTech.Range ] ? pendingTech.SlotPosition : slotChosen[ (int) pendingTech.Range ];
                         learnedTechs++;

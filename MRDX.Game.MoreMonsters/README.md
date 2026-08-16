@@ -1,8 +1,8 @@
-﻿# More Monsters - Version 0.5.2
+﻿# More Monsters - Version 0.6.0
 
 ## Features
 
-* Adds additional species (210+!) combinations to the game and support for being able to acquire them.
+* Adds additional species (230+!) combinations to the game and support for being able to acquire them.
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
@@ -39,6 +39,17 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
+##### v0.6.0 - 7/12/26
+
+* NEW FEATURE: Worm Cocoon Override - Enabled by Default - Worm Cocoon Results now default to New Monster/Worm's Sub, rather than New Monster/Worm, where possible.
+* 16 additional monster combinations have been added!
+* Fixes a crash where monsters generated from More Monsters were unable to be played with.
+* Fixed an issue where techniques of variant monsters may not have been passed down correctly.
+* Model editing is now supported by the More Monsters Mod.
+* Worm information is now contained within monster data.
+
+
+
 ##### v0.5.2 - 3/27/26
 
 * 2 additional monster combinations and 1 alternate have been added!
@@ -60,58 +71,6 @@ Monster size variations are random from the shrine, and partially inherited from
 * Fixed an issue where using guaranteed monster combination items (Phoenix Feather, Ducken Doll, etc.) would crash the game.
 * Fixed an issue where Japanese Version generated monsters in VS Mode could load incorrectly.
 * Fixed a rare issue where all More Monster related data would be removed from monsters in the freezer, reverting them to Base/Base monsters.
-
-
-
-##### v0.4.4 - 3/13/26
-
-* 1 additional monster combination has been added!
-* Fixed an issue with Hare / Centaur's technique icons.
-
-
-
-##### v0.4.3 - 3/9/26
-
-* 5 additional monster combinations have been added!
-* Fixed a VS Mode issue where monster alternates and base game (non-modded) monsters were causing crashes from the P1 Monster slot.
-* Hopper / Gali no longer starts with Bolt.
-
-
-
-##### v0.4.2 - 2/21/26
-
-* 5 additional monster combinations have been added!
-* 1 additional monster alternate has been added!
-* 1 major monster update.
-* Fixed an issue where Durahan / Gali did not have the proper starting techniques.
-
-
-
-##### v0.4.1 - 2/23/26
-
-* Fixes an issue where some monsters had sound information swapped (resulting in Pixie's making dragon noises, etc.).
-
-
-
-##### v0.4.0 - 2/21/26
-
-* 5 additional monster combinations have been added!
-* Fixes rare occurrences where combination chances were not calculated correctly.
-* Additional Monsters can now learn breed specific techniques! Please see the 'UsageDocuments' folder contained within the mod to see which new monsters will have access to those techniques.
-
-
-
-##### v0.3.0 - 2/16/26
-
-* 5 additional monster combinations have been added!
-* Fixes a VS Mode issue where monster scaling and monster alternates were not applied properly to the P2 Monster slot.
-* VS Mode has been tested and completely works now!
-
-##### 
-
-##### v0.2.12 - 2/6/26
-
-* Fixes an issue where improper battle specials were passed on when combining monsters.
 
 
 

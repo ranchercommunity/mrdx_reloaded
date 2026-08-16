@@ -39,7 +39,6 @@ public class FreezerHandler
     private Mod _mod;
     private readonly IHooks _iHooks;
     private IMonster _monsterCurrent;
-
     
     private IHook<H_FreezerWriteFreezer> _hook_freezerWriteFreezer;
     private IHook<H_FreezerWriteMonster> _hook_freezerWriteMonster;
@@ -51,7 +50,6 @@ public class FreezerHandler
         _iHooks = iHooks;
         _monsterCurrent = monster;
 
-        
         _iHooks.AddHook<H_FreezerWriteFreezer>( FreezerWriteMonsterToFreezer ).ContinueWith( result => _hook_freezerWriteFreezer = result.Result );
         _iHooks.AddHook<H_FreezerWriteMonster>( FreezerFrozenMonsterClearMMBytes ).ContinueWith( result => _hook_freezerWriteMonster = result.Result );
         _iHooks.AddHook<H_FreezerWriteMonterStats>( FreezerMonsterCorrection ).ContinueWith( result => _hook_freezerWriteMonsterStats = result.Result );

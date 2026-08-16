@@ -143,7 +143,9 @@ public class VSHandler {
             Logger.Info( $"VS Mode Monster Data Loaded : Battle Slot {_vsMonsterSlot}", Color.Magenta );
             if ( versionMM <= 65534 ) { Logger.Info( $"More Monsters Version Detected: {versionMM}", Color.Magenta ); }
             Logger.Info( $"Guts: {guts}", Color.Magenta );
-            if ( wormsub != 0 && wormsub != 255 && main != (byte) MonsterGenus.Worm ) { Logger.Info( $"Original Worm Sub Detected: " + ( wormsub - 1 ), Color.Magenta ); }
+            if ( wormsub != 0 && wormsub != 255 && main != (byte) MonsterGenus.Worm ) {
+                Logger.Info( $"Original Worm Sub Detected: " + Mod.GetMonsterGenusName(wormsub - 1), Color.Magenta ); 
+            }
 
         }
 
@@ -195,9 +197,10 @@ public class VSHandler {
     /// information.
     /// </summary>
     public void UpdateLoadedFileFreezerInformation () {
-
+        Logger.Info( "Updating Freezer in Memory prior to upload.", Color.Red );
         // TODO : I need to fix the 0x8 and 0x4 additions at the end of the addresses.
         for ( var i = 0; i < 20; i++ ) {
+            Logger.Debug( $"Updating Monster in Freezer Slot {i}", Color.Red );
             var startPos = _address_loaded_file_monster_start + (nuint) ( 524 * i );
             var verPosMM = startPos + Mod.offset_mm_version;
             var mainPosMM = startPos + Mod.offset_mm_truemain;
@@ -211,13 +214,13 @@ public class VSHandler {
 
             Memory.Instance.Read( verPosMM, out ushort versionMM );
 
-            if ( versionMM >= 1 ) {
+            if ( versionMM >= 1 && versionMM <= 3 ) {
+                Logger.Debug( $"MM Version {versionMM} detected. Using update Logic for 1-3.", Color.Red );
                 Memory.Instance.Read( mainPosActual, out byte main );
                 Memory.Instance.Read( subPosActual, out byte sub );
 
                 // Only do data updates if we are writing a non-empty slot (0x2e) and an actual MM Breed.
                 if ( main != 0x2e ) {
-                    
                     // Overwrites a MM Monster to Main/Main
                     if ( MMBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ) != null ) {
                         byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;
@@ -230,7 +233,6 @@ public class VSHandler {
                         Memory.Instance.Read( wormPosMM, out byte wormSub );
 
                         if ( wormPosMM != 0 && wormPosMM != 255 ) { // Just in case we change things later for FF to be the invalid number.
-
                             // Lock Worm Subs to the closest valid cocooned guts rate (12-16)
                             if ( (MonsterGenus) sub == MonsterGenus.Worm ) {
                                 Memory.Instance.Read( gutsPosActual, out byte guts );
@@ -238,16 +240,41 @@ public class VSHandler {
                                 Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
                             }
 
-                            // Set Worm Sub Inherited Monsters that were Cocooned to base Main/Sub
+                            // Set Worm Sub Inherited Monsters that were Cocooned to base Main/Main
                             else {
-                                byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ).GutsRate;
+                                byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;
                                 Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
                             }
                         }
                     }
                 }
             }
-        }
-    }
 
+            else if ( versionMM >= 4 ) {
+                Logger.Debug( $"MM Version {versionMM} detected. Using update Logic for 4+.", Color.Red );
+                Memory.Instance.Read( mainPosActual, out byte main );
+                Memory.Instance.Read( subPosActual, out byte sub );
+
+                // Only do data updates if we are writing a non-empty slot (0x2e) and an actual MM Breed.
+                if ( main != 0x2e ) {
+
+                    byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;
+                    // Overwrites a MM Monster to Main/Main
+                    if ( MMBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ) != null ) {
+                        Memory.Instance.Write<Byte>( subPosActual, ref main );
+                        Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                    }
+
+                    // Overwrites an MM Cocooned Monster to Main/Main if the Worm Sub is an MM Monster
+                    Memory.Instance.Read( wormPosMM, out byte wormSub );
+
+                    if ( wormPosMM != 0 && wormPosMM != 255 && MMBreed.GetBreed( MonsterGenus.Worm, (MonsterGenus) sub) != null ) { 
+                        Memory.Instance.Write<Byte>( subPosActual, ref main );
+                        Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                    }
+                }
+            }
+        }
+        Logger.Info( "Updating Freezer in Memory Complete. Upload is Ready.", Color.Red );
+    }
 }
