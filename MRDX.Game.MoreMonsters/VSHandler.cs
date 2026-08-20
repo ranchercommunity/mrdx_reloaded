@@ -55,7 +55,8 @@ public class VSHandler {
     private IHook<H_VSModeLoop> _hook_VSModeLoop;
     private IHook<H_VSModeOptionFinalized> _hook_VSModeOptionFinalized;
 
-
+    private MonsterGenus[] _cocoonStandardMains = [ MonsterGenus.Pixie, MonsterGenus.Beaclon, MonsterGenus.Hare, 
+        MonsterGenus.Gali, MonsterGenus.Suezo, MonsterGenus.Jell, MonsterGenus.Monol, MonsterGenus.Naga ];
 
     public VSHandler ( Mod mod, IHooks iHooks ) {
         _mod = mod;
@@ -254,23 +255,44 @@ public class VSHandler {
                 Logger.Debug( $"MM Version {versionMM} detected. Using update Logic for 4+.", Color.Red );
                 Memory.Instance.Read( mainPosActual, out byte main );
                 Memory.Instance.Read( subPosActual, out byte sub );
+                Memory.Instance.Read( gutsPosActual, out byte guts );
 
-                // Only do data updates if we are writing a non-empty slot (0x2e) and an actual MM Breed.
+                // Only do data updates if we are writing a non-empty slot (0x2e)
                 if ( main != 0x2e ) {
 
-                    byte guts = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;
-                    // Overwrites a MM Monster to Main/Main
+                    byte gutsMainMain = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) main ).GutsRate;
+
+                    // Overwrites an MM Monster to Main/Main
                     if ( MMBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ) != null ) {
                         Memory.Instance.Write<Byte>( subPosActual, ref main );
-                        Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                        Memory.Instance.Write<Byte>( gutsPosActual, ref gutsMainMain );
                     }
 
-                    // Overwrites an MM Cocooned Monster to Main/Main if the Worm Sub is an MM Monster
                     Memory.Instance.Read( wormPosMM, out byte wormSub );
 
-                    if ( wormPosMM != 0 && wormPosMM != 255 && MMBreed.GetBreed( MonsterGenus.Worm, (MonsterGenus) sub) != null ) { 
-                        Memory.Instance.Write<Byte>( subPosActual, ref main );
-                        Memory.Instance.Write<Byte>( gutsPosActual, ref guts );
+                    // Handle Cocooned Monsters 
+                    if ( wormSub != 0 && wormSub != 255 ) {
+
+                        byte wormID = (byte) MonsterGenus.Worm;
+
+                        // Handle Standard Legal Cocoons - Overwrite the MM Cocooned Monster to Main/Worm
+                        if ( _cocoonStandardMains.Contains( (MonsterGenus) main ) ) {
+                            Memory.Instance.Write<Byte>( subPosActual, ref wormID );
+
+                            // If the guts rate is < 12 or > 16, update guts to be the standard Worm GR.
+                            // This accounts for most MM worms such that they will not alter the monster.
+                            if ( guts < 12 || guts > 16 ) {
+                                byte gutsMainWorm = MonsterBreed.GetBreed( (MonsterGenus) main, MonsterGenus.Worm ).GutsRate;
+                                Memory.Instance.Write<Byte>( gutsPosActual, ref gutsMainWorm );
+                            }
+                        }
+
+                        // Handle Non-Standard Cocooned Monsters (Dragon/Pixie) - We already account for MM Only Breeds
+                        // Overwrites the Monsters GR to be the base GR for the monster.
+                        else {
+                            byte gutsMainSub = MonsterBreed.GetBreed( (MonsterGenus) main, (MonsterGenus) sub ).GutsRate;
+                            Memory.Instance.Write<Byte>( gutsPosActual, ref gutsMainSub );
+                        }
                     }
                 }
             }

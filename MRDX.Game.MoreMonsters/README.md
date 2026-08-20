@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.6.1
+﻿# More Monsters - Version 0.6.2
 
 ## Features
 
@@ -39,13 +39,19 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
+##### v0.6.2 - 8/19/26
+
+* Fixes an issue where monsters cocooned with new worm subs may not have been able to be uploaded to VS Mode.
+
+
+
+
+
 ##### v0.6.1 - 8/16/26
 
 * NEW FEATURE: MM Search History is now written to its own file. Searches will not be preserved across when using/disabling the mod.
 * Fixes a long outstanding issue where some base game CDs could not be searched properly.
 * Fixes an issue where specific sub breeds could not be searched though the shrine.
-
-
 
 
 
