@@ -498,6 +498,7 @@ public class CombinationHandler {
                 }
             }
         }
+
         statOrderP1 = statOrderP1.OrderBy( x => x.Item1 ).ToArray();
         statOrderP2 = statOrderP2.OrderBy( x => x.Item1 ).ToArray();
 
@@ -998,15 +999,42 @@ public class CombinationHandler {
         Memory.Instance.Read( parentAddress + 0x10 + 0x4, out curStats[ 5 ] );
         Memory.Instance.Read( parentAddress + 0x30 + 0x5, out growths[ 5 ] );
 
+        // Get the parent's stat order based on 
+        int[] parentStatOrder = [-1, -1, -1, -1, -1, -1];
+        for ( var i = 0; i < 6; i++ ) {
+            var maxStat = -1;
+            int maxVal = -1;
+            for ( var j = 5; j >= 0; j-- ) {
+                if ( parentStatOrder.Contains(j) ) { continue; }
+                var adjustedVal = baseStats[ j ] * growths[ j ];
+
+                // Higher Adjusted Val
+                if ( adjustedVal > maxVal ) {
+                    maxVal = adjustedVal;
+                    maxStat = j;
+                }
+
+                // Adjusted Val is Equal but Base Stat of new Stat is Higher
+                else if  ( adjustedVal == maxVal ) {
+                    if ( baseStats[j] > baseStats[maxStat] ) {
+                        maxVal = adjustedVal;
+                        maxStat = j;
+                    }
+                }
+            }
+            parentStatOrder[ i ] = maxStat;
+        }
+
         for ( var i = 5; i >= 0; i-- ) {
             byte maxStat = (byte) i;
             var maxVal = -1.0;
-            for ( var j = 5; j >= 0; j-- ) {
-                var weightTotal = Math.Max( 1, ( curStats[ j ] * ( 0.5 * growths[ j ] ) ) );
-                if ( curStats[ j ] == 0 ) { weightTotal = -1; }
+            for ( var j = 0; j <= 5; j++ ) {
+                var statId = parentStatOrder[ j ];
+                var weightTotal = Math.Max( 1, ( curStats[ statId ] * ( 0.5 * growths[ statId ] ) ) );
+                if ( curStats[ statId ] == 0 ) { weightTotal = -1; }
                 if ( maxVal < weightTotal ) {
                     maxVal = weightTotal;
-                    maxStat = (byte) j;
+                    maxStat = (byte) statId;
                 }
             }
 
