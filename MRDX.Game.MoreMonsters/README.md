@@ -1,4 +1,4 @@
-﻿# More Monsters - Version 0.6.3
+﻿# More Monsters - Version 0.6.4
 
 ## Features
 
@@ -39,9 +39,10 @@ Monster size variations are random from the shrine, and partially inherited from
 
 ## Update History
 
-##### 0.6.3 - 8/21/26
+##### v0.6.3 and v0.6.4 - 8/21/26
 
 * Fixes an issue where some monster combinations were not resulting in the correct stat totals for the resulting monster.
+* Fixes an issue where More Monster Worms would not be able to be uploaded to VS Mode.
 
 
 

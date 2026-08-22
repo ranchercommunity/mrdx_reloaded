@@ -120,7 +120,7 @@ public class Mod : ModBase // <= Do not Remove.
 
     // Version 0.5.0 - 1
     // Version 0.6.0 - 4
-    public static short memory_mm_version = 6; // Versioning starts at 1, with 0.5.0
+    public static short memory_mm_version = 7; // Versioning starts at 1, with 0.5.0
 
     // Offsets are exact for monster values. For Freezer Data, add +2.
     public static nuint offset_mm_version { get { return 0x159; } }
