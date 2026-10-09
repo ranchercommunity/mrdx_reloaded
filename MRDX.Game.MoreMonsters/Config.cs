@@ -115,7 +115,7 @@ public class Config : Configurable<Config>
     public bool WormCocoonSpeciesManual { get; set; } = true;
 
     public enum ValidWormMains {
-        Pixie = 0, Golem = 7, Zuum = 8, ArrowHead = 10, Tiger = 11, Hare = 13, Gali = 15, Ghost = 21, Suezo = 23, Jell = 28, Mock = 31, Ducken = 32, Plant = 33, Monol = 34, Naga = 37, Random = 38 };
+        Pixie = 0, Henger = 5, Golem = 7, Zuum = 8, ArrowHead = 10, Tiger = 11, Hare = 13, Gali = 15, Ghost = 21, Suezo = 23, Jell = 28, Mock = 31, Ducken = 32, Plant = 33, Monol = 34, Naga = 37, Random = 38 };
 
     [Category( "Worm Cocoon" )]
     [DisplayName( "Worm Cocoon Species Main" )]

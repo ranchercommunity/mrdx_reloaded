@@ -54,8 +54,10 @@ public class WormHandler {
     private MonsterGenus[] _cocoonStandardMains = [ MonsterGenus.Pixie, MonsterGenus.Hare, 
         MonsterGenus.Gali, MonsterGenus.Suezo, MonsterGenus.Jell, MonsterGenus.Monol, MonsterGenus.Naga ];
 
-    private MonsterGenus[] _cocooonValidMains = [ MonsterGenus.Pixie, MonsterGenus.Golem, MonsterGenus.Zuum, MonsterGenus.Arrowhead, MonsterGenus.Tiger, 
-        MonsterGenus.Hare, MonsterGenus.Gali, MonsterGenus.Ghost, MonsterGenus.Suezo, MonsterGenus.Jell, MonsterGenus.Mock, MonsterGenus.Ducken,
+    private MonsterGenus[] _cocooonValidMains = [ MonsterGenus.Pixie, MonsterGenus.Henger, MonsterGenus.Golem, MonsterGenus.Zuum, 
+        MonsterGenus.Arrowhead, MonsterGenus.Tiger, 
+        MonsterGenus.Hare, MonsterGenus.Gali, MonsterGenus.Ghost, MonsterGenus.Suezo, 
+        MonsterGenus.Jell, MonsterGenus.Mock, MonsterGenus.Ducken,
         MonsterGenus.Plant, MonsterGenus.Monol, MonsterGenus.Naga ];
 
     private MonsterGenus _cocoonMainBreed;
@@ -129,6 +131,34 @@ public class WormHandler {
         if ( _cocoonStandardMains.Contains( _cocoonMainBreed ) || _cocoonMainBreed == MonsterGenus.Beaclon ) { return; } // Exits if the result is a standard monster
 
         var newTechniqueData = new byte[ 48 ];
+
+        // Henger
+        if ( _cocoonMainBreed == MonsterGenus.Henger ) {
+            _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
+            _monsterSnapshot.GenusSub = _monsterCurrent.GenusSub;
+            _monsterSnapshot.Defense = (ushort) Math.Min( 999, _monsterSnapshot.Defense + 30 );
+
+            if ( _updatedTechniques[ 0 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Bite - Punch
+            if ( _updatedTechniques[ 2 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 1 ); }     // Somersault - Kick
+            if ( _updatedTechniques[ 4 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 2 ); }      // Somersaults - Heavy Chop
+
+            if ( _updatedTechniques[ 12 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 3 ); }      // Sting - Low Kick
+            if ( _updatedTechniques[ 14 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 0 ); }      // Tail Lash - Arm Cannon
+            if ( _updatedTechniques[ 16 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 1 ); }      // Two Lashes - Napalm Shot
+            if ( _updatedTechniques[ 18 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 3 ); }      // Three Lashes - Burst Cannon
+            if ( _updatedTechniques[ 20 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 2 ); }      // Roll Assault - Laser Sword
+            if ( _updatedTechniques[ 22 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 0 ); }      // Pierce Throw - Laser Cutter
+
+            if ( _updatedTechniques[ 24 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 2 ); }     // Pinch Throw - Hammer Fall
+            if ( _updatedTechniques[ 26 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 1 ); }     // Pierce - Yoyo
+            if ( _updatedTechniques[ 28 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 1 ); }     // Tusk Slash - Fist Missile
+            if ( _updatedTechniques[ 30 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 4 ); }     // Injection - Eye Beam
+
+            if ( _updatedTechniques[ 36 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 0 ); }     // Poison Gas - Sound Wave
+            if ( _updatedTechniques[ 38 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 3 ); }     // Wheel Attack - Laser Swords
+
+            _updatedTechniques = newTechniqueData;
+        }
 
         // Golem
         if ( _cocoonMainBreed == MonsterGenus.Golem ) {

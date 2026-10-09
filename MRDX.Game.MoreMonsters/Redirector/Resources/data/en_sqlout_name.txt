@@ -665169,3 +665169,6 @@ More Monsters 3	Baku / Plant	1272658	255
 More Monsters 3	Joker / Gali	1272659	255
 More Monsters 3	Beaclon / Monol	1272660	255
 More Monsters 3	Ducken / Worm	1272661	255
+More Monsters 3	Jell / Undine	1272662	255
+More Monsters 3	Suezo / Wracky	1272663	255
+More Monsters 3	Henger / Worm	1272664	255

@@ -18,7 +18,7 @@ public delegate void LoadSet450970 ( uint param1, uint param2, int param3 );
 public delegate void CachePageDirty ( IntPtr cache, IntPtr rect );
 
 public class ZECBufferHandler {
-    private const string Version = "fixes-3.2";
+    private const string Version = "fixes-3.3";
     private const long ImageBase = 0x400000;
     private const int DefaultBufferSize = 8 * 1024 * 1024;
 
@@ -728,7 +728,9 @@ public class ZECBufferHandler {
             if ( ep == IntPtr.Zero ) return 0;
             var rec = Marshal.ReadIntPtr( ep );
             if ( rec == IntPtr.Zero ) return 0;
-            if ( (uint) Marshal.ReadInt32( rec, 0x00 ) != 0xC0000005 ) return 0;
+            var code = (uint) Marshal.ReadInt32( rec, 0x00 );
+            var isGuard = code == 0x80000001;
+            if ( code != 0xC0000005 && !isGuard ) return 0;
             if ( Marshal.ReadInt32( rec, 0x10 ) < 2 ) return 0;
             if ( Marshal.ReadInt32( rec, 0x14 ) == 8 ) return 0;
 
@@ -759,6 +761,7 @@ public class ZECBufferHandler {
                 Log( $"[DepthNet] clamped depth {( isStore ? "store" : "load" )} " +
                     $"@0x{eip:X}: index 0x{cur:X} -> 0x{clamped:X}." );
             }
+            if ( isGuard ) RearmGuard( (long) (uint) Marshal.ReadInt32( rec, 0x18 ) );
             return -1;
         }
         catch { return 0; }
@@ -1066,6 +1069,31 @@ public class ZECBufferHandler {
 
     private IntPtr _vehStub;
 
+    [StructLayout( LayoutKind.Sequential )]
+    private struct MemInfo {
+        public IntPtr BaseAddress;
+        public IntPtr AllocationBase;
+        public uint AllocationProtect;
+        public IntPtr RegionSize;
+        public uint State;
+        public uint Protect;
+        public uint Type;
+    }
+
+    [DllImport( "kernel32.dll" )]
+    private static extern int VirtualQuery ( IntPtr addr, out MemInfo info, uint length );
+
+    [DllImport( "kernel32.dll" )]
+    private static extern bool VirtualProtect ( IntPtr addr, UIntPtr size, uint prot, out uint old );
+
+    private void RearmGuard ( long fault ) {
+        try {
+            if ( VirtualQuery( (IntPtr) fault, out var mi, (uint) Marshal.SizeOf<MemInfo>() ) == 0 ) return;
+            VirtualProtect( (IntPtr) ( fault & ~0xFFFL ), (UIntPtr) 0x1000, mi.Protect | 0x100, out _ );
+        }
+        catch { }
+    }
+
     private IntPtr BuildVehFilter ( IntPtr managed ) {
         var main = Process.GetCurrentProcess().MainModule!;
         var lo = (uint) (long) main.BaseAddress;
@@ -1075,7 +1103,8 @@ public class ZECBufferHandler {
         var code = new List<byte>();
         void B ( params byte[] x ) => code.AddRange( x );
         void D ( uint v ) => code.AddRange( BitConverter.GetBytes( v ) );
-        B( 0x8B, 0x44, 0x24, 0x04, 0x8B, 0x08, 0x81, 0x39 ); D( 0xC0000005 );
+        B( 0x8B, 0x44, 0x24, 0x04, 0x8B, 0x08, 0x8B, 0x11, 0x81, 0xFA ); D( 0xC0000005 );
+        B( 0x74, 0x08, 0x81, 0xFA ); D( 0x80000001 );
         B( 0x75, 0x1E, 0x8B, 0x40, 0x04, 0x8B, 0x80, 0xB8, 0, 0, 0 );
         B( 0x3D ); D( lo ); B( 0x72, 0x0E );
         B( 0x3D ); D( hi ); B( 0x73, 0x07 );
