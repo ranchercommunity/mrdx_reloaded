@@ -8,6 +8,22 @@ namespace MRDX.Game.MoreMonsters.Configuration;
 public class Config : Configurable<Config>
 {
 
+    [Category( "Monster Species" )]
+    [DisplayName( "Expanded Monsters - Experimental" )]
+    [Description( "Allows for the generation of expanded monsters.\n" +
+        "These monsters utilize a new rendering technique that modifies many portions of model loading\n" +
+        "and processing. This feature is opt in until additional testing can be performed.")]
+    [DefaultValue( false )]
+    public bool ExpandedMonsterSpecies { get; set; } = false;
+
+    [Category( "Monster Species" )]
+    [DisplayName( "Bonus Monsters" )]
+    [Description( "Allows for the generation of bonus monsters.\n" +
+        "These monsters are typically memes or references to other non-MR related sources." )]
+    [DefaultValue( false )]
+    public bool BonusMonsterSpecies { get; set; } = false;
+
+
     public enum ScalingGenetics {
         StrongGenetics,
         WildWest
@@ -80,7 +96,8 @@ public class Config : Configurable<Config>
     [DefaultValue( false )]
     public bool CombinationSpecialSubspecies { get; set; } = false;
 
-    [Category( "Combinations" )]
+
+    [Category( "Worm Cocoon" )]
     [DisplayName( "Worm Cocoon Replacement" )]
     [Description( "When a worm cocoons with this option enabled, the resulting monster will instead\n" +
      "have the sub of the worm instead of the typical worm sub after cocooning. For example, a Worm/Pixie could\n" +
@@ -90,12 +107,22 @@ public class Config : Configurable<Config>
     [DefaultValue( true )]
     public bool WormCocoonSubOverwrite { get; set; } = true;
 
-    [Category( "Monster Species" )]
-    [DisplayName( "Bonus Monsters" )]
-    [Description( "Allows for the generation of bonus monsters.\n" +
-        "These monsters are typically memes or references to other non-MR related sources.")]
+    [Category( "Worm Cocoon" )]
+    [DisplayName( "Worm Cocoon Manual Selection" )]
+    [Description( "When a worm cocoons with this option enabled, the resulting monster will always\n" + 
+     "have the main species from the below 'Worm Cocoon Species Main' option.")]
     [DefaultValue( false )]
-    public bool BonusMonsterSpecies { get; set; } = false;
+    public bool WormCocoonSpeciesManual { get; set; } = true;
+
+    public enum ValidWormMains {
+        Pixie = 0, Golem = 7, Zuum = 8, ArrowHead = 10, Tiger = 11, Hare = 13, Gali = 15, Ghost = 21, Suezo = 23, Jell = 28, Mock = 31, Ducken = 32, Plant = 33, Monol = 34, Naga = 37, Random = 38 };
+
+    [Category( "Worm Cocoon" )]
+    [DisplayName( "Worm Cocoon Species Main" )]
+    [Description( "When a worm cocoons with this option enabled, the resulting monster will always\n" +
+ "have the main breed from the below 'Worm Cocoon Breed' option." )]
+    [DefaultValue( ValidWormMains.Random )]
+    public ValidWormMains WormCocoonBreedMain { get; set; } = ValidWormMains.Random;
 
 
 

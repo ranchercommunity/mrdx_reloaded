@@ -665157,3 +665157,15 @@ More Monsters 3	Worm / Jill	1272646	255
 More Monsters 3	ColorP / Beaclon	1272647	255
 More Monsters 3	Naga / Arrowhead	1272648	255
 More Monsters 3	Dragon / Plant	1272649	255
+More Monsters 3	Monol / Special 6	1272650	255
+More Monsters 3	Jell / Niton	1272651	255
+More Monsters 3	Mock / Worm	1272652	255
+More Monsters 3	Arrowhead / Pixie	1272653	255
+More Monsters 3	Pixie / Henger	1272654	255
+More Monsters 3	Wracky / Special 3	1272655	255
+More Monsters 3	Plant / Special 2	1272656	255
+More Monsters 3	Pixie / Phoenix	1272657	255
+More Monsters 3	Baku / Plant	1272658	255
+More Monsters 3	Joker / Gali	1272659	255
+More Monsters 3	Beaclon / Monol	1272660	255
+More Monsters 3	Ducken / Worm	1272661	255

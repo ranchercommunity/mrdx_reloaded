@@ -77,18 +77,6 @@ public delegate nuint H_ShrineMonsterUnlockedChecker ( nuint self, int unk1, int
 [Function( CallingConventions.Fastcall )]
 public delegate void H_LoadingRanch ( int unk1, int unk2, nuint unk3, nuint unk4 );
 
-// Called at the beginning of the Cocooning process. Determines which monster is used for the target, among other things.
-[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 4C A1 ?? ?? ?? ?? 33 C5 89 45 ?? 53 56 57 50 8D 45 ?? 64 A3 ?? ?? ?? ?? 8B F1" )]
-[Function( CallingConventions.MicrosoftThiscall )]
-public delegate nuint H_CModeHatch ( nuint unk0, nuint unk1, nuint vtable, int unk3 );
-
-// This function is called during the Worm Cocoon Animation/Cutscene (When it spins the cocoon at night).
-// Returns 0 while the cutscene is active, 1 when complete. 
-// During these function calls, the update to monster data occurs.
-[HookDef( BaseGame.Mr2, Region.Us, "55 8B EC 83 E4 F8 83 EC 24 A1 ?? ?? ?? ?? 33 C4 89 44 24 ?? 53" ) ]
-[Function( CallingConventions.Cdecl )]
-public delegate nuint H_WormCocoonStart ( nuint unk1, nuint unk2, nuint unk3 );
-
 
 
 /// <summary>
@@ -166,8 +154,7 @@ public class Mod : ModBase // <= Do not Remove.
     private IHook<H_FileSave> _hook_fileSave;
     private IHook<H_LoadingRanch> _hook_loadingRanch;
 
-    private IHook<H_WormCocoonStart> _hook_wormCocoonStart;
-    private IHook<H_CModeHatch> _hook_cModeHatch;
+
     private IHook<H_MonsterCardID> _hook_monsterCardID;
 
     private IHook<H_ShrineMonsterUnlockedChecker> _hook_shrineMonsterUnlockedChecker;
@@ -187,6 +174,7 @@ public class Mod : ModBase // <= Do not Remove.
     public CombinationHandler handlerCombination;
     public FreezerHandler handlerFreezer;
     public ScalingHandler handlerScaling;
+    public WormHandler handlerWorm;
     public VSHandler handlerVS;
     public ZECBufferHandler handlerZECBuffer;
     public VersionUpdateHandler handlerVersionUpdate;
@@ -268,8 +256,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         _iHooks.AddHook<H_LoadingRanch>( HFLoadingRanch ).ContinueWith( result => _hook_loadingRanch = result.Result );
 
-        _iHooks.AddHook<H_WormCocoonStart>( HF_WormCocoonStart ).ContinueWith( result => _hook_wormCocoonStart = result.Result );
-        _iHooks.AddHook<H_CModeHatch>( HF_CModeHatch ).ContinueWith( result => _hook_cModeHatch = result.Result );
+
         _iHooks.AddHook<H_MonsterCardID>( HF_MonsterCardID ).ContinueWith( result => _hook_monsterCardID = result.Result );
 
         _iHooks.AddHook<H_ShrineMonsterUnlockedChecker>( CheckShrineMonsterUnlocked ).ContinueWith( result => _hook_shrineMonsterUnlockedChecker = result.Result );
@@ -277,8 +264,8 @@ public class Mod : ModBase // <= Do not Remove.
         handlerFreezer = new FreezerHandler( this, _iHooks, _monsterCurrent );
         handlerCombination = new CombinationHandler( this, _iHooks, _monsterCurrent );
         handlerScaling = new ScalingHandler( this, _iHooks, _monsterCurrent );
+        handlerWorm = new WormHandler( this, _iHooks, _iGame, _monsterCurrent );
         handlerVS = new VSHandler( this, _iHooks );
-        //handlerZECBuffer = new ZECBufferHandler( this, _hooks, _iHooks );
         handlerVersionUpdate = new VersionUpdateHandler( this, _iHooks, _monsterCurrent );
 
         //_iHooks.AddHook<ParseTextWithCommandCodes>( SetupParseTextCommmandCodes ).ContinueWith(result => _hook_parseTextWithCommandCodes = result.Result.Activate());
@@ -292,6 +279,11 @@ public class Mod : ModBase // <= Do not Remove.
         address_game = (nuint) exeBaseAddress;
 
         AlterCode_MonsterModelAddressOffsets();
+
+        if ( _configuration.ExpandedMonsterSpecies ) {
+            handlerZECBuffer = new ZECBufferHandler( _hooks, msg => _logger.WriteLine( msg ) );
+            handlerZECBuffer.Apply();
+        }
 
         Logger.SetLogLevel( _configuration.LogLevel );
     }
@@ -342,7 +334,7 @@ public class Mod : ModBase // <= Do not Remove.
             Memory.Instance.Write( nuint.Add( address_game, 0x3492A5 + 27 ), bn ); // Monster Species Pages
             Memory.Instance.Write( nuint.Add( address_game, 0x354E45 + 27), bn ); // Combination References
             Memory.Instance.Write( nuint.Add( address_game, 0x357ED0 ), bn ); // HoF References
-            Logger.Trace( $"Wrote : {newBreed._monsterVariants[ 0 ].Name} to {nuint.Add( address_game, 0x3492A6 )}", Color.OrangeRed );
+            Logger.Debug( $"Wrote : {newBreed._monsterVariants[ 0 ].Name} to {nuint.Add( address_game, 0x3492A6 )}", Color.OrangeRed );
         }
 
         // Rewrite Pixie's Data
@@ -355,7 +347,7 @@ public class Mod : ModBase // <= Do not Remove.
 
         int ret = _hook_monsterBreedNames!.OriginalFunction( mainBreedID, subBreedID );
         ret = ( ret == -1 ? 0 : ret );
-        Logger.Debug( $"Name Overwritten: {mainBreedID} | {subBreedID} | {ret}", Color.OrangeRed );
+        Logger.Trace( $"Name Overwritten: {mainBreedID} | {subBreedID} | {ret}", Color.OrangeRed );
 
         return ret;  
     }
@@ -373,6 +365,10 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private void InitializeNewMonsters ( bool unused ) {
         InitializeNewMonsters( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER.csv" ) );
+
+        if ( _configuration.ExpandedMonsterSpecies ) {
+            InitializeNewMonsters( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER_EXPANDED.csv" ) );
+        }
 
         if ( _configuration.BonusMonsterSpecies ) {
             InitializeNewMonsters( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER_BONUS.csv" ) );
@@ -643,17 +639,6 @@ public class Mod : ModBase // <= Do not Remove.
         }
     }
 
-    /*private int SetupReadSData ( nuint self, int p1 ) {
-        
-        var ret = _hook_readSDATA!.OriginalFunction( self, p1 );
-        _logger.WriteLine( $"RSDAT: {self} {p1} {ret}", Color.Azure );
-
-        _monsterCurrent.GenusMain = MonsterGenus.Zuum;
-        _monsterCurrent.GenusSub = MonsterGenus.Henger;
-        _monsterCurrent.Life = 999;
-
-        return ret;
-    }*/
 
     /// <summary>
     /// This function is called after all shrine stat setup code is called.
@@ -792,7 +777,7 @@ public class Mod : ModBase // <= Do not Remove.
     private void HF_GenericStateUpdate ( nint parent ) {
         _hook_updateGenericState!.OriginalFunction( parent );
         CheckUpdateLoadedFreezer();
-        _wormCocooningSubReady = true;
+        handlerWorm.CocooningGenericUpdate();
     }
 
     private void CheckUpdateLoadedFreezer() {
@@ -923,6 +908,7 @@ public class Mod : ModBase // <= Do not Remove.
 
 
 
+    // This function handles loading sound data into the safe space in memory.
     private void HFLoadingRanch ( int unk1, int unk2, nuint unk3, nuint unk4 ) {
         _hook_loadingRanch!.OriginalFunction( unk1, unk2, unk3, unk4 );
 
@@ -942,93 +928,7 @@ public class Mod : ModBase // <= Do not Remove.
         Memory.Instance.WriteRaw( address_game + 0x571470, rawSoundData );
     }
 
-    /// <summary>
-    /// This function is called every frame during the Cocooning Night animation.
-    /// This function returns 1 if the animation is still playing, and 0 once it is complete.
-    /// 
-    /// </summary>
-    /// <param name="self"></param>
-    /// <param name="unk1"></param>
-    /// <param name="unk2"></param>
-    /// <param name="unk3ptr"></param>
-    ///
-    private bool _wormCocooningSubReady = true;
-    public nuint HF_WormCocoonStart ( nuint unk1, nuint unk2, nuint unk3 ) {
-
-        if ( _wormCocooningSubReady ) {
-            Logger.Debug( $"Worm Cocoon with {unk1.ToString( "X" )}, {unk2.ToString( "X" )}, {unk3.ToString( "X" )}", Color.WhiteSmoke );
-        }
-
-        byte wormSub = ( (byte) _monsterCurrent.GenusSub );
-        byte wormSubMM = (byte) ( _monsterCurrent.GenusSub + 1);
-       
-        nuint ret = _hook_wormCocoonStart!.OriginalFunction( unk1, unk2, unk3 );
-        if ( _wormCocooningSubReady && ret == 1 ) {
-            Memory.Instance.Write<byte>( address_monster_mm_wormsub, ref wormSubMM );
-            Logger.Debug( $"Worm Sub : {ret} {wormSubMM} written to MM Data.", Color.WhiteSmoke );
-            _wormCocooningSubReady = false;
-        }
-
-        else if ( ret == 0 ) {
-            Logger.Debug( $"Worm Cocooning Ending", Color.WhiteSmoke );
-            _wormCocooningSubReady = true;
-        }
-        /*
-        var cocoonMainAddr = nuint.Add( unk3, 0x2A80 ); // This might be unsafe, it works for me though?
-        var cocoonSubAddr = nuint.Add( cocoonMainAddr, 4 );
-
-        // DEBUG MAGIC REMOVE THIS :
-        //Memory.Instance.WriteRaw( cocoonMainAddr, [0] );
-
-        // Write only on the first frame.
-        if ( _wormCocooningSubReady && ret == 1 ) {
-            Memory.Instance.Write<byte>( address_monster_mm_wormsub, ref wormSubMM );
-            Logger.Debug( $"Worm Sub : {ret} {wormSubMM} written to MM Data.", Color.WhiteSmoke );
-            _wormCocooningSubReady = false;
-
-            Logger.Debug( $"Worm Cocooning - Checking for Special Sub : {ret} {wormSub}", Color.WhiteSmoke );
-            Memory.Instance.Read<byte>( cocoonMainAddr, out byte cocoonMainBreed );
-            if ( MMBreed.GetBreed( (MonsterGenus) cocoonMainBreed, (MonsterGenus) wormSub ) != null || MonsterBreed.GetBreed( (MonsterGenus) cocoonMainBreed, (MonsterGenus) wormSub ) != null ) {
-                Memory.Instance.Write<byte>( cocoonSubAddr, ref wormSub );
-                Logger.Debug( $"Special Worm Cocoon : {wormSub} is the sub now instead.", Color.WhiteSmoke );
-            }
-        }
-
-        else if ( ret == 0 ) {
-            Memory.Instance.Read<byte>( cocoonMainAddr, out byte cocoonMainBreed );
-            Logger.Debug( $"Worm Cocooning Ending Ensuring Correct Sub : {ret} {wormSub}", Color.WhiteSmoke );
-            if ( MMBreed.GetBreed(_monsterCurrent.GenusMain, (MonsterGenus) wormSub) != null || MonsterBreed.GetBreed( (MonsterGenus) cocoonMainBreed, (MonsterGenus) wormSub ) != null ) {
-                _monsterCurrent.GenusSub = (MonsterGenus) wormSub;
-                Logger.Debug( $"Special Worm Cocoon : {wormSub} is the sub now instead.", Color.WhiteSmoke );
-            }
-            _wormCocooningSubReady = true;
-        }
-        */
-        return ret;
-    }
-
-    public nuint HF_CModeHatch ( nuint unk0, nuint unk1, nuint vtable, int unk3 ) {
-        Logger.Debug( $"Worm Cocoon Detected {unk0.ToString("X")}, {unk1.ToString( "X" )}, {vtable.ToString( "X" )}, {unk3}", Color.WhiteSmoke );
-        var ret = _hook_cModeHatch!.OriginalFunction( unk0, unk1, vtable, unk3 );
-
-        var cocoonMainAddr = nuint.Add( unk0, 0x80 );
-        var cocoonSubAddr = nuint.Add( cocoonMainAddr, 4 );
-        byte wormSub = ( (byte) _monsterCurrent.GenusSub );
-
-        Memory.Instance.Read( cocoonMainAddr, out byte cocoonMainBreed );
-
-        if ( _configuration.WormCocoonSubOverwrite ) {
-            Logger.Debug( $"Worm Cocooning - Checking for New Sub : {cocoonMainBreed} {wormSub}", Color.WhiteSmoke );
-            if ( MMBreed.GetBreed( (MonsterGenus) cocoonMainBreed, (MonsterGenus) wormSub ) != null || MonsterBreed.GetBreed( (MonsterGenus) cocoonMainBreed, (MonsterGenus) wormSub ) != null ) {
-                Memory.Instance.Write<byte>( cocoonSubAddr, ref wormSub );
-                Logger.Debug( $"Special Worm Cocoon : {wormSub} is the sub now instead.", Color.WhiteSmoke );
-            }
-        } else {
-            Logger.Debug( $"Worm Cocooning - Sub Overwrite Option Disabled : {cocoonMainBreed} {wormSub}", Color.WhiteSmoke );
-        }
-
-        return ret;
-    }
+    
 
     public int HF_MonsterCardID ( uint main, uint sub ) {
 
