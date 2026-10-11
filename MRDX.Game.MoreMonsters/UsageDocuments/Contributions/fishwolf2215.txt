@@ -83,3 +83,11 @@ Niton / Pixie
 Niton / Tiger
 Tiger / Gaboo
 Worm / Mock
+
+
+=====================================
+Version 0.7.0
+=====================================
+Ducken / Worm
+Jell / Undine
+Suezo / Wracky

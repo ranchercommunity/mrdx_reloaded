@@ -128,9 +128,248 @@ public class WormHandler {
     }
 
     private void UpdateCocoonStats() {
-        if ( _cocoonStandardMains.Contains( _cocoonMainBreed ) || _cocoonMainBreed == MonsterGenus.Beaclon ) { return; } // Exits if the result is a standard monster
 
         var newTechniqueData = new byte[ 48 ];
+
+        // Beaclon
+        if ( _cocoonMainBreed == MonsterGenus.Beaclon ) {
+            _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
+            _monsterSnapshot.GenusSub = _monsterCurrent.GenusSub;
+            _monsterSnapshot.Life = (ushort) Math.Min( 999, _monsterSnapshot.Life + 30 );
+
+            if ( _updatedTechniques[ 0 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Bite
+            if ( _updatedTechniques[ 12 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 3 ); }     // Sting
+            if ( _updatedTechniques[ 26 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 2 ); }     // Pierce
+
+            if ( _updatedTechniques[ 36 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 2 ); }     // Poison Gas
+            if ( _updatedTechniques[ 28 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 3 ); }     // Tusk Slash
+
+            if ( _updatedTechniques[ 30 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 3 ); }     // Injection
+            if ( _updatedTechniques[ 22 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 0 ); }     // Pierce Throw
+            if ( _updatedTechniques[ 24 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 2 ); }     // Pinch Throw
+
+            if ( _updatedTechniques[ 2 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 1 ); }      // Somersalt
+            if ( _updatedTechniques[ 4 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 2 ); }      // Somersalts
+
+            if ( _updatedTechniques[ 14 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 4 ); }     // Tail Lash
+            if ( _updatedTechniques[ 16 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 0 ); }     // Two Lashes
+            if ( _updatedTechniques[ 18 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 1 ); }     // Three Lashes
+
+            if ( _updatedTechniques[ 20 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 2 ); }     // Roll Assault            
+            if ( _updatedTechniques[ 38 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 4 ); }     // Wheel Attack
+
+            _updatedTechniques = newTechniqueData;
+        }
+
+        // Pixie 
+        if ( _cocoonMainBreed == MonsterGenus.Pixie ) {
+            _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
+            _monsterSnapshot.GenusSub = _monsterCurrent.GenusSub;
+            _monsterSnapshot.Intelligence = (ushort) Math.Min( 999, _monsterSnapshot.Intelligence + 30 );
+
+            if ( _updatedTechniques[ 0 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Bite
+            if ( _updatedTechniques[ 12 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 1 ); }     // Sting
+            if ( _updatedTechniques[ 26 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 2 ); }     // Pierce
+
+            if ( _updatedTechniques[ 36 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 4 ); }     // Poison Gas
+            if ( _updatedTechniques[ 28 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 3 ); }     // Tusk Slash
+
+            if ( _updatedTechniques[ 30 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 4 ); }     // Injection
+            if ( _updatedTechniques[ 22 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 0 ); }     // Pierce Throw
+            if ( _updatedTechniques[ 24 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 5 ); }     // Pinch Throw
+
+            if ( _updatedTechniques[ 2 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 0 ); }      // Somersalt
+            if ( _updatedTechniques[ 4 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 1 ); }      // Somersalts
+
+            if ( _updatedTechniques[ 14 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 2 ); }     // Tail Lash
+            if ( _updatedTechniques[ 16 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 3 ); }     // Two Lashes
+            if ( _updatedTechniques[ 18 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 1 ); }     // Three Lashes
+
+            if ( _updatedTechniques[ 20 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 2 ); }     // Roll Assault            
+            if ( _updatedTechniques[ 38 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Wheel Attack
+
+            _updatedTechniques = newTechniqueData;
+        }
+
+        // Hare
+        if ( _cocoonMainBreed == MonsterGenus.Hare ) {
+            _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
+            _monsterSnapshot.GenusSub = _monsterCurrent.GenusSub;
+            _monsterSnapshot.Power = (ushort) Math.Min( 999, _monsterSnapshot.Power + 30 );
+
+            if ( _updatedTechniques[ 0 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 0 ); }      // Bite
+            if ( _updatedTechniques[ 12 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 3 ); }     // Sting
+            if ( _updatedTechniques[ 26 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 1 ); }     // Pierce
+
+            if ( _updatedTechniques[ 36 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 4 ); }     // Poison Gas
+            if ( _updatedTechniques[ 28 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 4 ); }     // Tusk Slash
+
+            if ( _updatedTechniques[ 30 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 5 ); }     // Injection
+            if ( _updatedTechniques[ 22 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 0 ); }     // Pierce Throw
+            if ( _updatedTechniques[ 24 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 1 ); }     // Pinch Throw
+
+            if ( _updatedTechniques[ 2 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Somersalt
+            if ( _updatedTechniques[ 4 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 1 ); }      // Somersalts
+
+            if ( _updatedTechniques[ 14 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 2 ); }     // Tail Lash
+            if ( _updatedTechniques[ 16 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 3 ); }     // Two Lashes
+            if ( _updatedTechniques[ 18 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 2 ); }     // Three Lashes
+
+            if ( _updatedTechniques[ 20 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 3 ); }     // Roll Assault            
+            if ( _updatedTechniques[ 38 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 5 ); }     // Wheel Attack
+
+            _updatedTechniques = newTechniqueData;
+        }
+
+        // Gali 
+        if ( _cocoonMainBreed == MonsterGenus.Gali ) {
+            _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
+            _monsterSnapshot.GenusSub = _monsterCurrent.GenusSub;
+            _monsterSnapshot.NatureBase = (sbyte) Math.Clamp( _monsterCurrent.NatureBase + 30, -100, 100 );
+
+            if ( _updatedTechniques[ 0 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 0 ); }      // Bite
+            if ( _updatedTechniques[ 12 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 0 ); }     // Sting
+            if ( _updatedTechniques[ 26 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 3 ); }     // Pierce
+
+            if ( _updatedTechniques[ 36 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 1 ); }     // Poison Gas
+            if ( _updatedTechniques[ 28 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 4 ); }     // Tusk Slash
+
+            if ( _updatedTechniques[ 30 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 3 ); }     // Injection
+            if ( _updatedTechniques[ 22 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 1 ); }     // Pierce Throw
+            if ( _updatedTechniques[ 24 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 2 ); }     // Pinch Throw
+
+            if ( _updatedTechniques[ 2 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Somersalt
+            if ( _updatedTechniques[ 4 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 1 ); }      // Somersalts
+
+            if ( _updatedTechniques[ 14 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 2 ); }     // Tail Lash
+            if ( _updatedTechniques[ 16 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 0 ); }     // Two Lashes
+            if ( _updatedTechniques[ 18 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 5 ); }     // Three Lashes
+
+            if ( _updatedTechniques[ 20 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 4 ); }     // Roll Assault            
+            if ( _updatedTechniques[ 38 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 1 ); }     // Wheel Attack
+
+            _updatedTechniques = newTechniqueData;
+        }
+
+        // Suezo
+        if ( _cocoonMainBreed == MonsterGenus.Suezo ) {
+            _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
+            _monsterSnapshot.GenusSub = _monsterCurrent.GenusSub;
+            _monsterSnapshot.Intelligence = (ushort) Math.Min( 999, _monsterSnapshot.Intelligence + 30 );
+
+            if ( _updatedTechniques[ 0 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Bite
+            if ( _updatedTechniques[ 12 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 1 ); }     // Sting
+            if ( _updatedTechniques[ 26 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 2 ); }     // Pierce
+
+            if ( _updatedTechniques[ 36 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 2 ); }     // Poison Gas
+            if ( _updatedTechniques[ 28 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 2 ); }     // Tusk Slash
+
+            if ( _updatedTechniques[ 30 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 0 ); }     // Injection
+            if ( _updatedTechniques[ 22 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 1 ); }     // Pierce Throw
+            if ( _updatedTechniques[ 24 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 1 ); }     // Pinch Throw
+
+            if ( _updatedTechniques[ 2 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 0 ); }      // Somersalt
+            if ( _updatedTechniques[ 4 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 1 ); }      // Somersalts
+
+            if ( _updatedTechniques[ 14 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 0 ); }     // Tail Lash
+            if ( _updatedTechniques[ 16 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 1 ); }     // Two Lashes
+            if ( _updatedTechniques[ 18 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 3 ); }     // Three Lashes
+
+            if ( _updatedTechniques[ 20 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 3 ); }     // Roll Assault            
+            if ( _updatedTechniques[ 38 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 1 ); }     // Wheel Attack
+
+            _updatedTechniques = newTechniqueData;
+        }
+
+        // Jell
+        if ( _cocoonMainBreed == MonsterGenus.Jell ) {
+            _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
+            _monsterSnapshot.GenusSub = _monsterCurrent.GenusSub;
+            _monsterSnapshot.Speed = (ushort) Math.Min( 999, _monsterSnapshot.Speed + 30 );
+
+            if ( _updatedTechniques[ 0 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Bite
+            if ( _updatedTechniques[ 12 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 1 ); }     // Sting
+            if ( _updatedTechniques[ 26 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 2 ); }     // Pierce
+
+            if ( _updatedTechniques[ 36 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 1 ); }     // Poison Gas
+            if ( _updatedTechniques[ 28 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 4 ); }     // Tusk Slash
+
+            if ( _updatedTechniques[ 30 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 5 ); }     // Injection
+            if ( _updatedTechniques[ 22 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 3 ); }     // Pierce Throw
+            if ( _updatedTechniques[ 24 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 0 ); }     // Pinch Throw
+
+            if ( _updatedTechniques[ 2 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 0 ); }      // Somersalt
+            if ( _updatedTechniques[ 4 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 1 ); }      // Somersalts
+
+            if ( _updatedTechniques[ 14 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 2 ); }     // Tail Lash
+            if ( _updatedTechniques[ 16 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 0 ); }     // Two Lashes
+            if ( _updatedTechniques[ 18 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 4 ); }     // Three Lashes
+
+            if ( _updatedTechniques[ 20 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 3 ); }     // Roll Assault            
+            if ( _updatedTechniques[ 38 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 3 ); }     // Wheel Attack
+
+            _updatedTechniques = newTechniqueData;
+        }
+
+        // Monol
+        if ( _cocoonMainBreed == MonsterGenus.Monol ) {
+            _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
+            _monsterSnapshot.GenusSub = _monsterCurrent.GenusSub;
+            _monsterSnapshot.Defense = (ushort) Math.Min( 999, _monsterSnapshot.Defense + 30 );
+
+            if ( _updatedTechniques[ 0 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Bite
+            if ( _updatedTechniques[ 12 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 0 ); }     // Sting
+            if ( _updatedTechniques[ 26 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 2 ); }     // Pierce
+
+            if ( _updatedTechniques[ 36 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 4 ); }     // Poison Gas
+            if ( _updatedTechniques[ 28 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 2 ); }     // Tusk Slash
+
+            if ( _updatedTechniques[ 30 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 3 ); }     // Injection
+            if ( _updatedTechniques[ 22 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 1 ); }     // Pierce Throw
+            if ( _updatedTechniques[ 24 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 2 ); }     // Pinch Throw
+
+            if ( _updatedTechniques[ 2 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 1 ); }      // Somersalt
+            if ( _updatedTechniques[ 4 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 0 ); }      // Somersalts
+
+            if ( _updatedTechniques[ 14 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 0 ); }     // Tail Lash
+            if ( _updatedTechniques[ 16 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 1 ); }     // Two Lashes
+            if ( _updatedTechniques[ 18 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 3 ); }     // Three Lashes
+
+            if ( _updatedTechniques[ 20 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 5 ); }     // Roll Assault            
+            if ( _updatedTechniques[ 38 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 4 ); }     // Wheel Attack
+
+            _updatedTechniques = newTechniqueData;
+        }
+
+        // Naga 
+        if ( _cocoonMainBreed == MonsterGenus.Naga ) {
+            _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
+            _monsterSnapshot.GenusSub = _monsterCurrent.GenusSub;
+            _monsterSnapshot.Intelligence = (ushort) Math.Min( 999, _monsterSnapshot.Intelligence + 30 );
+
+            if ( _updatedTechniques[ 0 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Bite
+            if ( _updatedTechniques[ 12 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 0 ); }     // Sting
+            if ( _updatedTechniques[ 26 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 1 ); }     // Pierce
+
+            if ( _updatedTechniques[ 36 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 0 ); }     // Poison Gas
+            if ( _updatedTechniques[ 28 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 1 ); }     // Tusk Slash
+
+            if ( _updatedTechniques[ 30 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 2 ); }     // Injection
+            if ( _updatedTechniques[ 22 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 2 ); }     // Pierce Throw
+            if ( _updatedTechniques[ 24 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 0 ); }     // Pinch Throw
+
+            if ( _updatedTechniques[ 2 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 1 ); }      // Somersalt
+            if ( _updatedTechniques[ 4 ] != 0 ) { }      // Somersalts
+
+            if ( _updatedTechniques[ 14 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 1 ); }     // Tail Lash
+            if ( _updatedTechniques[ 16 ] != 0 ) { }     // Two Lashes
+            if ( _updatedTechniques[ 18 ] != 0 ) { EnableTechnique( newTechniqueData, 1, 2 ); }     // Three Lashes
+
+            if ( _updatedTechniques[ 20 ] != 0 ) { EnableTechnique( newTechniqueData, 2, 2 ); }     // Roll Assault            
+            if ( _updatedTechniques[ 38 ] != 0 ) { EnableTechnique( newTechniqueData, 3, 0 ); }     // Wheel Attack
+
+            _updatedTechniques = newTechniqueData;
+        }
 
         // Henger
         if ( _cocoonMainBreed == MonsterGenus.Henger ) {
@@ -272,6 +511,7 @@ public class WormHandler {
             _updatedTechniques = newTechniqueData;
         }
 
+
         // Ghost
         if ( _cocoonMainBreed == MonsterGenus.Ghost ) {
             _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
@@ -383,6 +623,35 @@ public class WormHandler {
 
             _updatedTechniques = newTechniqueData;
         }
+
+        /* Clean
+        if ( _cocoonMainBreed == MonsterGenus.Pixie ) {
+            _monsterSnapshot.GenusMain = _monsterCurrent.GenusMain;
+            _monsterSnapshot.GenusSub = _monsterCurrent.GenusSub;
+            _monsterSnapshot.Intelligence = (ushort) Math.Min( 999, _monsterSnapshot.Intelligence + 30 );
+
+            if ( _updatedTechniques[ 0 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Bite
+            if ( _updatedTechniques[ 2 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Somersalt
+            if ( _updatedTechniques[ 4 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }      // Somersalts
+
+            if ( _updatedTechniques[ 12 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Sting
+            if ( _updatedTechniques[ 14 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Tail Lash
+            if ( _updatedTechniques[ 16 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Two Lashes
+            if ( _updatedTechniques[ 18 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Three Lashes
+            if ( _updatedTechniques[ 20 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Roll Assault
+            if ( _updatedTechniques[ 22 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Pierce Throw
+
+            if ( _updatedTechniques[ 24 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Pinch Throw
+            if ( _updatedTechniques[ 26 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Pierce
+            if ( _updatedTechniques[ 28 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Tusk Slash
+            if ( _updatedTechniques[ 30 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Injection
+
+            if ( _updatedTechniques[ 36 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Poison Gas
+            if ( _updatedTechniques[ 38 ] != 0 ) { EnableTechnique( newTechniqueData, 0, 0 ); }     // Wheel Attack
+
+            _updatedTechniques = newTechniqueData;
+        }
+        */
 
         _wormStatUpdateReady = true;
 

@@ -665172,3 +665172,4 @@ More Monsters 3	Ducken / Worm	1272661	255
 More Monsters 3	Jell / Undine	1272662	255
 More Monsters 3	Suezo / Wracky	1272663	255
 More Monsters 3	Henger / Worm	1272664	255
+More Monsters 3	Zilla / Ghost / Alt 1	1272665	255

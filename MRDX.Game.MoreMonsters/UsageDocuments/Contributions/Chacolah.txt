@@ -10,3 +10,9 @@ Monol/Joker
 Version 0.2.3
 =====================================
 Phoenix / Joker
+
+=====================================
+Version 0.7.0
+=====================================
+Phoenix / Joker ( Redesign ) 
+Monol / Special #6

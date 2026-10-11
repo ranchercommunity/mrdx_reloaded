@@ -1,0 +1,1154 @@
+The following tables represent lists of Breed Technique, followed by the associated Worm Technique that would produce it if cocooned.
+Cocoon options can be found in the mod settings.
+
+Thank you to JPMockman for their extensive work on these lists!
+Note: All breeds are listed, however, until the monster's /Worm sub has been developed in MM, cocooning into them will be impossible.
+
+Dragon/Worm
+
+Worm Techs
+Dragon Techs
+Bite (Basic)
+Bite (Basic)
+Somersault (Hit)
+Wing Attack (Hit)
+Somersaults (Hit)
+Wing Combo (Hit)
+Sting (Basic)
+Tail Whip (Basic)
+Tail Lash (Hit)
+Tail Whip (Basic)
+Two Lashes (Hit)
+Tail Attack (Basic)
+Three Lashes (Special)
+SlammimgDown (Special)
+Roll Assault (Special)
+Dragon Combo (Special)
+Pierce-Throw (Heavy)
+Claw Combo (Heavy)
+Pinch-Throw (Heavy)
+Trample (Heavy)
+Pierce (Withering)
+Fire Breath (Withering)
+Tusk Slash (Sharp)
+Claw (Sharp)
+Injection (Sharp)
+Glide Charge (Sharp)
+Poison Gas (Withering)
+Inferno (Withering)
+Wheel Attack (Special)
+Flutters (Hit)
+
+
+
+Centaur/Worm
+
+Worm Techs
+Centaur Techs
+Bite (Basic)
+Smash (Basic)
+Somersault (Hit)
+Turn Stab (Hit)
+Somersaults (Hit)
+Triple Stabs (Hit)
+Sting (Basic)
+Smash Combo (Basic)
+Tail Lash (Hit)
+RearLeg Kick (Basic)
+Two Lashes (Hit)
+Triple Stabs (Hit)
+Three Lashes (Special)
+Z Slash (Special)
+Roll Assault (Special)
+Meteor Dive (Special)
+Pierce-Throw (Heavy)
+Stab-Throw (Heavy)
+Pinch-Throw (Heavy)
+Death Thrust (Heavy)
+Pierce (Withering)
+Energy Shot (Withering)
+Tusk Slash (Sharp)
+Javelin (Sharp)
+Injection (Sharp)
+Jump Javelin (Sharp)
+Poison Gas (Withering)
+Mind Flare (Withering)
+Wheel Attack (Special)
+Cross Slash (Special)
+
+	
+
+ColorPandora/Worm
+
+Worm Techs
+ColorPandora Techs
+Bite (Basic)
+Face Attack (Basic)
+Somersault (Hit)
+Shotgun (Hit)
+Somersaults (Hit)
+Megashotgun (Hit)
+Sting (Basic)
+Tail Swing (Basic)
+Tail Lash (Hit)
+Kamikaze (Hit)
+Two Lashes (Hit)
+Two Swings (Basic)
+Three Lashes (Special)
+Megacracker (Withering)
+Roll Assault (Special)
+Meteor Drive (Special)
+Pierce-Throw (Heavy)
+Giant Whip (Heavy)
+Pinch-Throw (Heavy)
+Giant Wheel (Heavy)
+Pierce (Withering)
+Cracker (Withering)
+Tusk Slash (Sharp)
+Spiral Rush (Sharp)
+Injection (Sharp)
+Triple Shots (Sharp)
+Poison Gas (Withering)
+Delta Attack (Special)
+Wheel Attack (Special)
+Vital Ritual (Special)
+
+	
+
+Henger/Worm
+
+Worm Techs
+Henger Techs
+Bite (Basic)
+Punch (Basic)
+Somersault (Hit)
+Kick (Basic)
+Somersaults (Hit)
+Heavy Chop (Basic)
+Sting (Basic)
+Low Kick (Basic)
+Tail Lash (Hit)
+Arm Cannon (Hit)
+Two Lashes (Hit)
+Napalm Shot (Hit)
+Three Lashes (Special)
+Burst Cannon (Special)
+Roll Assault (Special)
+Laser Sword (Special)
+Pierce-Throw (Heavy)
+Laser Cutter (Heavy)
+Pinch-Throw (Heavy)
+Hammer Fall (Heavy)
+Pierce (Withering)
+Yoyo (Withering)
+Tusk Slash (Sharp)
+Fist Missile (Sharp)
+Injection (Sharp)
+Eye Beam (Sharp)
+Poison Gas (Withering)
+Sound Wave (Withering)
+Wheel Attack (Special)
+Laser Swords (Special)
+
+
+
+Wracky/Worm
+
+Worm Techs
+Wracky Techs
+Bite (Basic)
+Weapon (Basic)
+Somersault (Hit)
+Air Shot (Hit)
+Somersaults (Hit)
+Blast Shot (Hit)
+Sting (Basic)
+Weapon Throw (Basic)
+Tail Lash (Hit)
+Kick (Hit)
+Two Lashes (Hit)
+Spin Kick (Hit)
+Three Lashes (Special)
+Twister Kick (Special)
+Roll Assault (Special)
+Beat Dance (Special)
+Pierce-Throw (Heavy)
+Punch (Heavy)
+Pinch-Throw (Heavy)
+Spin Slash (Heavy)
+Pierce (Withering)
+Necromancy (Withering)
+Tusk Slash (Sharp)
+Sneak Attack (Sharp)
+Injection (Sharp)
+Sneak Combo (Sharp)
+Poison Gas (Withering)
+Trick (Withering)
+Wheel Attack (Special)
+Explosion (Special)
+
+
+
+Golem/Worm
+
+Worm Techs
+Golem Techs
+Bite (Basic)
+Kick (Basic)
+Somersault (Hit)
+Charge (Hit)
+Somersaults (Hit)
+Heavy Punch (Basic)
+Sting (Basic)
+Punch (Basic)
+Tail Lash (Hit)
+Slap (Hit)
+Two Lashes (Hit)
+Heavy Slap (Hit)
+Three Lashes (Special)
+Cyclone (Special)
+Roll Assault (Special)
+Roll Assault (Special)
+Pierce-Throw (Heavy)
+Uppercut (Heavy)
+Pinch-Throw (Heavy)
+Diving Press (Heavy)
+Pierce (Withering)
+Thwack (Withering)
+Tusk Slash (Sharp)
+Clap Attack (Sharp)
+Injection (Sharp)
+Brow Hit (Sharp)
+Poison Gas (Withering)
+Earthquake (Withering)
+Wheel Attack (Special)
+Fist Shot (Special)
+
+
+
+Zuum/Worm
+
+Worm Techs
+Zuum Techs
+Bite (Basic)
+Claw (Basic)
+Somersault (Hit)
+Tail Lash (Basic)
+Somersaults (Hit)
+Tail Combo (Hit)
+Sting (Basic)
+Tail (Basic)
+Tail Lash (Hit)
+Jumping Claw (Sharp)
+Two Lashes (Hit)
+Diving Claw (Sharp)
+Three Lashes (Special)
+Aerial Claw (Special)
+Roll Assault (Special)
+Roll Assault (Special)
+Pierce-Throw (Heavy)
+Bite (Heavy)
+Pinch-Throw (Heavy)
+Fire Ball (Heavy)
+Pierce (Withering)
+Hypnotism (Withering)
+Tusk Slash (Sharp)
+Charge (Sharp)
+Injection (Sharp)
+Fire Charge (Sharp)
+Poison Gas (Withering)
+Dust Cloud (Withering)
+Wheel Attack (Special)
+Five Balls (Special)
+
+	
+
+Durahan/Worm
+
+Worm Techs
+Durahan Techs
+Bite (Basic)
+Cut-In-Two (Basic)
+Somersault (Hit)
+Air Shot (Hit)
+Somersaults (Hit)
+Blast Shot (Hit)
+Sting (Basic)
+Rush Slash (Basic)
+Tail Lash (Hit)
+MillionStabs (Hit)
+Two Lashes (Hit)
+Dash Slash (Basic)
+Three Lashes (Special)
+Thunderbolt (Heavy)
+Roll Assault (Special)
+Triple Slash (Special)
+Pierce-Throw (Heavy)
+RollingSlash (Heavy)
+Pinch-Throw (Heavy)
+TwisterSlash (Heavy)
+Pierce (Withering)
+Swing (Basic)
+Tusk Slash (Sharp)
+Flash Slash (Sharp)
+Injection (Sharp)
+Sword Throw (Sharp)
+Poison Gas (Withering)
+Dash Slash (Basic)
+Wheel Attack (Special)
+Punch Combo (Special)
+
+	
+
+Arrowhead/Worm
+
+Worm Techs
+Arrowhead Techs
+Bite (Basic)
+Punch (Basic)
+Somersault (Hit)
+Hidden Sting (Hit)
+Somersaults (Hit)
+Long Punch (Basic)
+Sting (Basic)
+Claw Assault (Basic)
+Tail Lash (Hit)
+Sting (Hit)
+Two Lashes (Hit)
+TripleStings (Hit)
+Three Lashes (Special)
+Acrobatics (Special)
+Roll Assault (Special)
+Bloodsuction (Special)
+Pierce-Throw (Heavy)
+Tail Swing (Heavy)
+Pinch-Throw (Heavy)
+Claw Pinch (Heavy)
+Pierce (Withering)
+Energy Shot (Withering)
+Tusk Slash (Sharp)
+Jumping Claw (Sharp)
+Injection (Sharp)
+Javelin (Sharp)
+Poison Gas (Withering)
+Energy Shots (Withering)
+Wheel Attack (Special)
+Meteor (Special)
+
+
+
+Tiger/Worm
+
+Worm Techs
+Tiger Techs
+Bite (Basic)
+Bite (Basic)
+Somersault (Hit)
+Charge (Hit)
+Somersaults (Hit)
+Roll Assault (Hit)
+Sting (Basic)
+Scratch (Basic)
+Tail Lash (Hit)
+Roll Assault (Hit)
+Two Lashes (Hit)
+Charge (Hit)
+Three Lashes (Special)
+Stab (Special)
+Roll Assault (Special)
+Roar (Special)
+Pierce-Throw (Heavy)
+One-Two (Heavy)
+Pinch-Throw (Heavy)
+Combination (Heavy)
+Pierce (Withering)
+Bolt (Withering)
+Tusk Slash (Sharp)
+Ice Bomb (Sharp)
+Injection (Sharp)
+Blizzard (Sharp)
+Poison Gas (Withering)
+Lightning (Withering)
+Wheel Attack (Special)
+Roar (Special)
+
+
+
+Hopper/Worm
+
+Worm Techs
+Hopper Techs
+Bite (Basic)
+Hook (Basic)
+Somersault (Hit)
+Flick (Hit)
+Somersaults (Hit)
+Rapid Flick (Hit)
+Sting (Basic)
+Jab (Basic)
+Tail Lash (Hit)
+Flick (Hit)
+Two Lashes (Hit)
+Rapid Flick (Hit)
+Three Lashes (Special)
+Flick Combo (Special)
+Roll Assault (Special)
+Hopper Combo (Special)
+Pierce-Throw (Heavy)
+Flick (Hit)
+Pinch-Throw (Heavy)
+Rapid Flick (Hit)
+Pierce (Withering)
+Jump Blow (Hit)
+Tusk Slash (Sharp)
+Jump Blow (Sharp)
+Injection (Sharp)
+2 Jump Blows (Sharp)
+Poison Gas (Withering)
+2 Jump Blows (Sharp)
+Wheel Attack (Special)
+1-2-JumpBlow (Special)
+
+
+
+Baku/Worm
+
+Worm Techs
+Baku Techs
+Bite (Basic)
+Charge (Basic)
+Somersault (Hit)
+Roar (Sharp)
+Somersaults (Hit)
+Two Roars (Sharp)
+Sting (Basic)
+Dust Cloud (Basic)
+Tail Lash (Hit)
+Bite (Hit)
+Two Lashes (Hit)
+Two Bites (Hit)
+Three Lashes (Special)
+Three Bites (Special)
+Roll Assault (Special)
+Nap (Special)
+Pierce-Throw (Heavy)
+Tongue Slap (Heavy)
+Pinch-Throw (Heavy)
+Diving Press (Heavy)
+Pierce (Withering)
+Sneeze (Withering)
+Tusk Slash (Sharp)
+Roar (Sharp)
+Injection (Sharp)
+Hypnotism (Sharp)
+Poison Gas (Withering)
+Mating Song (Withering)
+Wheel Attack (Special)
+Foul Wind (Special)
+
+	
+ 
+Kato/Worm
+
+Worm Techs
+Kato Techs
+Bite (Basic)
+Slash Claw (Basic)
+Somersault (Hit)
+Twister Claw (Hit)
+Somersaults (Hit)
+Tornado Claw (Hit)
+Sting (Basic)
+Thrust Claw (Basic)
+Tail Lash (Hit)
+Phantom Claw (Hit)
+Two Lashes (Hit)
+Slash Claws (Basic)
+Three Lashes (Special)
+Rolling Claw (Special)
+Roll Assault (Special)
+Oil Drinking (Special)
+Pierce-Throw (Heavy)
+Hopping Claw (Heavy)
+Pinch-Throw (Heavy)
+Oil Fire (Heavy)
+Pierce (Withering)
+Smoke Breath (Withering)
+Tusk Slash (Sharp)
+Turn Claw (Sharp)
+Injection (Sharp)
+Drill Claw (Sharp)
+Poison Gas (Withering)
+Oil Spray (Withering)
+Wheel Attack (Special)
+Aerial Claw (Special)
+
+	
+	
+Zilla/Worm
+
+Worm Techs
+Zilla Techs
+Bite (Basic)
+Belly Attack (Basic)
+Somersault (Hit)
+Charge (Sharp)
+Somersaults (Hit)
+Zilla Rush (Sharp)
+Sting (Basic)
+Scratch (Basic)
+Tail Lash (Hit)
+Head Butt (Hit)
+Two Lashes (Hit)
+Tail Lashes (Hit)
+Three Lashes (Special)
+Body Press (Special)
+Roll Assault (Special)
+Body Press (Special)
+Pierce-Throw (Heavy)
+Roll Assault (Heavy)
+Pinch-Throw (Heavy)
+Earthquake (Heavy)
+Pierce (Withering)
+Sneeze (Withering)
+Tusk Slash (Sharp)
+Knocking-Up (Sharp)
+Injection (Sharp)
+Tsunami (Special)
+Poison Gas (Withering)
+Bubbles (Withering)
+Wheel Attack (Special)
+Wave Riding (Withering)
+
+	
+
+Bajarl/Worm
+	
+Worm Techs
+Bajarl Techs
+Bite (Basic)
+Left Jab (Basic)
+Somersault (Hit)
+Uppercut (Sharp)
+Somersaults (Hit)
+1-2-Uppercut (Sharp)
+Sting (Basic)
+Right Jab (Basic)
+Tail Lash (Hit)
+Uppercut (Sharp)
+Two Lashes (Hit)
+1-2-Uppercut (Sharp)
+Three Lashes (Special)
+Mystic Combo (Sharp)
+Roll Assault (Special)
+Bajarl Beam (Special)
+Pierce-Throw (Heavy)
+Straight (Heavy)
+Pinch-Throw (Heavy)
+Hook (Heavy)
+Pierce (Withering)
+1-2-Hook (Heavy)
+Tusk Slash (Sharp)
+Uppercut (Sharp)
+Injection (Sharp)
+1-2-Uppercut (Sharp)
+Poison Gas (Withering)
+Mystic Pot (Special)
+Wheel Attack (Special)
+1-2-Smash (Special)
+
+	
+
+Mew/Worm
+
+Worm Techs
+Mew Techs
+Bite (Basic)
+Punch (Basic)
+Somersault (Hit)
+Scratch (Hit)
+Somersaults (Hit)
+Stab (Withering)
+Sting (Basic)
+Leaping Kick (Basic)
+Tail Lash (Hit)
+Twiddling (Sharp)
+Two Lashes (Hit)
+Twiddling-2 (Sharp)
+Three Lashes (Special)
+Twiddling-Z (Special)
+Roll Assault (Special)
+HundredBlows (Special)
+Pierce-Throw (Heavy)
+Diving Press (Heavy)
+Pinch-Throw (Heavy)
+RushingPunch (Heavy)
+Pierce (Withering)
+Miaow (Withering)
+Tusk Slash (Sharp)
+Head Butt (Sharp)
+Injection (Sharp)
+Head Assault (Sharp)
+Poison Gas (Withering)
+Song Of Mew (Withering)
+Wheel Attack (Special)
+Zap (Special)
+
+	
+
+Phoenix/Worm
+
+Worm Techs
+Phoenix Techs
+Bite (Basic)
+Beak (Basic)
+Somersault (Hit)
+Rapid Beaks (Hit)
+Somersaults (Hit)
+Rapid Beaks (Hit)
+Sting (Basic)
+Talons (Basic)
+Tail Lash (Hit)
+Rapid Beaks (Hit)
+Two Lashes (Hit)
+Rapid Beaks (Hit)
+Three Lashes (Special)
+Fire Wave (Special)
+Roll Assault (Special)
+Fire Wave (Special)
+Pierce-Throw (Heavy)
+Heat Beam (Heavy)
+Pinch-Throw (Heavy)
+Heat Beam (Heavy)
+Pierce (Withering)
+Flame Shot (Withering)
+Tusk Slash (Sharp)
+Fire Twister (Sharp)
+Injection (Sharp)
+Fire Tornado (Sharp)
+Poison Gas (Withering)
+Flame Cannon (Withering)
+Wheel Attack (Special)
+Fire Stream (Special)
+
+	
+
+Ghost/Worm
+
+Worm Techs
+Ghost Techs
+Bite (Basic)
+Charge (Basic)
+Somersault (Hit)
+Energy Shot (Hit)
+Somersaults (Hit)
+Necromancy (Hit)
+Sting (Basic)
+Toy Hammer (Basic)
+Tail Lash (Hit)
+Energy Shot (Hit)
+Two Lashes (Hit)
+Necromancy (Hit)
+Three Lashes (Special)
+Uppercut (Special)
+Roll Assault (Special)
+Uppercut (Special)
+Pierce-Throw (Heavy)
+Dove Bomb (Heavy)
+Pinch-Throw (Heavy)
+Pigeon Bomb (Heavy)
+Pierce (Withering)
+Surprise (Withering)
+Tusk Slash (Sharp)
+Magic Card (Sharp)
+Injection (Sharp)
+Magic Cards (Sharp)
+Poison Gas (Withering)
+Astonishment (Withering)
+Wheel Attack (Special)
+Combination (Special)
+
+	
+
+Metalner/Worm
+
+Worm Techs
+Metalner Techs
+Bite (Basic)
+Left Slap (Basic)
+Somersault (Hit)
+Straight (Hit)
+Somersaults (Hit)
+DashStraight (Hit)
+Sting (Basic)
+High Kick (Sharp)
+Tail Lash (Hit)
+Right Slap (Basic)
+Two Lashes (Hit)
+Elbow Strike (Hit)
+Three Lashes (Special)
+Burning Palms (Special)
+Roll Assault (Special)
+Metalner Ray (Special)
+Pierce-Throw (Heavy)
+Double Palms (Heavy)
+Pinch-Throw (Heavy)
+UFO Attack (Heavy)
+Pierce (Withering)
+Palm Strike (Withering)
+Tusk Slash (Sharp)
+Back Charge (Sharp)
+Injection (Sharp)
+Back Charge (Sharp)
+Poison Gas (Withering)
+Palm Strike (Withering)
+Wheel Attack (Special)
+UFO Attack (Heavy)
+
+	
+
+Jill/Worm
+
+Worm Techs
+Jill Techs
+Bite (Basic)
+Double Slaps (Basic)
+Somersault (Hit)
+Ice Spikes (Hit)
+Somersaults (Hit)
+Cold Breath (Hit)
+Sting (Basic)
+1-2-Straight (Basic)
+Tail Lash (Hit)
+Cold Breath (Hit)
+Two Lashes (Hit)
+Ice Spikes (Hit)
+Three Lashes (Special)
+Jill Combo (Special)
+Roll Assault (Special)
+Snowstorm (Special)
+Pierce-Throw (Heavy)
+Ice Wave (Heavy)
+Pinch-Throw (Heavy)
+Punch Combo (Heavy)
+Pierce (Withering)
+Clap Attack (Withering)
+Tusk Slash (Sharp)
+Frantic Rush (Sharp)
+Injection (Sharp)
+Ice Meteor (Sharp)
+Poison Gas (Withering)
+Slap Combo (Withering)
+Wheel Attack (Special)
+Snowstorm (Special)
+
+
+
+Mocchi/Worm
+
+Worm Techs
+Mocchi Techs
+Bite (Basic)
+Slap (Basic)
+Somersault (Hit)
+Thrust (Hit)
+Somersaults (Hit)
+1-2 Thrust (Hit)
+Sting (Basic)
+Head Butt (Basic)
+Tail Lash (Hit)
+Thrust (Hit)
+Two Lashes (Hit)
+1-2 Thrust (Hit)
+Three Lashes (Special)
+Thrusts (Special)
+Roll Assault (Special)
+Mocchi Ray (Special)
+Pierce-Throw (Heavy)
+Press (Heavy)
+Pinch-Throw (Heavy)
+Diving Press (Heavy)
+Pierce (Withering)
+Licking (Withering)
+Tusk Slash (Sharp)
+Petal Swirl (Sharp)
+Injection (Sharp)
+Roll Attack (Sharp)
+Poison Gas (Withering)
+Licking (Withering)
+Wheel Attack (Special)
+Giant Press (Heavy)
+
+	
+
+Joker/Worm
+
+Worm Techs
+Joker
+Bite (Basic)
+Death Punch (Basic)
+Somersault (Hit)
+Death Energy (Hit)
+Somersaults (Hit)
+Death Energy (Hit)
+Sting (Basic)
+Death Smash (Basic)
+Tail Lash (Hit)
+Death Energy (Hit)
+Two Lashes (Hit)
+Death Energy (Hit)
+Three Lashes (Special)
+Death Final (Special)
+Roll Assault (Special)
+Death Final (Special)
+Pierce-Throw (Heavy)
+Death Slash (Heavy)
+Pinch-Throw (Heavy)
+Death Slash (Heavy)
+Pierce (Withering)
+Death Cutter (Sharp)
+Tusk Slash (Sharp)
+Death Cutter (Sharp)
+Injection (Sharp)
+Death Cutter (Sharp)
+Poison Gas (Withering)
+Death Cutter (Sharp)
+Wheel Attack (Special)
+Death Final (Sharp)
+
+	
+
+Gaboo/Worm
+
+Worm Techs
+Gaboo Techs
+Bite (Basic)
+Chop (Basic)
+Somersault (Hit)
+Shock Wave (Hit)
+Somersaults (Hit)
+RollingChop (Basic)
+Sting (Basic)
+Slap (Basic)
+Tail Lash (Hit)
+Long Punch (Hit)
+Two Lashes (Hit)
+RollingChop (Basic)
+Three Lashes (Special)
+Cyclone (Special)
+Roll Assault (Special)
+Acid Spit (Special)
+Pierce-Throw (Heavy)
+Back Blow (Heavy)
+Pinch-Throw (Heavy)
+Straight (Heavy)
+Pierce (Withering)
+Kiss (Withering)
+Tusk Slash (Sharp)
+Diving Press (Sharp)
+Injection (Sharp)
+Jumping Chop (Sharp)
+Poison Gas (Withering)
+Spit (Withering)
+Wheel Attack (Special)
+Acid Spit (Special)
+
+	
+
+Undine/Worm
+
+Worm Techs
+Undine
+Bite (Basic)
+Ice Sword (Basic)
+Somersault (Hit)
+Aqua Wave (Hit)
+Somersaults (Hit)
+Aqua Waves (Hit)
+Sting (Basic)
+Cold Fog (Basic)
+Tail Lash (Hit)
+Kiss (Hit)
+Two Lashes (Hit)
+Ice Swords (Basic)
+Three Lashes (Special)
+Water Gun (Special)
+Roll Assault (Special)
+Cold Whirl (Special)
+Pierce-Throw (Heavy)
+Dolphin Blow (Heavy)
+Pinch-Throw (Heavy)
+Ice Coffin (Heavy)
+Pierce (Withering)
+Aqua Whip (Withering)
+Tusk Slash (Sharp)
+Cold Geyser (Sharp)
+Injection (Sharp)
+Hailstorm (Sharp)
+Poison Gas (Withering)
+Splash (Withering)
+Wheel Attack (Special)
+Vitalization (Special)
+
+	
+
+Niton/Worm
+
+Worm Techs
+Niton
+Bite (Basic)
+Whip (Basic)
+Somersault (Hit)
+Sound Wave (Hit)
+Somersaults (Hit)
+Sound Wave-L (Hit)
+Sting (Basic)
+Stab (Basic)
+Tail Lash (Hit)
+Numbing Stab (Basic)
+Two Lashes (Hit)
+ElectricStab (Basic)
+Three Lashes (Special)
+Sound Wave-X (Special)
+Roll Assault (Special)
+MillionWhips (Special)
+Pierce-Throw (Heavy)
+Shock (Heavy)
+Pinch-Throw (Heavy)
+Severe Shock (Heavy)
+Pierce (Withering)
+Niton Ink (Withering)
+Tusk Slash (Sharp)
+Numbing Whip (Sharp)
+Injection (Sharp)
+MaximalShock (Special?)
+Poison Gas (Withering)
+ElectricWhip (Sharp)
+Wheel Attack (Special)
+Shell Attack (Special)
+
+
+
+Mock/Worm
+
+Worm Techs
+Mock Techs
+Bite (Basic)
+None
+Somersault (Hit)
+Head Butt (Basic)
+Somersaults (Hit)
+Leaf Cutter (Hit)
+Sting (Basic)
+Leaf Gun (Basic)
+Tail Lash (Hit)
+Leaf Gun (Basic)
+Two Lashes (Hit)
+Leaf Cutter (Hit)
+Three Lashes (Special)
+Twisters (Special)
+Roll Assault (Special)
+Energy Steal (Special)
+Pierce-Throw (Heavy)
+Leaf Gatling (Heavy)
+Pinch-Throw (Heavy)
+Leaf Gatling (Heavy)
+Pierce (Withering)
+Twig Gun (Withering)
+Tusk Slash (Sharp)
+Leaf Cutter (Sharp)
+Injection (Sharp)
+Twister (Special)
+Poison Gas (Withering)
+Twig Gatling (Withering)
+Wheel Attack (Special)
+Twisters (Special)
+
+
+
+Ducken/Worm
+
+Worm Techs
+Ducken Techs
+Bite (Basic)
+Flutter Slap (Basic)
+Somersault (Hit)
+Bound (Hit)
+Somersaults (Hit)
+Bound Charge (Hit)
+Sting (Basic)
+Beak Thrust (Basic)
+Tail Lash (Hit)
+Eye Beam (Hit)
+Two Lashes (Hit)
+Beam Shower (Hit)
+Three Lashes (Special)
+Maximal Beam (Hit)
+Roll Assault (Special)
+Frantic Beam (Special)
+Pierce-Throw (Heavy)
+Missile (Heavy)
+Pinch-Throw (Heavy)
+Bombing (Heavy)
+Pierce (Withering)
+Ducken Dance (Withering)
+Tusk Slash (Sharp)
+Falling Beak (Sharp)
+Injection (Sharp)
+Boomerang (Sharp)
+Poison Gas (Withering)
+Surprise (Withering)
+Wheel Attack (Special)
+Explosion (Special)
+
+
+
+Plant/Worm
+
+Worm Techs
+Plant Techs
+Bite (Basic)
+Slap (Basic)
+Somersault (Hit)
+Root Attack (Hit)
+Somersaults (Hit)
+Root Combo (Hit)
+Sting (Basic)
+Jab (Basic)
+Tail Lash (Hit)
+Root Attack (Hit)
+Two Lashes (Hit)
+Root Combo (Hit)
+Three Lashes (Special)
+Face Drill (Special)
+Roll Assault (Special)
+Life Steal (Special)
+Pierce-Throw (Heavy)
+Jab Combo (Heavy)
+Pinch-Throw (Heavy)
+Plant Combo (Heavy)
+Pierce (Withering)
+Toxic Nectar (Withering)
+Tusk Slash (Sharp)
+Seed Gun (Sharp)
+Injection (Sharp)
+Seed Gatling (Sharp)
+Poison Gas (Withering)
+Toxic Pollen (Withering)
+Wheel Attack (Special)
+Life Steal (Special)
+
+
+
+Ape/Worm
+
+Bite (Basic)
+Slap (Basic)
+Somersault (Hit)
+Boomerang (Hit)
+Somersaults (Hit)
+Big Banana (Hit)
+Sting (Basic)
+Thwack (Basic)
+Tail Lash (Hit)
+Big Banana (Hit)
+Two Lashes (Hit)
+Boomerang (Hit)
+Three Lashes (Special)
+Swing-Throw (Special)
+Roll Assault (Special)
+Tasty Banana (Special)
+Pierce-Throw (Heavy)
+Grab-Throw (Heavy)
+Pinch-Throw (Heavy)
+Roll Assault (Heavy)
+Pierce (Withering)
+Sneeze (Withering)
+Tusk Slash (Sharp)
+Bomb (Sharp)
+Injection (Sharp)
+Big Bomb (Sharp)
+Poison Gas (Withering)
+Blast (Withering)
+Wheel Attack (Special)
+Big Banana (Hit)
+
+
+
+Worm/Worm
+
+Worm Techs
+Worm Techs
+Bite (Basic)
+Poison Gas (Withering)
+Somersault (Hit)
+Pierce (Withering)
+Somersaults (Hit)
+Pierce-Throw (Heavy)
+Sting (Basic)
+Injection (Sharp)
+Tail Lash (Hit)
+Tusk Slash (Sharp)
+Two Lashes (Hit)
+Pinch-Throw (Heavy)
+Three Lashes (Special)
+Wheel Attack (Special)
+Roll Assault (Special)
+Three Lashes (Special)
+Pierce-Throw (Heavy)
+Somersault (Hit)
+Pinch-Throw (Heavy)
+Tail Lash (Hit)
+Pierce (Withering)
+Sting (Basic)
+Tusk Slash (Sharp)
+Bite (Basic)
+Injection (Sharp)
+Somersaults (Hit)
+Poison Gas (Withering)
+Two Lashes (Hit)
+Wheel Attack (Special)
+Roll Assault (Special)
+
+
+Breed
+Stat Gained
+Pixie			+30 INT
+Dragon			+30 POW
+Centaur			+30 SKI
+ColorPandora	+30 LIF
+Beaclon			+30 LIF
+Henger			+30 SPD
+Wracky			+30 SPD
+Golem			+30 POW
+Zuum			+30 POW
+Durahan			+30 DEF
+Arrowhead		+30 DEF
+Tiger			+30 SKI
+Hopper			+30 SKI
+Hare			+30 POW
+Baku			+30 LIF
+Gali			+30 Base Nature
+Kato			+30 SPD
+Zilla			+30 POW
+Bajarl			+30 POW
+Mew				+30 SKI
+Phoenix			+30 INT
+Ghost			+30 INT
+Metalner		+30 DEF
+Suezo			+30 INT
+Jill			+30 INT
+Mocchi			+30 DEF
+Joker			-30 Base Nature
+Gaboo			+30 LIF
+Jell			+30 SPD
+Undine			+30 SKI
+Niton			+30 DEF
+Mock			+30 INT
+Ducken			+30 SPD
+Plant			+30 LIF
+Monol			+30 DEF
+Ape				+30 SPD
+Worm			+30 LIF
+Naga			+30 SKI
+

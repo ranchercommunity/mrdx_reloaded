@@ -1,0 +1,13 @@
+Zakobon
+=====================================
+Monsters Developed or Contributed To
+=====================================
+Version 0.7.0
+=====================================
+Jell / Niton
+Phoenix / Joker
+
+=====================================
+Tools Developed or Contributed To
+=====================================
+MR2_OBJExporter

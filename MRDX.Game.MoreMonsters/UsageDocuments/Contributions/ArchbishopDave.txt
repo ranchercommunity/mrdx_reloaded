@@ -62,6 +62,12 @@ Gaboo / Centaur (Alternate #1)
 Version 0.4.0
 =====================================
 Arrowhead / ColorPandora
+
+=====================================
+Version 0.7.0
+=====================================
+Zuum / Ghost ( Redesign )
+Zuum / Special 6 ( Redesign )
 ...
 
 and countless others for processing, stat updates and naming, and battle sprite textures!

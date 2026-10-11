@@ -3,6 +3,9 @@ https://docs.google.com/spreadsheets/d/1zeIbKS49pPMbbrOunNOaydNaSe2n1KlEOt_hpzRa
 
 Please keep in mind that all values are 0 Indexed. 
 Please refer to LegendCup for reference information to compare to other existing monters.
+Please refer to the below link for updated information on specific monsters and images!
+
+legendcup.com/wiki
 
 As an example, Aquamarine is a new Arrowhead/Undine monster that has a natural lifespan of 340 weeks.
 It begins with 45 Nature, and has a Sustainable (3) Growth Pattern.

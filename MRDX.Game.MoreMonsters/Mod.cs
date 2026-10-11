@@ -366,12 +366,12 @@ public class Mod : ModBase // <= Do not Remove.
     private void InitializeNewMonsters ( bool unused ) {
         InitializeNewMonsters( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER.csv" ) );
 
-        if ( _configuration.ExpandedMonsterSpecies ) {
-            InitializeNewMonsters( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER_EXPANDED.csv" ) );
-        }
-
         if ( _configuration.BonusMonsterSpecies ) {
             InitializeNewMonsters( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER_BONUS.csv" ) );
+        }
+
+        if ( _configuration.ExpandedMonsterSpecies ) {
+            InitializeNewMonsters( Path.Combine( _modPath + @"\NewMonsterData\", "MDATA_MONSTER_EXPANDED.csv" ) );
         }
     }
 

@@ -10,3 +10,13 @@ Pixie / Ape
 Version 0.4.4
 =====================================
 Zilla / Joker
+
+=====================================
+Version 0.7.0
+=====================================
+Zilla / Ghost ( Alternate #1 )
+
+=====================================
+Tools Developed or Contributed To
+=====================================
+Expanded Monsters Module for the More Monsters Mod

@@ -1,12 +1,13 @@
-﻿# More Monsters - Version 0.6.4
+﻿# More Monsters - Version 0.7.0
 
 ## Features
 
-* Adds additional species (230+!) combinations to the game and support for being able to acquire them.
+* Adds additional species (240+!) combinations to the game and support for being able to acquire them.
 * Monsters have size variations, making every monster unique!
 * Monsters can have multiple appearances for the same species.
 * Monsters can be generated from the shrine or combined from existing monsters.
 * Monsters are supported for VS Play!
+* Monsters can have unique and new models!
 
 
 
@@ -38,6 +39,21 @@ Monster size variations are random from the shrine, and partially inherited from
 
 
 ## Update History
+
+##### v0.7.0 - 10/10/26
+
+
+
+* NEW FEATURE: Expanded Monsters - Disabled by Default - The More Monsters Mod now supports new models for monsters. 
+* \- This feature is disabled by default, but recommended to be enabled and any issues reported.
+* NEW FEATURE: New Worm Cocoon Main Breeds - Enabled by Default - Worms can now cocoon into any monster with a valid worm sub.
+* NEW FEATURE: Force Worm Cocoon Main - Disabled by Default - Worms can now be forced to always cocoon into a specific main breed.
+* 15 additional monster combinations have been added!
+* 1 new expanded monster model alternate!
+* Updated monsters for Zuum / Ghost and Phoenix / Joker
+* UPDATE: Monsters with Centaur Subs now have improved GRs to better align with base game behavior (17 GR Sub vs 13 GR Sub)
+
+
 
 ##### v0.6.3 and v0.6.4 - 8/21/26
 
