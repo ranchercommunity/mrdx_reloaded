@@ -14,7 +14,7 @@ public class Config : Configurable<Config>
 
     [DisplayName("Skip Drill Animations")]
     [Description(
-        "Auto - Skips the drill instantly. Manual - Press Triangle /\\ to skip. Disabled - Do not allow skipping drill animations")]
+        "Auto - Skips the drill instantly. Manual - Press back button to skip. Disabled - Do not allow skipping drill animations")]
     [DefaultValue(SkipAnimationSetting.Auto)]
     public SkipAnimationSetting SkipDrill { get; set; } = SkipAnimationSetting.Auto;
 

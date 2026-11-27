@@ -41,6 +41,7 @@
 
     <ItemGroup>
         <PackageReference Include="Reloaded.Memory" Version="8.1.0" />
+        <PackageReference Include="Reloaded.Memory.SigScan.ReloadedII.Interfaces" Version="1.2.0" />
         <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime" />
     </ItemGroup>
 
